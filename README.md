@@ -14,7 +14,7 @@ automatically:
 Sign in with email and password or with Steam. ProjectTrucks links with a short code you
 approve on the website (no password in the app).
 
-Download ProjectTrucks: https://punterdigital.github.io/personal-apps/
+Download ProjectTrucks: https://project-trucks.shaypunter.co.uk/download
 
 ## Development
 

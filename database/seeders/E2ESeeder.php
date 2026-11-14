@@ -8,7 +8,9 @@ use App\Models\Company;
 use App\Models\Delivery;
 use App\Models\LiveStatus;
 use App\Models\User;
+use App\Support\LatestRelease;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -79,5 +81,30 @@ class E2ESeeder extends Seeder
             'description' => 'Everyone welcome.',
             'recruitment' => Recruitment::Open,
         ]);
+
+        // The latest ProjectTrucks release, so /download never asks GitHub during E2E.
+        $release = [
+            'version' => '0.7.0',
+            'published_at' => '2026-11-14T13:56:02Z',
+            'notes_url' => 'https://github.com/PunterDigital/project-trucks/releases/tag/v0.7.0',
+            'installers' => [
+                [
+                    'kind' => 'exe',
+                    'name' => 'ProjectTrucks_0.7.0_x64-setup.exe',
+                    'size' => 4684067,
+                    'url' => 'https://github.com/PunterDigital/project-trucks/releases/download/v0.7.0/ProjectTrucks_0.7.0_x64-setup.exe',
+                    'sha256' => '19915b3ab49999fbbec4c11159b79033e5ee57181064269dbf0a0a4f0adb7af7',
+                ],
+                [
+                    'kind' => 'msi',
+                    'name' => 'ProjectTrucks_0.7.0_x64_en-US.msi',
+                    'size' => 6668288,
+                    'url' => 'https://github.com/PunterDigital/project-trucks/releases/download/v0.7.0/ProjectTrucks_0.7.0_x64_en-US.msi',
+                    'sha256' => '2cea6156fb6001b0e9921828a6812970873fa29246cb601f36311d6f2ca55922',
+                ],
+            ],
+        ];
+        Cache::forever(LatestRelease::CACHE_KEY, $release);
+        Cache::forever(LatestRelease::LAST_GOOD_KEY, $release);
     }
 }

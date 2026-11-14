@@ -5,6 +5,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyMembershipController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryController;
+use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LeaderboardController;
@@ -18,6 +19,11 @@ Route::get('version', VersionController::class)->withoutMiddleware('web')->name(
 // Public pages: anyone can browse drivers, jobs, companies and leaderboards.
 Route::get('/', HomeController::class)->name('home');
 Route::get('leaderboards', LeaderboardController::class)->name('leaderboards');
+Route::get('download', [DownloadController::class, 'show'])->name('download');
+// Permanent installer links: /download/windows (setup .exe) and /download/windows/msi.
+Route::get('download/windows/{kind?}', [DownloadController::class, 'windows'])
+    ->whereIn('kind', ['exe', 'msi'])
+    ->name('download.windows');
 Route::get('drivers', [DriverController::class, 'index'])->name('drivers.index');
 Route::get('drivers/{driver:username}', [DriverController::class, 'show'])->name('drivers.show');
 Route::get('jobs/{delivery}', [DeliveryController::class, 'show'])->whereNumber('delivery')->name('jobs.show');
