@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { login } from '@/routes';
+import { login, privacy, terms } from '@/routes';
 import { store } from '@/routes/register';
 
 defineProps<{
@@ -121,6 +121,20 @@ defineOptions({
                 Create account
             </Button>
         </div>
+
+        <p
+            class="text-center text-xs text-muted-foreground"
+            data-test="register-legal"
+        >
+            By creating an account you agree to the
+            <TextLink :href="terms()" class="underline underline-offset-4"
+                >terms</TextLink
+            >
+            and the
+            <TextLink :href="privacy()" class="underline underline-offset-4"
+                >privacy policy</TextLink
+            >.
+        </p>
 
         <div class="text-center text-sm text-muted-foreground">
             Already have an account?

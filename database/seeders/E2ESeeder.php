@@ -119,5 +119,20 @@ class E2ESeeder extends Seeder
             'password' => $password,
         ]);
         $steve->forceFill(['steam_id' => '76561198000000042', 'email_verified_at' => now()])->save();
+
+        // Privacy settings (#4641): a driver whose jobs privacy.spec deletes.
+        $paula = User::query()->create([
+            'name' => 'Paula Privacy',
+            'email' => 'paula@example.com',
+            'username' => 'paula-privacy',
+            'password' => $password,
+        ]);
+        $paula->forceFill(['email_verified_at' => now(), 'password_set_at' => now()])->save();
+        Delivery::factory()->for($paula)->create([
+            'source_city' => 'Lyon',
+            'dest_city' => 'Milano',
+            'cargo_name' => 'Cheese',
+            'completed_at' => now()->subHours(2),
+        ]);
     }
 }

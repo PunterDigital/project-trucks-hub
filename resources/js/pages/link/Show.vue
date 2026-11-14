@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, Link } from '@inertiajs/vue3';
 import { MonitorSmartphone } from '@lucide/vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { privacy } from '@/routes';
 import { show, update } from '@/routes/link';
 
 defineOptions({
@@ -52,6 +53,12 @@ defineProps<{
                     approved, new jobs upload automatically and appear on your
                     public profile; you can hide single jobs or make your
                     profile private.
+                    <Link
+                        :href="privacy()"
+                        class="underline underline-offset-4"
+                        data-test="link-privacy"
+                        >What gets synced</Link
+                    >.
                 </p>
             </div>
             <div class="grid grid-cols-2 gap-3">

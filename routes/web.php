@@ -9,6 +9,7 @@ use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LinkDeviceController;
 use App\Http\Controllers\VersionController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,8 @@ Route::get('drivers', [DriverController::class, 'index'])->name('drivers.index')
 Route::get('drivers/{driver:username}', [DriverController::class, 'show'])->name('drivers.show');
 Route::get('jobs/{delivery}', [DeliveryController::class, 'show'])->whereNumber('delivery')->name('jobs.show');
 Route::get('companies', [CompanyController::class, 'index'])->name('companies.index');
+Route::get('privacy', [LegalController::class, 'privacy'])->name('privacy');
+Route::get('terms', [LegalController::class, 'terms'])->name('terms');
 
 // Sign in with Steam.
 Route::middleware('guest')->group(function () {

@@ -62,6 +62,12 @@ without a full build.
   users have a password; E2E's `steve@example.com` is Steam-only (hash "password" only so
   E2E can log in).
 - `config/sanctum.php` `stateful` is empty on purpose: the API is bearer-token only.
+- Privacy (#4641): `/privacy` + `/terms` (`LegalController`, bump `UPDATED` when the wording
+  changes; contact = `HUB_CONTACT_EMAIL`, else the GitHub repo). Keep `legal/Privacy.vue` in step
+  with what the app syncs (`docs/api.md`): new synced fields (e.g. map position) need a line
+  there. Settings → Privacy exports `PrivacyController::exportFor()` (no secrets) and deletes
+  synced jobs only. Sanctum tokens are a morph with no FK: `User::booted()` deletes them when
+  the account goes; everything else cascades.
 - `/download`: ProjectTrucks' latest GitHub release via `App\Support\LatestRelease` (GitHub API,
   cached 15 min, last good answer kept forever, only `github.com/PunterDigital/project-trucks/
   releases/download/` URLs accepted). `/download/windows[/msi]` are permanent links that 302 to

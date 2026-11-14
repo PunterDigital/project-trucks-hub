@@ -1,0 +1,33 @@
+/* Plain reading layout for /privacy and /terms (no typography plugin in this app). */
+.legal {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+    line-height: 1.65;
+}
+.legal :deep(h1) {
+    font-size: 1.875rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+.legal :deep(h2) {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+}
+.legal :deep(p),
+.legal :deep(ul) {
+    margin-top: 0.75rem;
+}
+.legal :deep(ul) {
+    list-style: disc;
+    padding-left: 1.5rem;
+}
+.legal :deep(li) {
+    margin-top: 0.375rem;
+}
+.legal :deep(a) {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
