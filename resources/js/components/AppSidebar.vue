@@ -21,7 +21,14 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, download, home, leaderboards } from '@/routes';
+import {
+    dashboard,
+    download,
+    home,
+    leaderboards,
+    privacy,
+    terms,
+} from '@/routes';
 import { index as companies } from '@/routes/companies';
 import { index as drivers } from '@/routes/drivers';
 import type { NavItem } from '@/types';
@@ -59,6 +66,14 @@ const mainNavItems = computed<NavItem[]>(() => [
         </SidebarContent>
 
         <SidebarFooter>
+            <nav
+                class="flex gap-3 px-2 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden"
+                aria-label="Legal"
+                data-test="legal-links"
+            >
+                <Link :href="privacy()" class="hover:underline">Privacy</Link>
+                <Link :href="terms()" class="hover:underline">Terms</Link>
+            </nav>
             <NavUser />
         </SidebarFooter>
     </Sidebar>

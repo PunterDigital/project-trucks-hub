@@ -31,6 +31,11 @@ return [
     // Sign in through Steam. Authentication is Steam's OpenID provider only (App\Auth\SteamProvider);
     // it needs no key. STEAM_API_KEY (https://steamcommunity.com/dev/apikey) is optional and only
     // fills in the player's Steam name and avatar. STEAM_LOGIN=false hides the Steam buttons.
+    // Shown on /privacy and /terms; without it they point at the GitHub repository (#4641).
+    'hub' => [
+        'contact_email' => env('HUB_CONTACT_EMAIL') ?: null,
+    ],
+
     'steam' => [
         'enabled' => (bool) env('STEAM_LOGIN', true),
         'client_id' => null,

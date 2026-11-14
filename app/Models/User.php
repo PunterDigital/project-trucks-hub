@@ -61,6 +61,15 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         ];
     }
 
+    protected static function booted(): void
+    {
+        // Sanctum tokens hang off a morph, so no foreign key removes them: linked apps must
+        // stop working the moment the account goes (#4641). Everything else cascades.
+        static::deleting(function (User $user) {
+            $user->tokens()->delete();
+        });
+    }
+
     public function getRouteKeyName(): string
     {
         return 'username';
