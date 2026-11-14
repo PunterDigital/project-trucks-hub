@@ -1,0 +1,2666 @@
+[
+    {
+        "Name": "Nürnberg",
+        "Group": null,
+        "Country": "germany",
+        "X": 853.4857,
+        "Y": 5416.1333,
+        "CountryId": 5
+    },
+    {
+        "Name": "München",
+        "Group": null,
+        "Country": "germany",
+        "X": 2474.1396,
+        "Y": 13403.145,
+        "CountryId": 5
+    },
+    {
+        "Name": "Innsbruck",
+        "Group": null,
+        "Country": "austria",
+        "X": 1710.8281,
+        "Y": 19182.43,
+        "CountryId": 1
+    },
+    {
+        "Name": "Verona",
+        "Group": null,
+        "Country": "italy",
+        "X": -461.01562,
+        "Y": 28983.2,
+        "CountryId": 6
+    },
+    {
+        "Name": "Erfurt",
+        "Group": null,
+        "Country": "germany",
+        "X": 1740.5457,
+        "Y": -3217.0354,
+        "CountryId": 5
+    },
+    {
+        "Name": "Winsen",
+        "Group": null,
+        "Country": "germany",
+        "X": 863.63696,
+        "Y": -15443.009,
+        "CountryId": 5
+    },
+    {
+        "Name": "Travemünde",
+        "Group": null,
+        "Country": "germany",
+        "X": 2159.001,
+        "Y": -20008.455,
+        "CountryId": 5
+    },
+    {
+        "Name": "Kiel",
+        "Group": null,
+        "Country": "germany",
+        "X": 278.46368,
+        "Y": -22703.695,
+        "CountryId": 5
+    },
+    {
+        "Name": "Venezia",
+        "Group": null,
+        "Country": "italy",
+        "X": 4689.758,
+        "Y": 29658.805,
+        "CountryId": 6
+    },
+    {
+        "Name": "Leipzig",
+        "Group": null,
+        "Country": "germany",
+        "X": 6723.3926,
+        "Y": -3863.094,
+        "CountryId": 5
+    },
+    {
+        "Name": "Magdeburg",
+        "Group": null,
+        "Country": "germany",
+        "X": 3740.2197,
+        "Y": -8890.395,
+        "CountryId": 5
+    },
+    {
+        "Name": "Rostock",
+        "Group": null,
+        "Country": "germany",
+        "X": 5624.9,
+        "Y": -19578.648,
+        "CountryId": 5
+    },
+    {
+        "Name": "Gedser",
+        "Group": null,
+        "Country": "denmark",
+        "X": 5970.9805,
+        "Y": -22420.453,
+        "CountryId": 21
+    },
+    {
+        "Name": "Oslo",
+        "Group": null,
+        "Country": "norway",
+        "X": 4140.789,
+        "Y": -53680.668,
+        "CountryId": 35
+    },
+    {
+        "Name": "Salzburg",
+        "Group": null,
+        "Country": "austria",
+        "X": 8519.496,
+        "Y": 15274.625,
+        "CountryId": 1
+    },
+    {
+        "Name": "Trieste",
+        "Group": null,
+        "Country": "italy",
+        "X": 10154.061,
+        "Y": 27184.23,
+        "CountryId": 6
+    },
+    {
+        "Name": "Koper",
+        "Group": null,
+        "Country": "slovenia",
+        "X": 10733.781,
+        "Y": 28959.633,
+        "CountryId": 41
+    },
+    {
+        "Name": "Dresden",
+        "Group": null,
+        "Country": "germany",
+        "X": 10684.348,
+        "Y": -2878.4878,
+        "CountryId": 5
+    },
+    {
+        "Name": "Berlin",
+        "Group": null,
+        "Country": "germany",
+        "X": 8897.592,
+        "Y": -11127.294,
+        "CountryId": 5
+    },
+    {
+        "Name": "Praha",
+        "Group": null,
+        "Country": "czech",
+        "X": 13699.582,
+        "Y": 3458.8477,
+        "CountryId": 3
+    },
+    {
+        "Name": "Linz",
+        "Group": null,
+        "Country": "austria",
+        "X": 12886.266,
+        "Y": 13343.457,
+        "CountryId": 1
+    },
+    {
+        "Name": "Klagenfurt am Wörthersee",
+        "Group": null,
+        "Country": "austria",
+        "X": 13296.98,
+        "Y": 22755.766,
+        "CountryId": 1
+    },
+    {
+        "Name": "Ljubljana",
+        "Group": null,
+        "Country": "slovenia",
+        "X": 14797.973,
+        "Y": 25545.086,
+        "CountryId": 41
+    },
+    {
+        "Name": "Rijeka",
+        "Group": null,
+        "Country": "croatia",
+        "X": 13866.145,
+        "Y": 29916.137,
+        "CountryId": 19
+    },
+    {
+        "Name": "Szczecin",
+        "Group": null,
+        "Country": "poland",
+        "X": 14502.535,
+        "Y": -15569.891,
+        "CountryId": 8
+    },
+    {
+        "Name": "Graz",
+        "Group": null,
+        "Country": "austria",
+        "X": 18210.99,
+        "Y": 19941.7,
+        "CountryId": 1
+    },
+    {
+        "Name": "Maribor",
+        "Group": null,
+        "Country": "slovenia",
+        "X": 18074.465,
+        "Y": 22717.336,
+        "CountryId": 41
+    },
+    {
+        "Name": "Brno",
+        "Group": null,
+        "Country": "czech",
+        "X": 21873.715,
+        "Y": 8794.824,
+        "CountryId": 3
+    },
+    {
+        "Name": "Wien",
+        "Group": null,
+        "Country": "austria",
+        "X": 19939.633,
+        "Y": 13465.906,
+        "CountryId": 1
+    },
+    {
+        "Name": "Wrocław",
+        "Group": null,
+        "Country": "poland",
+        "X": 22802.773,
+        "Y": -3021.1055,
+        "CountryId": 8
+    },
+    {
+        "Name": "Poznań",
+        "Group": null,
+        "Country": "poland",
+        "X": 22313.277,
+        "Y": -9682.324,
+        "CountryId": 8
+    },
+    {
+        "Name": "Bratislava",
+        "Group": null,
+        "Country": "slovakia",
+        "X": 24023.172,
+        "Y": 14410.895,
+        "CountryId": 11
+    },
+    {
+        "Name": "Osijek",
+        "Group": null,
+        "Country": "croatia",
+        "X": 31000.479,
+        "Y": 28372.947,
+        "CountryId": 19
+    },
+    {
+        "Name": "Szeged",
+        "Group": null,
+        "Country": "hungary",
+        "X": 36318.094,
+        "Y": 23928.074,
+        "CountryId": 13
+    },
+    {
+        "Name": "Reșița",
+        "Group": null,
+        "Country": "romania",
+        "X": 43090.234,
+        "Y": 28534.457,
+        "CountryId": 37
+    },
+    {
+        "Name": "Ниш",
+        "Group": null,
+        "Country": "serbia",
+        "X": 44790.023,
+        "Y": 39326.83,
+        "CountryId": 40
+    },
+    {
+        "Name": "Битола",
+        "Group": null,
+        "Country": "macedonia",
+        "X": 44568.82,
+        "Y": 52364.508,
+        "CountryId": 203
+    },
+    {
+        "Name": "Kouvola",
+        "Group": null,
+        "Country": "finland",
+        "X": 48376.125,
+        "Y": -60829.074,
+        "CountryId": 23
+    },
+    {
+        "Name": "Выборг",
+        "Group": null,
+        "Country": "russia",
+        "X": 53965.14,
+        "Y": -60641.934,
+        "CountryId": 38
+    },
+    {
+        "Name": "Псков",
+        "Group": null,
+        "Country": "russia",
+        "X": 55868.2,
+        "Y": -44822.492,
+        "CountryId": 38
+    },
+    {
+        "Name": "Луга",
+        "Group": null,
+        "Country": "russia",
+        "X": 59346.33,
+        "Y": -50665.293,
+        "CountryId": 38
+    },
+    {
+        "Name": "Kassel",
+        "Group": null,
+        "Country": "germany",
+        "X": -4321.2134,
+        "Y": -4569.766,
+        "CountryId": 5
+    },
+    {
+        "Name": "Hannover",
+        "Group": null,
+        "Country": "germany",
+        "X": -3001.8032,
+        "Y": -10199.298,
+        "CountryId": 5
+    },
+    {
+        "Name": "Hamburg",
+        "Group": null,
+        "Country": "germany",
+        "X": -2996.3704,
+        "Y": -17401.61,
+        "CountryId": 5
+    },
+    {
+        "Name": "Frankfurt am Main",
+        "Group": null,
+        "Country": "germany",
+        "X": -6983.7383,
+        "Y": 1597.0469,
+        "CountryId": 5
+    },
+    {
+        "Name": "Mannheim",
+        "Group": null,
+        "Country": "germany",
+        "X": -8619.177,
+        "Y": 5146.6953,
+        "CountryId": 5
+    },
+    {
+        "Name": "Stuttgart",
+        "Group": null,
+        "Country": "germany",
+        "X": -5746.2876,
+        "Y": 9265.669,
+        "CountryId": 5
+    },
+    {
+        "Name": "Milano",
+        "Group": null,
+        "Country": "italy",
+        "X": -7916.5703,
+        "Y": 28693.562,
+        "CountryId": 6
+    },
+    {
+        "Name": "Olbia",
+        "Group": null,
+        "Country": "italy",
+        "X": -7765.9336,
+        "Y": 54715.406,
+        "CountryId": 6
+    },
+    {
+        "Name": "Osnabrück",
+        "Group": null,
+        "Country": "germany",
+        "X": -8682.939,
+        "Y": -10493.7,
+        "CountryId": 5
+    },
+    {
+        "Name": "Bremen",
+        "Group": null,
+        "Country": "germany",
+        "X": -6197.866,
+        "Y": -15066.633,
+        "CountryId": 5
+    },
+    {
+        "Name": "Strasbourg",
+        "Group": null,
+        "Country": "france",
+        "X": -11387.07,
+        "Y": 10537.266,
+        "CountryId": 4
+    },
+    {
+        "Name": "Zürich",
+        "Group": null,
+        "Country": "switzerland",
+        "X": -9438.79,
+        "Y": 16747.23,
+        "CountryId": 9
+    },
+    {
+        "Name": "Genova",
+        "Group": null,
+        "Country": "italy",
+        "X": -9232.379,
+        "Y": 34875.977,
+        "CountryId": 6
+    },
+    {
+        "Name": "Sassari",
+        "Group": null,
+        "Country": "italy",
+        "X": -11556.414,
+        "Y": 55186.863,
+        "CountryId": 6
+    },
+    {
+        "Name": "Bonifacio",
+        "Group": null,
+        "Country": "france",
+        "X": -8719.895,
+        "Y": 51934.816,
+        "CountryId": 4
+    },
+    {
+        "Name": "Dortmund",
+        "Group": null,
+        "Country": "germany",
+        "X": -12417.946,
+        "Y": -7868.421,
+        "CountryId": 5
+    },
+    {
+        "Name": "Werlte",
+        "Group": null,
+        "Country": "germany",
+        "X": -9597.352,
+        "Y": -13020.477,
+        "CountryId": 5
+    },
+    {
+        "Name": "Bern",
+        "Group": null,
+        "Country": "switzerland",
+        "X": -13382.372,
+        "Y": 19870.633,
+        "CountryId": 9
+    },
+    {
+        "Name": "Torino",
+        "Group": null,
+        "Country": "italy",
+        "X": -13222.375,
+        "Y": 30211.883,
+        "CountryId": 6
+    },
+    {
+        "Name": "Köln",
+        "Group": null,
+        "Country": "germany",
+        "X": -13641.117,
+        "Y": -3576.644,
+        "CountryId": 5
+    },
+    {
+        "Name": "Düsseldorf",
+        "Group": null,
+        "Country": "germany",
+        "X": -14473.105,
+        "Y": -5635.4824,
+        "CountryId": 5
+    },
+    {
+        "Name": "Duisburg",
+        "Group": null,
+        "Country": "germany",
+        "X": -14784.342,
+        "Y": -7334.0796,
+        "CountryId": 5
+    },
+    {
+        "Name": "Groningen",
+        "Group": null,
+        "Country": "netherlands",
+        "X": -13462.523,
+        "Y": -16463.744,
+        "CountryId": 7
+    },
+    {
+        "Name": "Luxembourg",
+        "Group": null,
+        "Country": "luxembourg",
+        "X": -17148.854,
+        "Y": 2687.389,
+        "CountryId": 12
+    },
+    {
+        "Name": "Metz",
+        "Group": null,
+        "Country": "france",
+        "X": -16594.625,
+        "Y": 7093.59,
+        "CountryId": 4
+    },
+    {
+        "Name": "Genève",
+        "Group": null,
+        "Country": "switzerland",
+        "X": -18506.812,
+        "Y": 22793.184,
+        "CountryId": 9
+    },
+    {
+        "Name": "Liège",
+        "Group": null,
+        "Country": "belgium",
+        "X": -17623.22,
+        "Y": -1475.5067,
+        "CountryId": 2
+    },
+    {
+        "Name": "Eindhoven",
+        "Group": null,
+        "Country": "netherlands",
+        "X": -18235.404,
+        "Y": -7617.5933,
+        "CountryId": 7
+    },
+    {
+        "Name": "Rotterdam",
+        "Group": null,
+        "Country": "netherlands",
+        "X": -19737.646,
+        "Y": -10086.518,
+        "CountryId": 7
+    },
+    {
+        "Name": "Amsterdam",
+        "Group": null,
+        "Country": "netherlands",
+        "X": -19173.955,
+        "Y": -11370.528,
+        "CountryId": 7
+    },
+    {
+        "Name": "Dijon",
+        "Group": null,
+        "Country": "france",
+        "X": -22820.152,
+        "Y": 16285.375,
+        "CountryId": 4
+    },
+    {
+        "Name": "Lyon",
+        "Group": null,
+        "Country": "france",
+        "X": -24477.953,
+        "Y": 24957.902,
+        "CountryId": 4
+    },
+    {
+        "Name": "Brussel",
+        "Group": null,
+        "Country": "belgium",
+        "X": -23504.396,
+        "Y": -3583.5996,
+        "CountryId": 2
+    },
+    {
+        "Name": "Antwerpen",
+        "Group": null,
+        "Country": "belgium",
+        "X": -22264.979,
+        "Y": -6196.998,
+        "CountryId": 2
+    },
+    {
+        "Name": "Reims",
+        "Group": null,
+        "Country": "france",
+        "X": -24104.89,
+        "Y": 5610.0156,
+        "CountryId": 4
+    },
+    {
+        "Name": "Lille",
+        "Group": null,
+        "Country": "france",
+        "X": -26839.516,
+        "Y": -2930.4062,
+        "CountryId": 4
+    },
+    {
+        "Name": "Paris",
+        "Group": null,
+        "Country": "france",
+        "X": -31427.473,
+        "Y": 6366.074,
+        "CountryId": 4
+    },
+    {
+        "Name": "Calais",
+        "Group": null,
+        "Country": "france",
+        "X": -31140.527,
+        "Y": -5505.7656,
+        "CountryId": 4
+    },
+    {
+        "Name": "Felixstowe",
+        "Group": null,
+        "Country": "uk",
+        "X": -31964.684,
+        "Y": -14857.344,
+        "CountryId": 10
+    },
+    {
+        "Name": "Dover",
+        "Group": null,
+        "Country": "uk",
+        "X": -33772.074,
+        "Y": -8554.48,
+        "CountryId": 10
+    },
+    {
+        "Name": "London",
+        "Group": null,
+        "Country": "uk",
+        "X": -40196.992,
+        "Y": -12259.34,
+        "CountryId": 10
+    },
+    {
+        "Name": "Cambridge",
+        "Group": null,
+        "Country": "uk",
+        "X": -37322.812,
+        "Y": -16539.523,
+        "CountryId": 10
+    },
+    {
+        "Name": "Grimsby",
+        "Group": null,
+        "Country": "uk",
+        "X": -36868.023,
+        "Y": -27345.309,
+        "CountryId": 10
+    },
+    {
+        "Name": "Newcastle-upon-Tyne",
+        "Group": null,
+        "Country": "uk",
+        "X": -40128.168,
+        "Y": -39307.844,
+        "CountryId": 10
+    },
+    {
+        "Name": "Aberdeen",
+        "Group": null,
+        "Country": "uk",
+        "X": -39596.793,
+        "Y": -56040.47,
+        "CountryId": 10
+    },
+    {
+        "Name": "Sheffield",
+        "Group": null,
+        "Country": "uk",
+        "X": -43088.88,
+        "Y": -27107.691,
+        "CountryId": 10
+    },
+    {
+        "Name": "Southampton",
+        "Group": null,
+        "Country": "uk",
+        "X": -46838.867,
+        "Y": -7893.371,
+        "CountryId": 10
+    },
+    {
+        "Name": "Birmingham",
+        "Group": null,
+        "Country": "uk",
+        "X": -46451.25,
+        "Y": -20943.125,
+        "CountryId": 10
+    },
+    {
+        "Name": "Manchester",
+        "Group": null,
+        "Country": "uk",
+        "X": -46298.777,
+        "Y": -28585.145,
+        "CountryId": 10
+    },
+    {
+        "Name": "Carlisle",
+        "Group": null,
+        "Country": "uk",
+        "X": -46439.3,
+        "Y": -40093.6,
+        "CountryId": 10
+    },
+    {
+        "Name": "Edinburgh",
+        "Group": null,
+        "Country": "uk",
+        "X": -45400.867,
+        "Y": -47889.797,
+        "CountryId": 10
+    },
+    {
+        "Name": "Liverpool",
+        "Group": null,
+        "Country": "uk",
+        "X": -49621.86,
+        "Y": -29861.957,
+        "CountryId": 10
+    },
+    {
+        "Name": "Glasgow",
+        "Group": null,
+        "Country": "uk",
+        "X": -51134.824,
+        "Y": -49241.746,
+        "CountryId": 10
+    },
+    {
+        "Name": "Cardiff",
+        "Group": null,
+        "Country": "uk",
+        "X": -54555.402,
+        "Y": -15118.57,
+        "CountryId": 10
+    },
+    {
+        "Name": "Swansea",
+        "Group": null,
+        "Country": "uk",
+        "X": -57646.13,
+        "Y": -17652.07,
+        "CountryId": 10
+    },
+    {
+        "Name": "Plymouth",
+        "Group": null,
+        "Country": "uk",
+        "X": -60566.5,
+        "Y": -8502.445,
+        "CountryId": 10
+    },
+    {
+        "Name": "Timișoara",
+        "Group": null,
+        "Country": "romania",
+        "X": 40552.215,
+        "Y": 26320.012,
+        "CountryId": 37
+    },
+    {
+        "Name": "Cluj-Napoca",
+        "Group": null,
+        "Country": "romania",
+        "X": 49028.207,
+        "Y": 17957.05,
+        "CountryId": 37
+    },
+    {
+        "Name": "Hunedoara",
+        "Group": null,
+        "Country": "romania",
+        "X": 48141.734,
+        "Y": 25594.707,
+        "CountryId": 37
+    },
+    {
+        "Name": "Craiova",
+        "Group": null,
+        "Country": "romania",
+        "X": 50918.418,
+        "Y": 32508.39,
+        "CountryId": 37
+    },
+    {
+        "Name": "София",
+        "Group": null,
+        "Country": "bulgaria",
+        "X": 50404.66,
+        "Y": 41995.52,
+        "CountryId": 18
+    },
+    {
+        "Name": "Перник",
+        "Group": null,
+        "Country": "bulgaria",
+        "X": 47848.12,
+        "Y": 44712.83,
+        "CountryId": 18
+    },
+    {
+        "Name": "Târgu Mureș",
+        "Group": null,
+        "Country": "romania",
+        "X": 52709.555,
+        "Y": 19237.074,
+        "CountryId": 37
+    },
+    {
+        "Name": "Козлодуй",
+        "Group": null,
+        "Country": "bulgaria",
+        "X": 52508.027,
+        "Y": 36077.168,
+        "CountryId": 18
+    },
+    {
+        "Name": "Пирдоп",
+        "Group": null,
+        "Country": "bulgaria",
+        "X": 55687.74,
+        "Y": 42040.977,
+        "CountryId": 18
+    },
+    {
+        "Name": "Brașov",
+        "Group": null,
+        "Country": "romania",
+        "X": 58002.234,
+        "Y": 23332.723,
+        "CountryId": 37
+    },
+    {
+        "Name": "Pitești",
+        "Group": null,
+        "Country": "romania",
+        "X": 55747.414,
+        "Y": 29392.371,
+        "CountryId": 37
+    },
+    {
+        "Name": "Плевен",
+        "Group": null,
+        "Country": "bulgaria",
+        "X": 56844.457,
+        "Y": 37037.426,
+        "CountryId": 18
+    },
+    {
+        "Name": "Карлово",
+        "Group": null,
+        "Country": "bulgaria",
+        "X": 57506.26,
+        "Y": 41637.605,
+        "CountryId": 18
+    },
+    {
+        "Name": "Пловдив",
+        "Group": null,
+        "Country": "bulgaria",
+        "X": 56984.668,
+        "Y": 44949.293,
+        "CountryId": 18
+    },
+    {
+        "Name": "Bacău",
+        "Group": null,
+        "Country": "romania",
+        "X": 61887.293,
+        "Y": 18223.84,
+        "CountryId": 37
+    },
+    {
+        "Name": "București",
+        "Group": null,
+        "Country": "romania",
+        "X": 60720.85,
+        "Y": 31233.5,
+        "CountryId": 37
+    },
+    {
+        "Name": "Русе",
+        "Group": null,
+        "Country": "bulgaria",
+        "X": 60480.484,
+        "Y": 34315.152,
+        "CountryId": 18
+    },
+    {
+        "Name": "Велико Търново",
+        "Group": null,
+        "Country": "bulgaria",
+        "X": 60463.258,
+        "Y": 38164.33,
+        "CountryId": 18
+    },
+    {
+        "Name": "Iași",
+        "Group": null,
+        "Country": "romania",
+        "X": 63246.293,
+        "Y": 13443.742,
+        "CountryId": 37
+    },
+    {
+        "Name": "Galați",
+        "Group": null,
+        "Country": "romania",
+        "X": 66046.03,
+        "Y": 23352.875,
+        "CountryId": 37
+    },
+    {
+        "Name": "Călărași",
+        "Group": null,
+        "Country": "romania",
+        "X": 65124.5,
+        "Y": 30737.719,
+        "CountryId": 37
+    },
+    {
+        "Name": "Edirne",
+        "Group": null,
+        "Country": "turkey",
+        "X": 64295.918,
+        "Y": 46409.043,
+        "CountryId": 44
+    },
+    {
+        "Name": "Cernavodă",
+        "Group": null,
+        "Country": "romania",
+        "X": 68929.36,
+        "Y": 29395.246,
+        "CountryId": 37
+    },
+    {
+        "Name": "Constanța",
+        "Group": null,
+        "Country": "romania",
+        "X": 71381.54,
+        "Y": 30500.734,
+        "CountryId": 37
+    },
+    {
+        "Name": "Mangalia",
+        "Group": null,
+        "Country": "romania",
+        "X": 71227.59,
+        "Y": 32960.727,
+        "CountryId": 37
+    },
+    {
+        "Name": "Варна",
+        "Group": null,
+        "Country": "bulgaria",
+        "X": 69251.71,
+        "Y": 35442.105,
+        "CountryId": 18
+    },
+    {
+        "Name": "Бургас",
+        "Group": null,
+        "Country": "bulgaria",
+        "X": 66797.05,
+        "Y": 39860.543,
+        "CountryId": 18
+    },
+    {
+        "Name": "Tekirdağ",
+        "Group": null,
+        "Country": "turkey",
+        "X": 68190.42,
+        "Y": 48967.668,
+        "CountryId": 44
+    },
+    {
+        "Name": "İstanbul",
+        "Group": null,
+        "Country": "turkey",
+        "X": 73653.375,
+        "Y": 45623.83,
+        "CountryId": 44
+    },
+    {
+        "Name": "Novo Mesto",
+        "Group": null,
+        "Country": "slovenia",
+        "X": 16101.685,
+        "Y": 27209.02,
+        "CountryId": 41
+    },
+    {
+        "Name": "Zadar",
+        "Group": null,
+        "Country": "croatia",
+        "X": 16790.406,
+        "Y": 36096.53,
+        "CountryId": 19
+    },
+    {
+        "Name": "Zagreb",
+        "Group": null,
+        "Country": "croatia",
+        "X": 21030.572,
+        "Y": 26455.02,
+        "CountryId": 19
+    },
+    {
+        "Name": "Бихаћ",
+        "Group": null,
+        "Country": "bosnia",
+        "X": 20200.42,
+        "Y": 32348.88,
+        "CountryId": 17
+    },
+    {
+        "Name": "Split",
+        "Group": null,
+        "Country": "croatia",
+        "X": 21267.371,
+        "Y": 39421.254,
+        "CountryId": 19
+    },
+    {
+        "Name": "Бања Лука",
+        "Group": null,
+        "Country": "bosnia",
+        "X": 25242.043,
+        "Y": 32435.61,
+        "CountryId": 17
+    },
+    {
+        "Name": "Сарајево",
+        "Group": null,
+        "Country": "bosnia",
+        "X": 29927.281,
+        "Y": 37528.95,
+        "CountryId": 17
+    },
+    {
+        "Name": "Зеница",
+        "Group": null,
+        "Country": "bosnia",
+        "X": 28225.234,
+        "Y": 35576.402,
+        "CountryId": 17
+    },
+    {
+        "Name": "Мостар",
+        "Group": null,
+        "Country": "bosnia",
+        "X": 27775.516,
+        "Y": 40503.637,
+        "CountryId": 17
+    },
+    {
+        "Name": "Тузла",
+        "Group": null,
+        "Country": "bosnia",
+        "X": 31410.637,
+        "Y": 33603.363,
+        "CountryId": 17
+    },
+    {
+        "Name": "Каракај",
+        "Group": null,
+        "Country": "bosnia",
+        "X": 33799.266,
+        "Y": 33203.37,
+        "CountryId": 17
+    },
+    {
+        "Name": "Никшић",
+        "Group": null,
+        "Country": "montenegro",
+        "X": 32904.23,
+        "Y": 42799.195,
+        "CountryId": 34
+    },
+    {
+        "Name": "Подгорица",
+        "Group": null,
+        "Country": "montenegro",
+        "X": 33036.566,
+        "Y": 44220.69,
+        "CountryId": 34
+    },
+    {
+        "Name": "Нови Сад",
+        "Group": null,
+        "Country": "serbia",
+        "X": 35308.9,
+        "Y": 29357.498,
+        "CountryId": 40
+    },
+    {
+        "Name": "Београд",
+        "Group": null,
+        "Country": "serbia",
+        "X": 38497.746,
+        "Y": 31433.197,
+        "CountryId": 40
+    },
+    {
+        "Name": "Бијело Поље",
+        "Group": null,
+        "Country": "montenegro",
+        "X": 36073.586,
+        "Y": 41721.848,
+        "CountryId": 34
+    },
+    {
+        "Name": "Tiranë",
+        "Group": null,
+        "Country": "albania",
+        "X": 37720.406,
+        "Y": 50471.625,
+        "CountryId": 14
+    },
+    {
+        "Name": "Durrës",
+        "Group": null,
+        "Country": "albania",
+        "X": 35460.562,
+        "Y": 51403.816,
+        "CountryId": 14
+    },
+    {
+        "Name": "Fier",
+        "Group": null,
+        "Country": "albania",
+        "X": 37012.01,
+        "Y": 53891.445,
+        "CountryId": 14
+    },
+    {
+        "Name": "Vlorë",
+        "Group": null,
+        "Country": "albania",
+        "X": 35951.03,
+        "Y": 56421.03,
+        "CountryId": 14
+    },
+    {
+        "Name": "Крагујевац",
+        "Group": null,
+        "Country": "serbia",
+        "X": 39881.027,
+        "Y": 36012.508,
+        "CountryId": 40
+    },
+    {
+        "Name": "Prishtinë",
+        "Group": null,
+        "Country": "kosovo",
+        "X": 41761.44,
+        "Y": 42808.79,
+        "CountryId": 204
+    },
+    {
+        "Name": "Скопје",
+        "Group": null,
+        "Country": "macedonia",
+        "X": 42714.035,
+        "Y": 47345.203,
+        "CountryId": 203
+    },
+    {
+        "Name": "Калининград",
+        "Group": null,
+        "Country": "russia",
+        "X": 34315.05,
+        "Y": -23251.504,
+        "CountryId": 38
+    },
+    {
+        "Name": "Liepāja",
+        "Group": null,
+        "Country": "latvia",
+        "X": 34204.367,
+        "Y": -34145.062,
+        "CountryId": 28
+    },
+    {
+        "Name": "Naantali",
+        "Group": null,
+        "Country": "finland",
+        "X": 34710.07,
+        "Y": -56782.523,
+        "CountryId": 23
+    },
+    {
+        "Name": "Olkiluoto",
+        "Group": null,
+        "Country": "finland",
+        "X": 34005.137,
+        "Y": -60278.277,
+        "CountryId": 23
+    },
+    {
+        "Name": "Pori",
+        "Group": null,
+        "Country": "finland",
+        "X": 34762.21,
+        "Y": -61827.758,
+        "CountryId": 23
+    },
+    {
+        "Name": "Klaipėda",
+        "Group": null,
+        "Country": "lithuania",
+        "X": 35592.688,
+        "Y": -29939.688,
+        "CountryId": 30
+    },
+    {
+        "Name": "Mažeikiai",
+        "Group": null,
+        "Country": "lithuania",
+        "X": 39184.297,
+        "Y": -33079.754,
+        "CountryId": 30
+    },
+    {
+        "Name": "Ventspils",
+        "Group": null,
+        "Country": "latvia",
+        "X": 35879.62,
+        "Y": -39182.133,
+        "CountryId": 28
+    },
+    {
+        "Name": "Turku",
+        "Group": null,
+        "Country": "finland",
+        "X": 36022.72,
+        "Y": -56376.15,
+        "CountryId": 23
+    },
+    {
+        "Name": "Šiauliai",
+        "Group": null,
+        "Country": "lithuania",
+        "X": 42563.633,
+        "Y": -31373.941,
+        "CountryId": 30
+    },
+    {
+        "Name": "Paldiski",
+        "Group": null,
+        "Country": "estonia",
+        "X": 42144.875,
+        "Y": -50332.074,
+        "CountryId": 22
+    },
+    {
+        "Name": "Tampere",
+        "Group": null,
+        "Country": "finland",
+        "X": 40138.723,
+        "Y": -62610.867,
+        "CountryId": 23
+    },
+    {
+        "Name": "Kaunas",
+        "Group": null,
+        "Country": "lithuania",
+        "X": 44413.883,
+        "Y": -26267.855,
+        "CountryId": 30
+    },
+    {
+        "Name": "Panevėžys",
+        "Group": null,
+        "Country": "lithuania",
+        "X": 45652.203,
+        "Y": -30282.938,
+        "CountryId": 30
+    },
+    {
+        "Name": "Rīga",
+        "Group": null,
+        "Country": "latvia",
+        "X": 43827.875,
+        "Y": -37984.81,
+        "CountryId": 28
+    },
+    {
+        "Name": "Valmiera",
+        "Group": null,
+        "Country": "latvia",
+        "X": 47622.93,
+        "Y": -41103.87,
+        "CountryId": 28
+    },
+    {
+        "Name": "Pärnu",
+        "Group": null,
+        "Country": "estonia",
+        "X": 44076.645,
+        "Y": -45757.83,
+        "CountryId": 22
+    },
+    {
+        "Name": "Tallinn",
+        "Group": null,
+        "Country": "estonia",
+        "X": 43213.363,
+        "Y": -51613.754,
+        "CountryId": 22
+    },
+    {
+        "Name": "Helsinki",
+        "Group": null,
+        "Country": "finland",
+        "X": 44470.227,
+        "Y": -56161.633,
+        "CountryId": 23
+    },
+    {
+        "Name": "Loviisa",
+        "Group": null,
+        "Country": "finland",
+        "X": 47567.285,
+        "Y": -57357.926,
+        "CountryId": 23
+    },
+    {
+        "Name": "Lahti",
+        "Group": null,
+        "Country": "finland",
+        "X": 44942.09,
+        "Y": -61177.145,
+        "CountryId": 23
+    },
+    {
+        "Name": "Vilnius",
+        "Group": null,
+        "Country": "lithuania",
+        "X": 49462.438,
+        "Y": -26077.646,
+        "CountryId": 30
+    },
+    {
+        "Name": "Utena",
+        "Group": null,
+        "Country": "lithuania",
+        "X": 50128.05,
+        "Y": -30060.547,
+        "CountryId": 30
+    },
+    {
+        "Name": "Tartu",
+        "Group": null,
+        "Country": "estonia",
+        "X": 50686.3,
+        "Y": -46878.094,
+        "CountryId": 22
+    },
+    {
+        "Name": "Kunda",
+        "Group": null,
+        "Country": "estonia",
+        "X": 49435.164,
+        "Y": -52624.81,
+        "CountryId": 22
+    },
+    {
+        "Name": "Kotka",
+        "Group": null,
+        "Country": "finland",
+        "X": 49619.93,
+        "Y": -58615.79,
+        "CountryId": 23
+    },
+    {
+        "Name": "Daugavpils",
+        "Group": null,
+        "Country": "latvia",
+        "X": 52325.277,
+        "Y": -32925.78,
+        "CountryId": 28
+    },
+    {
+        "Name": "Rēzekne",
+        "Group": null,
+        "Country": "latvia",
+        "X": 54948.31,
+        "Y": -36100.742,
+        "CountryId": 28
+    },
+    {
+        "Name": "Narva",
+        "Group": null,
+        "Country": "estonia",
+        "X": 53982.035,
+        "Y": -52882.44,
+        "CountryId": 22
+    },
+    {
+        "Name": "Сосновый Бор",
+        "Group": null,
+        "Country": "russia",
+        "X": 54699.02,
+        "Y": -54784.617,
+        "CountryId": 38
+    },
+    {
+        "Name": "Санкт-Петербург",
+        "Group": null,
+        "Country": "russia",
+        "X": 59623.695,
+        "Y": -57210.773,
+        "CountryId": 38
+    },
+    {
+        "Name": "Katowice",
+        "Group": null,
+        "Country": "poland",
+        "X": 30278.66,
+        "Y": 1988.7031,
+        "CountryId": 8
+    },
+    {
+        "Name": "Ostrava",
+        "Group": null,
+        "Country": "czech",
+        "X": 27831.176,
+        "Y": 4724.7485,
+        "CountryId": 3
+    },
+    {
+        "Name": "Pécs",
+        "Group": null,
+        "Country": "Hungary",
+        "X": 28439.805,
+        "Y": 25941.523,
+        "CountryId": 13
+    },
+    {
+        "Name": "Gdańsk",
+        "Group": null,
+        "Country": "poland",
+        "X": 27642.973,
+        "Y": -21539.664,
+        "CountryId": 8
+    },
+    {
+        "Name": "Kraków",
+        "Group": null,
+        "Country": "poland",
+        "X": 33970.125,
+        "Y": 2757.5508,
+        "CountryId": 8
+    },
+    {
+        "Name": "Banská Bystrica",
+        "Group": null,
+        "Country": "slovakia",
+        "X": 32257.457,
+        "Y": 10360.352,
+        "CountryId": 11
+    },
+    {
+        "Name": "Budapest",
+        "Group": null,
+        "Country": "hungary",
+        "X": 31817.695,
+        "Y": 17362.598,
+        "CountryId": 13
+    },
+    {
+        "Name": "Łódź",
+        "Group": null,
+        "Country": "poland",
+        "X": 31264.328,
+        "Y": -6664.043,
+        "CountryId": 8
+    },
+    {
+        "Name": "Olsztyn",
+        "Group": null,
+        "Country": "poland",
+        "X": 34258.473,
+        "Y": -18406.066,
+        "CountryId": 8
+    },
+    {
+        "Name": "Košice",
+        "Group": null,
+        "Country": "slovakia",
+        "X": 39343.793,
+        "Y": 9974.258,
+        "CountryId": 11
+    },
+    {
+        "Name": "Warszawa",
+        "Group": null,
+        "Country": "poland",
+        "X": 36644.79,
+        "Y": -10355.961,
+        "CountryId": 8
+    },
+    {
+        "Name": "Debrecen",
+        "Group": null,
+        "Country": "hungary",
+        "X": 41291.453,
+        "Y": 16863.582,
+        "CountryId": 13
+    },
+    {
+        "Name": "Lublin",
+        "Group": null,
+        "Country": "poland",
+        "X": 42744.07,
+        "Y": -4625.086,
+        "CountryId": 8
+    },
+    {
+        "Name": "Białystok",
+        "Group": null,
+        "Country": "poland",
+        "X": 43598.27,
+        "Y": -15603.52,
+        "CountryId": 8
+    },
+    {
+        "Name": "Bastia",
+        "Group": null,
+        "Country": "france",
+        "X": -7539.672,
+        "Y": 43566.22,
+        "CountryId": 4
+    },
+    {
+        "Name": "Porto-Vecchio",
+        "Group": null,
+        "Country": "france",
+        "X": -8126.668,
+        "Y": 50690.047,
+        "CountryId": 4
+    },
+    {
+        "Name": "Calvi",
+        "Group": null,
+        "Country": "france",
+        "X": -10635.969,
+        "Y": 45497.4,
+        "CountryId": 4
+    },
+    {
+        "Name": "L'Île-Rousse",
+        "Group": null,
+        "Country": "france",
+        "X": -9164.836,
+        "Y": 44256.2,
+        "CountryId": 4
+    },
+    {
+        "Name": "Ajaccio",
+        "Group": null,
+        "Country": "france",
+        "X": -10531.598,
+        "Y": 47850.766,
+        "CountryId": 4
+    },
+    {
+        "Name": "Nice",
+        "Group": null,
+        "Country": "france",
+        "X": -15870.492,
+        "Y": 37786.04,
+        "CountryId": 4
+    },
+    {
+        "Name": "Marseille",
+        "Group": null,
+        "Country": "france",
+        "X": -24222.531,
+        "Y": 38440.668,
+        "CountryId": 4
+    },
+    {
+        "Name": "Saint-Alban-du-Rhône",
+        "Group": null,
+        "Country": "france",
+        "X": -26203.71,
+        "Y": 28716.219,
+        "CountryId": 4
+    },
+    {
+        "Name": "Bourges",
+        "Group": null,
+        "Country": "france",
+        "X": -32141.922,
+        "Y": 16080.375,
+        "CountryId": 4
+    },
+    {
+        "Name": "Clermont-Ferrand",
+        "Group": null,
+        "Country": "france",
+        "X": -31047.574,
+        "Y": 24228.312,
+        "CountryId": 4
+    },
+    {
+        "Name": "Montpellier",
+        "Group": null,
+        "Country": "france",
+        "X": -30502.488,
+        "Y": 35532.492,
+        "CountryId": 4
+    },
+    {
+        "Name": "Paluel",
+        "Group": null,
+        "Country": "france",
+        "X": -33908.242,
+        "Y": -95.22266,
+        "CountryId": 4
+    },
+    {
+        "Name": "Saint-Laurent",
+        "Group": null,
+        "Country": "france",
+        "X": -35899.75,
+        "Y": 13234.094,
+        "CountryId": 4
+    },
+    {
+        "Name": "Le Havre",
+        "Group": null,
+        "Country": "france",
+        "X": -39044.293,
+        "Y": 845.3594,
+        "CountryId": 4
+    },
+    {
+        "Name": "Le Mans",
+        "Group": null,
+        "Country": "france",
+        "X": -40249.863,
+        "Y": 9198.309,
+        "CountryId": 4
+    },
+    {
+        "Name": "Civaux",
+        "Group": null,
+        "Country": "france",
+        "X": -39279.848,
+        "Y": 17996.84,
+        "CountryId": 4
+    },
+    {
+        "Name": "Limoges",
+        "Group": null,
+        "Country": "france",
+        "X": -37817.402,
+        "Y": 23211.855,
+        "CountryId": 4
+    },
+    {
+        "Name": "Toulouse",
+        "Group": null,
+        "Country": "france",
+        "X": -40063.383,
+        "Y": 34895.46,
+        "CountryId": 4
+    },
+    {
+        "Name": "Golfech",
+        "Group": null,
+        "Country": "france",
+        "X": -40845.516,
+        "Y": 31102.43,
+        "CountryId": 4
+    },
+    {
+        "Name": "Rennes",
+        "Group": null,
+        "Country": "france",
+        "X": -47239.95,
+        "Y": 7144.4844,
+        "CountryId": 4
+    },
+    {
+        "Name": "Nantes",
+        "Group": null,
+        "Country": "france",
+        "X": -47221.074,
+        "Y": 13091.922,
+        "CountryId": 4
+    },
+    {
+        "Name": "La Rochelle",
+        "Group": null,
+        "Country": "france",
+        "X": -46580.87,
+        "Y": 19507.422,
+        "CountryId": 4
+    },
+    {
+        "Name": "Bordeaux",
+        "Group": null,
+        "Country": "france",
+        "X": -46188.688,
+        "Y": 27204.27,
+        "CountryId": 4
+    },
+    {
+        "Name": "Bayonne",
+        "Group": null,
+        "Country": "france",
+        "X": -52332.05,
+        "Y": 33317.258,
+        "CountryId": 4
+    },
+    {
+        "Name": "Lacq",
+        "Group": null,
+        "Country": "france",
+        "X": -49503.62,
+        "Y": 35706.46,
+        "CountryId": 4
+    },
+    {
+        "Name": "Roscoff",
+        "Group": null,
+        "Country": "france",
+        "X": -53997.99,
+        "Y": 2795.289,
+        "CountryId": 4
+    },
+    {
+        "Name": "Brest",
+        "Group": null,
+        "Country": "france",
+        "X": -57421.54,
+        "Y": 3199.1797,
+        "CountryId": 4
+    },
+    {
+        "Name": "Ιωάννινα",
+        "Group": null,
+        "Country": "greece",
+        "X": 41466.152,
+        "Y": 60374.375,
+        "CountryId": 25
+    },
+    {
+        "Name": "Αργοστόλι",
+        "Group": null,
+        "Country": "greece",
+        "X": 41222.78,
+        "Y": 71237.48,
+        "CountryId": 25
+    },
+    {
+        "Name": "Τρίκαλα",
+        "Group": null,
+        "Country": "greece",
+        "X": 46207.73,
+        "Y": 61981.883,
+        "CountryId": 25
+    },
+    {
+        "Name": "Πάτρα",
+        "Group": null,
+        "Country": "greece",
+        "X": 45937.566,
+        "Y": 70069.57,
+        "CountryId": 25
+    },
+    {
+        "Name": "Θεσσαλονίκη",
+        "Group": null,
+        "Country": "greece",
+        "X": 50368.36,
+        "Y": 54632.98,
+        "CountryId": 25
+    },
+    {
+        "Name": "Λάρισα",
+        "Group": null,
+        "Country": "greece",
+        "X": 49166.168,
+        "Y": 61109.246,
+        "CountryId": 25
+    },
+    {
+        "Name": "Λαμία",
+        "Group": null,
+        "Country": "greece",
+        "X": 49093.133,
+        "Y": 64715.242,
+        "CountryId": 25
+    },
+    {
+        "Name": "Καλαμάτα",
+        "Group": null,
+        "Country": "greece",
+        "X": 49651.95,
+        "Y": 76071.93,
+        "CountryId": 25
+    },
+    {
+        "Name": "Καβάλα",
+        "Group": null,
+        "Country": "greece",
+        "X": 56953.137,
+        "Y": 51626.715,
+        "CountryId": 25
+    },
+    {
+        "Name": "Αθήνα",
+        "Group": null,
+        "Country": "greece",
+        "X": 54945.977,
+        "Y": 68029.59,
+        "CountryId": 25
+    },
+    {
+        "Name": "Χανιά",
+        "Group": null,
+        "Country": "greece",
+        "X": 57171.492,
+        "Y": 84474.766,
+        "CountryId": 25
+    },
+    {
+        "Name": "Μυτιλήνη",
+        "Group": null,
+        "Country": "greece",
+        "X": 65591.734,
+        "Y": 60105.652,
+        "CountryId": 25
+    },
+    {
+        "Name": "Χίος",
+        "Group": null,
+        "Country": "greece",
+        "X": 65697.31,
+        "Y": 65459.164,
+        "CountryId": 25
+    },
+    {
+        "Name": "Ηράκλειο",
+        "Group": null,
+        "Country": "greece",
+        "X": 65729.51,
+        "Y": 84599.49,
+        "CountryId": 25
+    },
+    {
+        "Name": "Ρόδος",
+        "Group": null,
+        "Country": "greece",
+        "X": 76941.53,
+        "Y": 75764.78,
+        "CountryId": 25
+    },
+    {
+        "Name": "Barcelona",
+        "Group": null,
+        "Country": "spain",
+        "X": -40360.117,
+        "Y": 47101.86,
+        "CountryId": 42
+    },
+    {
+        "Name": "Tarragona",
+        "Group": null,
+        "Country": "spain",
+        "X": -43568.727,
+        "Y": 48597.62,
+        "CountryId": 42
+    },
+    {
+        "Name": "Lleida",
+        "Group": null,
+        "Country": "spain",
+        "X": -45830.934,
+        "Y": 44928.664,
+        "CountryId": 42
+    },
+    {
+        "Name": "Vandellòs",
+        "Group": null,
+        "Country": "spain",
+        "X": -45807.734,
+        "Y": 50172.63,
+        "CountryId": 42
+    },
+    {
+        "Name": "Zaragoza",
+        "Group": null,
+        "Country": "spain",
+        "X": -51574.523,
+        "Y": 43273.895,
+        "CountryId": 42
+    },
+    {
+        "Name": "Port de Sagunt",
+        "Group": null,
+        "Country": "spain",
+        "X": -51026.062,
+        "Y": 55138.223,
+        "CountryId": 42
+    },
+    {
+        "Name": "Vila-real",
+        "Group": null,
+        "Country": "spain",
+        "X": -49979.605,
+        "Y": 53263.81,
+        "CountryId": 42
+    },
+    {
+        "Name": "València",
+        "Group": null,
+        "Country": "spain",
+        "X": -52433.26,
+        "Y": 56537.133,
+        "CountryId": 42
+    },
+    {
+        "Name": "Pamplona",
+        "Group": null,
+        "Country": "spain",
+        "X": -53642.293,
+        "Y": 37235.92,
+        "CountryId": 42
+    },
+    {
+        "Name": "Teruel",
+        "Group": null,
+        "Country": "spain",
+        "X": -53817.168,
+        "Y": 51245.766,
+        "CountryId": 42
+    },
+    {
+        "Name": "Bilbao",
+        "Group": null,
+        "Country": "spain",
+        "X": -58855.082,
+        "Y": 32583.266,
+        "CountryId": 42
+    },
+    {
+        "Name": "Soria",
+        "Group": null,
+        "Country": "spain",
+        "X": -59305.137,
+        "Y": 41603.094,
+        "CountryId": 42
+    },
+    {
+        "Name": "Albacete",
+        "Group": null,
+        "Country": "spain",
+        "X": -58355.48,
+        "Y": 58394.95,
+        "CountryId": 42
+    },
+    {
+        "Name": "Murcia",
+        "Group": null,
+        "Country": "spain",
+        "X": -56501.844,
+        "Y": 64632.65,
+        "CountryId": 42
+    },
+    {
+        "Name": "Santander",
+        "Group": null,
+        "Country": "spain",
+        "X": -62560.477,
+        "Y": 31170.168,
+        "CountryId": 42
+    },
+    {
+        "Name": "Burgos",
+        "Group": null,
+        "Country": "spain",
+        "X": -62334.11,
+        "Y": 37141.07,
+        "CountryId": 42
+    },
+    {
+        "Name": "Almería",
+        "Group": null,
+        "Country": "spain",
+        "X": -63728.004,
+        "Y": 69091.0,
+        "CountryId": 42
+    },
+    {
+        "Name": "Valladolid",
+        "Group": null,
+        "Country": "spain",
+        "X": -68298.24,
+        "Y": 40437.562,
+        "CountryId": 42
+    },
+    {
+        "Name": "Madrid",
+        "Group": null,
+        "Country": "spain",
+        "X": -65897.78,
+        "Y": 48202.926,
+        "CountryId": 42
+    },
+    {
+        "Name": "Mengíbar",
+        "Group": null,
+        "Country": "spain",
+        "X": -68015.0,
+        "Y": 62969.656,
+        "CountryId": 42
+    },
+    {
+        "Name": "El Ejido",
+        "Group": null,
+        "Country": "spain",
+        "X": -67717.41,
+        "Y": 68991.34,
+        "CountryId": 42
+    },
+    {
+        "Name": "Gijón",
+        "Group": null,
+        "Country": "spain",
+        "X": -70985.84,
+        "Y": 28247.273,
+        "CountryId": 42
+    },
+    {
+        "Name": "León",
+        "Group": null,
+        "Country": "spain",
+        "X": -70940.31,
+        "Y": 34227.504,
+        "CountryId": 42
+    },
+    {
+        "Name": "Ciudad Real",
+        "Group": null,
+        "Country": "spain",
+        "X": -68946.25,
+        "Y": 55954.758,
+        "CountryId": 42
+    },
+    {
+        "Name": "Puertollano",
+        "Group": null,
+        "Country": "spain",
+        "X": -70063.05,
+        "Y": 58776.895,
+        "CountryId": 42
+    },
+    {
+        "Name": "Bailén",
+        "Group": null,
+        "Country": "spain",
+        "X": -69463.484,
+        "Y": 61585.25,
+        "CountryId": 42
+    },
+    {
+        "Name": "Granada",
+        "Group": null,
+        "Country": "spain",
+        "X": -70482.086,
+        "Y": 65656.875,
+        "CountryId": 42
+    },
+    {
+        "Name": "Navia",
+        "Group": null,
+        "Country": "spain",
+        "X": -75062.08,
+        "Y": 27800.504,
+        "CountryId": 42
+    },
+    {
+        "Name": "Salamanca",
+        "Group": null,
+        "Country": "spain",
+        "X": -73525.99,
+        "Y": 43417.703,
+        "CountryId": 42
+    },
+    {
+        "Name": "Almaraz",
+        "Group": null,
+        "Country": "spain",
+        "X": -74733.734,
+        "Y": 49374.426,
+        "CountryId": 42
+    },
+    {
+        "Name": "Córdoba",
+        "Group": null,
+        "Country": "spain",
+        "X": -74402.16,
+        "Y": 61412.9,
+        "CountryId": 42
+    },
+    {
+        "Name": "Málaga",
+        "Group": null,
+        "Country": "spain",
+        "X": -74294.31,
+        "Y": 68209.875,
+        "CountryId": 42
+    },
+    {
+        "Name": "O Barco",
+        "Group": null,
+        "Country": "spain",
+        "X": -77471.89,
+        "Y": 33979.75,
+        "CountryId": 42
+    },
+    {
+        "Name": "Sevilla",
+        "Group": null,
+        "Country": "spain",
+        "X": -80651.09,
+        "Y": 62085.91,
+        "CountryId": 42
+    },
+    {
+        "Name": "Algeciras",
+        "Group": null,
+        "Country": "spain",
+        "X": -80942.375,
+        "Y": 69036.42,
+        "CountryId": 42
+    },
+    {
+        "Name": "A Coruña",
+        "Group": null,
+        "Country": "spain",
+        "X": -83140.91,
+        "Y": 25857.344,
+        "CountryId": 42
+    },
+    {
+        "Name": "Guarda",
+        "Group": null,
+        "Country": "portugal",
+        "X": -82192.266,
+        "Y": 43708.63,
+        "CountryId": 36
+    },
+    {
+        "Name": "Badajoz",
+        "Group": null,
+        "Country": "spain",
+        "X": -83250.01,
+        "Y": 52860.414,
+        "CountryId": 42
+    },
+    {
+        "Name": "Vigo",
+        "Group": null,
+        "Country": "spain",
+        "X": -85371.51,
+        "Y": 31880.559,
+        "CountryId": 42
+    },
+    {
+        "Name": "Porto",
+        "Group": null,
+        "Country": "portugal",
+        "X": -86461.77,
+        "Y": 38180.2,
+        "CountryId": 36
+    },
+    {
+        "Name": "Coimbra",
+        "Group": null,
+        "Country": "portugal",
+        "X": -87901.56,
+        "Y": 43976.832,
+        "CountryId": 36
+    },
+    {
+        "Name": "Ponte de Sor",
+        "Group": null,
+        "Country": "portugal",
+        "X": -87609.93,
+        "Y": 49702.11,
+        "CountryId": 36
+    },
+    {
+        "Name": "Évora",
+        "Group": null,
+        "Country": "portugal",
+        "X": -87442.32,
+        "Y": 54044.29,
+        "CountryId": 36
+    },
+    {
+        "Name": "Beja",
+        "Group": null,
+        "Country": "portugal",
+        "X": -88339.31,
+        "Y": 56611.06,
+        "CountryId": 36
+    },
+    {
+        "Name": "Huelva",
+        "Group": null,
+        "Country": "spain",
+        "X": -84837.58,
+        "Y": 62064.168,
+        "CountryId": 42
+    },
+    {
+        "Name": "Setúbal",
+        "Group": null,
+        "Country": "portugal",
+        "X": -92016.95,
+        "Y": 53957.367,
+        "CountryId": 36
+    },
+    {
+        "Name": "Cortiçadas de Lavre",
+        "Group": null,
+        "Country": "portugal",
+        "X": -88668.92,
+        "Y": 52508.438,
+        "CountryId": 36
+    },
+    {
+        "Name": "Sines",
+        "Group": null,
+        "Country": "portugal",
+        "X": -92331.484,
+        "Y": 55848.492,
+        "CountryId": 36
+    },
+    {
+        "Name": "Olhão",
+        "Group": null,
+        "Country": "portugal",
+        "X": -89220.61,
+        "Y": 61890.742,
+        "CountryId": 36
+    },
+    {
+        "Name": "Faro",
+        "Group": null,
+        "Country": "portugal",
+        "X": -90530.336,
+        "Y": 62415.586,
+        "CountryId": 36
+    },
+    {
+        "Name": "Lisboa",
+        "Group": null,
+        "Country": "portugal",
+        "X": -93310.516,
+        "Y": 49853.344,
+        "CountryId": 36
+    },
+    {
+        "Name": "Bologna",
+        "Group": null,
+        "Country": "italy",
+        "X": 219.98828,
+        "Y": 33482.82,
+        "CountryId": 6
+    },
+    {
+        "Name": "Firenze",
+        "Group": null,
+        "Country": "italy",
+        "X": 581.625,
+        "Y": 38367.773,
+        "CountryId": 6
+    },
+    {
+        "Name": "Terni",
+        "Group": null,
+        "Country": "italy",
+        "X": 6216.492,
+        "Y": 45691.66,
+        "CountryId": 6
+    },
+    {
+        "Name": "Roma",
+        "Group": null,
+        "Country": "italy",
+        "X": 5511.125,
+        "Y": 48579.21,
+        "CountryId": 6
+    },
+    {
+        "Name": "Ancona",
+        "Group": null,
+        "Country": "italy",
+        "X": 9424.281,
+        "Y": 39138.16,
+        "CountryId": 6
+    },
+    {
+        "Name": "Palermo",
+        "Group": null,
+        "Country": "italy",
+        "X": 8350.891,
+        "Y": 70487.19,
+        "CountryId": 6
+    },
+    {
+        "Name": "Pescara",
+        "Group": null,
+        "Country": "italy",
+        "X": 12397.996,
+        "Y": 46327.97,
+        "CountryId": 6
+    },
+    {
+        "Name": "Cassino",
+        "Group": null,
+        "Country": "italy",
+        "X": 12043.891,
+        "Y": 52064.895,
+        "CountryId": 6
+    },
+    {
+        "Name": "Napoli",
+        "Group": null,
+        "Country": "italy",
+        "X": 12418.102,
+        "Y": 55071.93,
+        "CountryId": 6
+    },
+    {
+        "Name": "Messina",
+        "Group": null,
+        "Country": "italy",
+        "X": 17975.742,
+        "Y": 70539.16,
+        "CountryId": 6
+    },
+    {
+        "Name": "Villa San Giovanni",
+        "Group": null,
+        "Country": "italy",
+        "X": 19020.703,
+        "Y": 70314.04,
+        "CountryId": 6
+    },
+    {
+        "Name": "Catania",
+        "Group": null,
+        "Country": "italy",
+        "X": 16420.715,
+        "Y": 74982.42,
+        "CountryId": 6
+    },
+    {
+        "Name": "Bari",
+        "Group": null,
+        "Country": "italy",
+        "X": 22578.176,
+        "Y": 53831.273,
+        "CountryId": 6
+    },
+    {
+        "Name": "Catanzaro",
+        "Group": null,
+        "Country": "italy",
+        "X": 23291.656,
+        "Y": 66425.76,
+        "CountryId": 6
+    },
+    {
+        "Name": "Taranto",
+        "Group": null,
+        "Country": "italy",
+        "X": 25490.426,
+        "Y": 57821.28,
+        "CountryId": 6
+    },
+    {
+        "Name": "Suzzara",
+        "Group": null,
+        "Country": "italy",
+        "X": -1130.9492,
+        "Y": 31926.668,
+        "CountryId": 6
+    },
+    {
+        "Name": "Parma",
+        "Group": null,
+        "Country": "italy",
+        "X": -3406.5664,
+        "Y": 33434.168,
+        "CountryId": 6
+    },
+    {
+        "Name": "Livorno",
+        "Group": null,
+        "Country": "italy",
+        "X": -2968.4219,
+        "Y": 39681.684,
+        "CountryId": 6
+    },
+    {
+        "Name": "Cagliari",
+        "Group": null,
+        "Country": "italy",
+        "X": -10160.855,
+        "Y": 64051.816,
+        "CountryId": 6
+    },
+    {
+        "Name": "Odense",
+        "Group": null,
+        "Country": "denmark",
+        "X": 1016.86646,
+        "Y": -26813.027,
+        "CountryId": 21
+    },
+    {
+        "Name": "Aarhus",
+        "Group": null,
+        "Country": "denmark",
+        "X": 690.65625,
+        "Y": -31564.176,
+        "CountryId": 21
+    },
+    {
+        "Name": "Hirtshals",
+        "Group": null,
+        "Country": "denmark",
+        "X": 775.34375,
+        "Y": -39243.414,
+        "CountryId": 21
+    },
+    {
+        "Name": "Frederikshavn",
+        "Group": null,
+        "Country": "denmark",
+        "X": 2361.5703,
+        "Y": -38541.867,
+        "CountryId": 21
+    },
+    {
+        "Name": "Aalborg",
+        "Group": null,
+        "Country": "denmark",
+        "X": 481.9336,
+        "Y": -36295.73,
+        "CountryId": 21
+    },
+    {
+        "Name": "København",
+        "Group": null,
+        "Country": "denmark",
+        "X": 6537.5312,
+        "Y": -29202.416,
+        "CountryId": 21
+    },
+    {
+        "Name": "Göteborg",
+        "Group": null,
+        "Country": "sweden",
+        "X": 7240.999,
+        "Y": -40514.434,
+        "CountryId": 43
+    },
+    {
+        "Name": "Malmö",
+        "Group": null,
+        "Country": "sweden",
+        "X": 10232.895,
+        "Y": -28003.658,
+        "CountryId": 43
+    },
+    {
+        "Name": "Trelleborg",
+        "Group": null,
+        "Country": "sweden",
+        "X": 10508.1875,
+        "Y": -26107.156,
+        "CountryId": 43
+    },
+    {
+        "Name": "Helsingborg",
+        "Group": null,
+        "Country": "sweden",
+        "X": 9005.078,
+        "Y": -30526.426,
+        "CountryId": 43
+    },
+    {
+        "Name": "Växjö",
+        "Group": null,
+        "Country": "sweden",
+        "X": 15340.48,
+        "Y": -35140.297,
+        "CountryId": 43
+    },
+    {
+        "Name": "Jönköping",
+        "Group": null,
+        "Country": "sweden",
+        "X": 13877.137,
+        "Y": -40045.72,
+        "CountryId": 43
+    },
+    {
+        "Name": "Karlstad",
+        "Group": null,
+        "Country": "sweden",
+        "X": 12451.349,
+        "Y": -48848.645,
+        "CountryId": 43
+    },
+    {
+        "Name": "Karlskrona",
+        "Group": null,
+        "Country": "sweden",
+        "X": 16745.434,
+        "Y": -31232.523,
+        "CountryId": 43
+    },
+    {
+        "Name": "Linköping",
+        "Group": null,
+        "Country": "sweden",
+        "X": 17511.547,
+        "Y": -43713.027,
+        "CountryId": 43
+    },
+    {
+        "Name": "Örebro",
+        "Group": null,
+        "Country": "sweden",
+        "X": 16587.707,
+        "Y": -48894.844,
+        "CountryId": 43
+    },
+    {
+        "Name": "Kalmar",
+        "Group": null,
+        "Country": "sweden",
+        "X": 19959.36,
+        "Y": -34554.6,
+        "CountryId": 43
+    },
+    {
+        "Name": "Södertälje",
+        "Group": null,
+        "Country": "sweden",
+        "X": 23325.07,
+        "Y": -46540.0,
+        "CountryId": 43
+    },
+    {
+        "Name": "Västerås",
+        "Group": null,
+        "Country": "sweden",
+        "X": 20583.777,
+        "Y": -50711.934,
+        "CountryId": 43
+    },
+    {
+        "Name": "Stockholm",
+        "Group": null,
+        "Country": "sweden",
+        "X": 24324.06,
+        "Y": -48392.473,
+        "CountryId": 43
+    },
+    {
+        "Name": "Nynäshamn",
+        "Group": null,
+        "Country": "sweden",
+        "X": 24731.855,
+        "Y": -46649.227,
+        "CountryId": 43
+    },
+    {
+        "Name": "Uppsala",
+        "Group": null,
+        "Country": "sweden",
+        "X": 23521.328,
+        "Y": -52104.625,
+        "CountryId": 43
+    },
+    {
+        "Name": "Kapellskär",
+        "Group": null,
+        "Country": "sweden",
+        "X": 27787.414,
+        "Y": -51382.78,
+        "CountryId": 43
+    },
+    {
+        "Name": "Esbjerg",
+        "Group": null,
+        "Country": "denmark",
+        "X": -5274.5547,
+        "Y": -27976.016,
+        "CountryId": 21
+    },
+    {
+        "Name": "Kristiansand",
+        "Group": null,
+        "Country": "norway",
+        "X": -4788.4023,
+        "Y": -43061.625,
+        "CountryId": 35
+    },
+    {
+        "Name": "Stavanger",
+        "Group": null,
+        "Country": "norway",
+        "X": -10819.913,
+        "Y": -48349.3,
+        "CountryId": 35
+    },
+    {
+        "Name": "Bergen",
+        "Group": null,
+        "Country": "norway",
+        "X": -10571.707,
+        "Y": -56397.766,
+        "CountryId": 35
+    }
+]

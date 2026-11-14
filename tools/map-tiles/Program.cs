@@ -37,6 +37,10 @@ internal static class Program
 
         // Level 0: one tile with the whole map, edge to edge on the longer axis.
         Fit(mapper, TileSize, out var origin, out var zoom0);
+        // Cities.json: every city with its game x/z (ts-map's own export), for checking that pins
+        // line up with the tiles and for labels later.
+        Directory.CreateDirectory(outDir); // ts-map's export skips a missing folder silently
+        if (shard == 0) mapper.ExportInfo(ExportFlags.CityList, outDir);
         if (shard == 0) JsonHelper.SaveTileMapInfo(outDir, origin.X, origin.X + TileSize / zoom0, origin.Y, origin.Y + TileSize / zoom0, 0, maxZoom);
 
         var flags = RenderFlags.Prefabs | RenderFlags.Roads | RenderFlags.MapAreas | RenderFlags.FerryConnections
@@ -82,14 +86,28 @@ internal static class Program
 
     private static void SaveTile(TsMapRenderer renderer, int z, int x, int y, PointF origin, float zoom, string outDir, RenderFlags flags)
     {
-        using var bitmap = new Bitmap(TileSize, TileSize);
-        using var g = Graphics.FromImage(bitmap);
-        var pos = new PointF(origin.X + TileSize / zoom * x, origin.Y + TileSize / zoom * y);
-        renderer.Render(g, new Rectangle(0, 0, TileSize, TileSize), zoom, pos, new HubPalette(), flags & ~RenderFlags.TextOverlay);
+        // Render with a margin and keep the middle: ts-map only draws what falls inside the
+        // clip, so a city name across a tile edge would otherwise be cut off in both tiles.
+        const int margin = 128;
+        const int full = TileSize + 2 * margin;
+        using var big = new Bitmap(full, full);
+        using (var g = Graphics.FromImage(big))
+        {
+            var pos = new PointF(
+                origin.X + TileSize / zoom * x - margin / zoom,
+                origin.Y + TileSize / zoom * y - margin / zoom);
+            renderer.Render(g, new Rectangle(0, 0, full, full), zoom, pos, new HubPalette(), flags & ~RenderFlags.TextOverlay);
+        }
+
+        using var tile = new Bitmap(TileSize, TileSize);
+        using (var g = Graphics.FromImage(tile))
+        {
+            g.DrawImage(big, new Rectangle(0, 0, TileSize, TileSize), new Rectangle(margin, margin, TileSize, TileSize), GraphicsUnit.Pixel);
+        }
 
         var dir = Path.Combine(outDir, "tiles", z.ToString(), x.ToString());
         Directory.CreateDirectory(dir);
-        bitmap.Save(Path.Combine(dir, y + ".png"), ImageFormat.Png);
+        tile.Save(Path.Combine(dir, y + ".png"), ImageFormat.Png);
     }
 }
 

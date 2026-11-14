@@ -98,6 +98,12 @@ without a full build.
   compiles ts-map's library at a pinned commit into `TileExporter` (console, no window), renders
   in several processes (GDI+ overlay bitmaps can't be shared between threads) and replaces
   `public/map-tiles/ets2`. Rerun after a game or map DLC update and commit the result.
+  The first render (ETS2 1.59 + map DLCs on Shay's PC, Nov 14): 32 s with 8 processes, 5,461
+  tiles to zoom 6, 17.8 MB, plus `Cities.json` (every city's x/z). Each tile is drawn with a
+  128 px margin and cropped, so city names carry across tile edges. ts-map's own `Logger.cs` is
+  swapped for `QuietLogger.cs`: the original locks `%LOCALAPPDATA%\ts-map\TsMap.log`, so parallel
+  processes crashed. The tile layer's bounds sit a hair inside the grid (Leaflet asked for
+  edge-touching tiles, 404s).
 - E2E seeds Mona Map (job), Fred Free (free roam) and Pia Private with `updated_at` a day
   ahead so they stay fresh however late `map.spec.ts` runs. Leaflet markers are buttons named by
   their `title`: use `exact: true`, the list's "Show X on the map" buttons contain the name.
