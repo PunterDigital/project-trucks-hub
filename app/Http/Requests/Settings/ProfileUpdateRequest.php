@@ -35,6 +35,7 @@ class ProfileUpdateRequest extends FormRequest
         return [
             ...$this->profileRules($this->user()->id),
             'profile_private' => ['sometimes', 'boolean'],
+            'show_on_map' => ['sometimes', 'boolean'],
         ];
     }
 }

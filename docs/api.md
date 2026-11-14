@@ -163,12 +163,19 @@ for **120 s** counts as offline.
         "distance_left_km": 230,
         "progress_pct": 34.4,
         "parked": false
-    }
+    },
+    "position": { "x": -12345.7, "z": 4321.0, "heading_deg": 90.0 }
 }
 ```
 
 `job` follows ProjectTrucks' `CurrentJob` (snake_case). `job: null` with a `truck` means free
 roam.
+
+`position` (optional, ProjectTrucks 0.9+) feeds the live map (`/map`): SCS world metres, `x`
+grows east and `z` grows south (each within ±1,000,000), `heading_deg` is the SCS heading
+(0 = north, counter-clockwise, -360 to 360, optional). Send it on a job and while free-roaming.
+The Hub drops it for drivers who switched off "Show me on the live map", and the map never shows
+private profiles.
 
 ### `DELETE /status`
 

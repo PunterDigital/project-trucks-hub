@@ -48,3 +48,5 @@ yarn-error.log
 /public/css/filament
 /public/fonts/filament
 /public/js/filament
+tools/map-tiles/bin/
+tools/map-tiles/obj/

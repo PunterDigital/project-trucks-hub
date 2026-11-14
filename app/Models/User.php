@@ -29,6 +29,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $avatar_url
  * @property bool $profile_private
  * @property bool $is_staff
+ * @property bool $show_on_map
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property Carbon|null $password_set_at
@@ -41,7 +42,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read CompanyMember|null $membership
  * @property-read LiveStatus|null $liveStatus
  */
-#[Fillable(['name', 'email', 'password', 'username', 'profile_private'])]
+#[Fillable(['name', 'email', 'password', 'username', 'profile_private', 'show_on_map'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail, PasskeyUser
 {
@@ -62,6 +63,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
             'two_factor_confirmed_at' => 'datetime',
             'profile_private' => 'boolean',
             'is_staff' => 'boolean',
+            'show_on_map' => 'boolean',
         ];
     }
 

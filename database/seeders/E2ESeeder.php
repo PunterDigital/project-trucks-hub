@@ -151,5 +151,28 @@ class E2ESeeder extends Seeder
             'two_factor_recovery_codes' => encrypt((string) json_encode(['e2e-recovery-code'])),
             'two_factor_confirmed_at' => now(),
         ])->save();
+
+        // Live map (#4687): one driver on a job, one free-roaming, one private (never shown).
+        // `updated_at` a day ahead keeps them "fresh" however late map.spec runs.
+        foreach ([
+            ['Mona Map', 'mona-map', false, ['cargo_name' => 'Timber', 'source_city' => 'Hamburg', 'dest_city' => 'Wien', 'pos_x' => -3000.0, 'pos_z' => -15000.0, 'heading_deg' => 180.0]],
+            ['Fred Free', 'fred-free', false, ['pos_x' => 2000.0, 'pos_z' => 1000.0, 'heading_deg' => 90.0]],
+            ['Pia Private', 'pia-private', true, ['pos_x' => 0.0, 'pos_z' => 0.0, 'heading_deg' => 0.0]],
+        ] as [$name, $username, $private, $live]) {
+            $driver = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+            ]);
+            $driver->forceFill(['email_verified_at' => now(), 'password_set_at' => now(), 'profile_private' => $private])->save();
+            LiveStatus::query()->create([
+                'user_id' => $driver->id,
+                'truck_make' => 'Renault',
+                'truck_model' => 'T',
+                'updated_at' => now()->addDay(),
+                ...$live,
+            ]);
+        }
     }
 }

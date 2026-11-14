@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Renders the ETS2 map into web tiles for the Hub's live map (#4687) with ts-map
+    (https://github.com/dariowouters/ts-map, MIT). generate.mjs clones ts-map at a pinned commit
+    and passes its folder as TsMapSrc; this project compiles ts-map's TsMap library sources
+    (not its WinForms app) plus Program.cs. Windows only: System.Drawing and ts-map's
+    libdeflate.dll.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <NoWarn>$(NoWarn);CS0168;CS0169;CS0219;CS0414;CS0649;CS0618;CS8981;CA1416;SYSLIB0014</NoWarn>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(TsMapSrc)/TsMap/**/*.cs" Exclude="$(TsMapSrc)/TsMap/obj/**;$(TsMapSrc)/TsMap/bin/**" />
+    <None Include="$(TsMapSrc)/libs/libdeflate.dll" CopyToOutputDirectory="PreserveNewest" Link="libdeflate.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
+  </ItemGroup>
+
+</Project>

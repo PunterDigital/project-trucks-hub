@@ -81,6 +81,27 @@ without a full build.
   steps on the page name the app's real labels ("Install plugin", "Tracking", Settings →
   ProjectTrucks Hub): keep them in step with ProjectTrucks.
 
+## Live map (#4687)
+
+- `/map` (`MapController`, `pages/map/Index.vue`): Leaflet with a `CRS.Simple` whose
+  transformation maps SCS world metres (lng = x east, lat = z south) onto the zoom-0 tile box
+  from `public/map-tiles/ets2/TileMapInfo.json` (`App\Support\MapTiles`). Without that file the
+  pins still work on a plain dark background (rough ETS2 bounds). Not `public/map/`: a folder
+  named like the route would be served instead of Laravel.
+- Pins: fresh `live_statuses` with `pos_x/pos_z`, public profiles with `show_on_map` only.
+  Headings are SCS (0 = north, counter-clockwise), so CSS rotates by `-heading`. Popups are
+  built from text nodes (names and cities come from drivers). `usePoll` reloads only
+  `drivers` every 30 s.
+- The API stores `position` only while `show_on_map` is on; switching it off in Settings →
+  Profile also clears the stored position at once.
+- Tiles: `node tools/map-tiles/generate.mjs --game "<ETS2 folder>"` (Windows, .NET 10 SDK)
+  compiles ts-map's library at a pinned commit into `TileExporter` (console, no window), renders
+  in several processes (GDI+ overlay bitmaps can't be shared between threads) and replaces
+  `public/map-tiles/ets2`. Rerun after a game or map DLC update and commit the result.
+- E2E seeds Mona Map (job), Fred Free (free roam) and Pia Private with `updated_at` a day
+  ahead so they stay fresh however late `map.spec.ts` runs. Leaflet markers are buttons named by
+  their `title`: use `exact: true`, the list's "Show X on the map" buttons contain the name.
+
 ## Admin panel (#4664)
 
 - Filament 5 at `/admin` (`App\Providers\Filament\AdminPanelProvider`), no Filament login: staff
@@ -111,6 +132,8 @@ Filament's confirm modal is an `alertdialog`; retry the opening click until its 
 `sync.spec.ts` plays the desktop app with Playwright's `request` (device code → approve in
 the page → poll → POST jobs / PUT status). Every spec fails on a console error.
 Specs share one database and run in file order: assert on named rows, not counts.
+Fortify allows **5 logins a minute per email**: CI runs the whole suite in ~35 s, so a new spec
+that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec` in CI, #4687).
 
 ## Quirks
 

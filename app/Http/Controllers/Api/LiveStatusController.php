@@ -33,10 +33,18 @@ class LiveStatusController extends Controller
             'job.distance_left_km' => ['nullable', 'numeric', 'min:0', 'max:100000'],
             'job.progress_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'job.parked' => ['nullable', 'boolean'],
+            // Live map (#4687): SCS world metres (x east, z south), heading 0 = north, CCW.
+            'position' => ['nullable', 'array'],
+            'position.x' => ['required_with:position', 'numeric', 'between:-1000000,1000000'],
+            'position.z' => ['required_with:position', 'numeric', 'between:-1000000,1000000'],
+            'position.heading_deg' => ['nullable', 'numeric', 'between:-360,360'],
         ]);
 
         $job = $data['job'] ?? null;
         $truck = $data['truck'] ?? null;
+        // Drivers who switched the live map off never have a position stored.
+        // (A model made in code, not read back, has no value yet: the column default is on.)
+        $position = $request->user()->getAttribute('show_on_map') !== false ? ($data['position'] ?? null) : null;
 
         $status = LiveStatus::query()->updateOrCreate(
             ['user_id' => $request->user()->id],
@@ -55,6 +63,9 @@ class LiveStatusController extends Controller
                 'distance_left_km' => $job['distance_left_km'] ?? null,
                 'progress_pct' => $job['progress_pct'] ?? null,
                 'parked' => (bool) ($job['parked'] ?? false),
+                'pos_x' => $position['x'] ?? null,
+                'pos_z' => $position['z'] ?? null,
+                'heading_deg' => $position['heading_deg'] ?? null,
                 'updated_at' => now(),
             ],
         );
