@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\PasswordUpdateRequest;
 use App\Http\Requests\Settings\TwoFactorAuthenticationRequest;
+use App\Support\PasswordConfirmation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -38,6 +39,7 @@ class SecurityController extends Controller
                     ->all()
                 : [],
             'passwordRules' => Password::defaults()->toPasswordRulesString(),
+            'hasPassword' => $request->user()->hasPassword(),
         ];
 
         if (Features::canManageTwoFactorAuthentication()) {
@@ -55,11 +57,20 @@ class SecurityController extends Controller
      */
     public function update(PasswordUpdateRequest $request): RedirectResponse
     {
-        $request->user()->update([
-            'password' => $request->password,
-        ]);
+        $user = $request->user();
+        $hadPassword = $user->hasPassword();
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Password updated.')]);
+        // Setting a first password skips "current password", so it needs a recent
+        // confirmation (Steam or passkey) like the Security page itself.
+        if (! $hadPassword && ! PasswordConfirmation::isRecent($request)) {
+            redirect()->setIntendedUrl(route('security.edit'));
+
+            return to_route('password.confirm');
+        }
+
+        $user->setChosenPassword((string) $request->string('password'));
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => $hadPassword ? __('Password updated.') : __('Password set.')]);
 
         return back();
     }

@@ -18,6 +18,8 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 
+withDefaults(defineProps<{ hasPassword?: boolean }>(), { hasPassword: true });
+
 const passwordInput = useTemplateRef('passwordInput');
 </script>
 
@@ -62,13 +64,21 @@ const passwordInput = useTemplateRef('passwordInput');
                             <DialogDescription>
                                 Once your account is deleted, all of its
                                 resources and data will also be permanently
-                                deleted. Please enter your password to confirm
-                                you would like to permanently delete your
-                                account.
+                                deleted.
+                                <template v-if="hasPassword">
+                                    Please enter your password to confirm you
+                                    would like to permanently delete your
+                                    account.
+                                </template>
+                                <template v-else>
+                                    You signed up with Steam, so if you haven't
+                                    confirmed it's you in the last few hours
+                                    we'll ask you to confirm with Steam first.
+                                </template>
                             </DialogDescription>
                         </DialogHeader>
 
-                        <div class="grid gap-2">
+                        <div v-if="hasPassword" class="grid gap-2">
                             <Label for="password" class="sr-only"
                                 >Password</Label
                             >

@@ -15,6 +15,7 @@ import ManageTwoFactor from '@/components/ManageTwoFactor.vue';
 // oxfmt-ignore
 type Props = {
     passwordRules: string;
+    hasPassword: boolean;
 } & ManagePasskeysProps &
     ManageTwoFactorProps;
 
@@ -40,8 +41,12 @@ defineOptions({
     <div class="space-y-6">
         <Heading
             variant="small"
-            title="Update password"
-            description="Ensure your account is using a long, random password to stay secure"
+            :title="props.hasPassword ? 'Update password' : 'Set a password'"
+            :description="
+                props.hasPassword
+                    ? 'Ensure your account is using a long, random password to stay secure'
+                    : 'You signed up with Steam, so your account has no password yet. Set one to sign in with your email too.'
+            "
         />
 
         <Form
@@ -58,7 +63,7 @@ defineOptions({
             class="space-y-6"
             v-slot="{ errors, processing }"
         >
-            <div class="grid gap-2">
+            <div v-if="props.hasPassword" class="grid gap-2">
                 <Label for="current_password">Current password</Label>
                 <PasswordInput
                     id="current_password"
@@ -101,7 +106,7 @@ defineOptions({
                     :disabled="processing"
                     data-test="update-password-button"
                 >
-                    Save
+                    {{ props.hasPassword ? 'Save' : 'Set password' }}
                 </Button>
             </div>
         </Form>

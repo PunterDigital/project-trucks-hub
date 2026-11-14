@@ -53,6 +53,14 @@ without a full build.
   sites to use them). `allowed_hosts` comes from `APP_URL`. New Steam players finish sign-up
   with an email (random password; "Forgot password" sets one). 2FA accounts still go through
   Fortify's challenge (`login.id` in the session).
+- Passwords: `users.password_set_at` says whether the driver chose one (`hasPassword()`;
+  set it with `setChosenPassword()`, never a bare `password` update). Steam sign-ups have
+  null, so nothing asks them for a password: the confirm page offers "Confirm with Steam"
+  (`steam.confirm`, only the linked Steam id counts, sets `auth.password_confirmed_at`) or a
+  passkey; Security shows "Set a password" with no current password, and delete/set-password
+  need a recent confirmation (`App\Support\PasswordConfirmation`) instead (#4672). Factory
+  users have a password; E2E's `steve@example.com` is Steam-only (hash "password" only so
+  E2E can log in).
 - `config/sanctum.php` `stateful` is empty on purpose: the API is bearer-token only.
 - `/download`: ProjectTrucks' latest GitHub release via `App\Support\LatestRelease` (GitHub API,
   cached 15 min, last good answer kept forever, only `github.com/PunterDigital/project-trucks/

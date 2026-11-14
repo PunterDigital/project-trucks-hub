@@ -30,6 +30,7 @@ class UserFactory extends Factory
             'username' => fake()->unique()->regexify('[a-z]{6}[0-9]{4}'),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'password_set_at' => now(),
             'remember_token' => Str::random(10),
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,

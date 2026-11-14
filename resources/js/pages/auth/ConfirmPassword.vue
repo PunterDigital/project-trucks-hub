@@ -6,23 +6,42 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/password/confirm';
+import { confirm as steamConfirm } from '@/routes/steam';
 import {
     index as confirmOptions,
     store as confirmStore,
 } from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyConfirmationController';
 import PasskeyVerify from '@/components/PasskeyVerify.vue';
 
+// Steam sign-ups never chose a password: they confirm with Steam or a passkey (#4672).
+withDefaults(
+    defineProps<{ hasPassword?: boolean; canConfirmWithSteam?: boolean }>(),
+    { hasPassword: true, canConfirmWithSteam: false },
+);
+
 defineOptions({
     layout: {
         title: 'Confirm password',
         description:
-            'This is a secure area of the application. Please confirm your password before continuing.',
+            'This is a secure area of the application. Please confirm it is you before continuing.',
     },
 });
 </script>
 
 <template>
     <Head title="Confirm password" />
+
+    <div v-if="canConfirmWithSteam" class="space-y-2">
+        <Button
+            as="a"
+            :href="steamConfirm().url"
+            variant="outline"
+            class="w-full"
+            data-test="confirm-with-steam-button"
+        >
+            Confirm with Steam
+        </Button>
+    </div>
 
     <PasskeyVerify
         :routes="{
@@ -31,10 +50,20 @@ defineOptions({
         }"
         label="Confirm with passkey"
         loading-label="Confirming..."
-        separator="Or confirm with password"
+        :separator="hasPassword ? 'Or confirm with password' : ''"
     />
 
+    <p
+        v-if="!hasPassword"
+        class="text-center text-sm text-muted-foreground"
+        data-test="no-password-note"
+    >
+        Your account was created with Steam and has no password yet. You can set
+        one in Settings → Security after confirming.
+    </p>
+
     <Form
+        v-if="hasPassword"
         v-bind="store.form()"
         reset-on-success
         v-slot="{ errors, processing }"

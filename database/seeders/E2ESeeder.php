@@ -106,5 +106,18 @@ class E2ESeeder extends Seeder
         ];
         Cache::forever(LatestRelease::CACHE_KEY, $release);
         Cache::forever(LatestRelease::LAST_GOOD_KEY, $release);
+
+        // Everyone above chose their password.
+        User::query()->update(['password_set_at' => now()]);
+
+        // A Steam sign-up that never chose a password (#4672). Its hash is "password" only
+        // so E2E can log in; the app treats it as unknown (password_set_at is null).
+        $steve = User::query()->create([
+            'name' => 'Steve Steam',
+            'email' => 'steve@example.com',
+            'username' => 'steve-steam',
+            'password' => $password,
+        ]);
+        $steve->forceFill(['steam_id' => '76561198000000042', 'email_verified_at' => now()])->save();
     }
 }

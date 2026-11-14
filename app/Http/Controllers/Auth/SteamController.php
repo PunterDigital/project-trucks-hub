@@ -38,6 +38,16 @@ class SteamController extends Controller
         return Socialite::driver('steam')->redirect();
     }
 
+    /** Confirm it's you by signing in through Steam again (drivers without a password). */
+    public function confirm(Request $request): RedirectResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    {
+        abort_unless(self::enabled() && $request->user()?->steam_id !== null, 404);
+
+        $request->session()->put('steam_confirm', true);
+
+        return Socialite::driver('steam')->redirect();
+    }
+
     public function callback(Request $request): RedirectResponse
     {
         abort_unless(self::enabled(), 404);
@@ -53,6 +63,20 @@ class SteamController extends Controller
 
         $steamId = (string) $steam->getId();
         $existing = User::query()->where('steam_id', $steamId)->first();
+
+        // "Confirm with Steam" on the confirm-password page: only the driver's own linked
+        // Steam account counts, and it never links or switches accounts.
+        if ($request->session()->pull('steam_confirm') === true && ($current = $request->user())) {
+            if ($current->steam_id === null || $current->steam_id !== $steamId) {
+                Inertia::flash('toast', ['type' => 'error', 'message' => __('That is not the Steam account linked to your driver.')]);
+
+                return to_route('password.confirm');
+            }
+
+            $request->session()->passwordConfirmed();
+
+            return redirect()->intended(route('security.edit'));
+        }
 
         if ($current = $request->user()) {
             if ($existing !== null && ! $existing->is($current)) {
@@ -127,7 +151,8 @@ class SteamController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'username' => $data['username'],
-            // Steam accounts get a random password; "Forgot password" sets a real one.
+            // Steam accounts get a random password nobody knows (password_set_at stays null);
+            // Settings → Security or "Forgot password" sets a real one.
             'password' => Str::random(64),
         ]);
         $user->forceFill(['steam_id' => $signup['steam_id'], 'avatar_url' => $signup['avatar']])->save();
