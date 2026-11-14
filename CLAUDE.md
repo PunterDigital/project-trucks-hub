@@ -59,9 +59,8 @@ without a full build.
   releases/download/` URLs accepted). `/download/windows[/msi]` are permanent links that 302 to
   the current installer. E2ESeeder puts a release in the cache so E2E never calls GitHub. Every
   "Get ProjectTrucks" link points here, not at the personal-apps downloads page. The install
-  steps on the page name the app's real labels ("Install plugin", "Tracking"): keep them in
-  step with ProjectTrucks, and drop the "Hub syncing arrives in an upcoming update" line once
-  #4634 ships.
+  steps on the page name the app's real labels ("Install plugin", "Tracking", Settings →
+  ProjectTrucks Hub): keep them in step with ProjectTrucks.
 
 ## E2E
 
