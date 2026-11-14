@@ -57,7 +57,8 @@ test('a driver can switch the live map off in their profile settings', async ({
     page,
 }) => {
     await page.goto('/login');
-    await page.getByLabel('Email address').fill('erin@example.com');
+    // Its own account: Fortify allows 5 logins a minute per email, and CI runs the specs fast.
+    await page.getByLabel('Email address').fill('pia-private@example.com');
     await page.getByLabel('Password', { exact: true }).fill('password');
     await page.getByRole('button', { name: 'Log in' }).click();
     await expect(page).toHaveURL(/\/dashboard$/);

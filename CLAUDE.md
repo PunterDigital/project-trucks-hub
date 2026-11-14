@@ -132,6 +132,8 @@ Filament's confirm modal is an `alertdialog`; retry the opening click until its 
 `sync.spec.ts` plays the desktop app with Playwright's `request` (device code → approve in
 the page → poll → POST jobs / PUT status). Every spec fails on a console error.
 Specs share one database and run in file order: assert on named rows, not counts.
+Fortify allows **5 logins a minute per email**: CI runs the whole suite in ~35 s, so a new spec
+that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec` in CI, #4687).
 
 ## Quirks
 
