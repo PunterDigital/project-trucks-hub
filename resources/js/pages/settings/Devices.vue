@@ -46,7 +46,7 @@ function unlink(id: number, name: string) {
 
         <p v-if="devices.length === 0" class="text-sm text-muted-foreground">
             Nothing linked yet. In ProjectTrucks open
-            <strong>Settings → Hub</strong> and click
+            <strong>Settings → ProjectTrucks Hub</strong> and click
             <strong>Link account</strong>, or enter its code on the
             <Link :href="link()" class="underline">link page</Link>.
         </p>

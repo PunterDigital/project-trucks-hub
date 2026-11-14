@@ -24,6 +24,11 @@ export function formatCount(n: number): string {
     return number.format(n);
 }
 
+/** "1 job", "2 jobs", "1,204 jobs". */
+export function plural(n: number, one: string, many = `${one}s`): string {
+    return `${number.format(n)} ${n === 1 ? one : many}`;
+}
+
 export function formatTonnes(kg: number | null | undefined): string {
     if (kg === null || kg === undefined) {
         return '–';

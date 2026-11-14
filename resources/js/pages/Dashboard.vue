@@ -6,6 +6,7 @@ import OnTheRoad from '@/components/hub/OnTheRoad.vue';
 import Panel from '@/components/hub/Panel.vue';
 import StatGrid from '@/components/hub/StatGrid.vue';
 import { Button } from '@/components/ui/button';
+import { plural } from '@/lib/format';
 import { dashboard } from '@/routes';
 import {
     create as createCompany,
@@ -55,10 +56,11 @@ defineProps<{
                     Link ProjectTrucks to start syncing
                 </h2>
                 <p class="text-sm text-muted-foreground">
-                    In ProjectTrucks open <strong>Settings → Hub</strong> and
-                    click <strong>Link account</strong>. It shows a code:
-                    approve it here and your new jobs appear on your profile
-                    automatically. Nothing is uploaded until you do.
+                    In ProjectTrucks open
+                    <strong>Settings → ProjectTrucks Hub</strong> and click
+                    <strong>Link account</strong>. It shows a code: approve it
+                    here and your new jobs appear on your profile automatically.
+                    Nothing is uploaded until you do.
                 </p>
             </div>
             <Button as-child variant="outline">
@@ -136,7 +138,8 @@ defineProps<{
                             class="size-5 text-muted-foreground"
                         />
                         <p class="flex-1 text-sm">
-                            {{ linkedApps }} linked · {{ jobsSynced }} jobs
+                            {{ linkedApps }} linked ·
+                            {{ plural(jobsSynced, 'job') }}
                             synced
                         </p>
                         <Link

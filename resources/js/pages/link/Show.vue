@@ -93,7 +93,8 @@ defineProps<{
             v-slot="{ processing }"
         >
             <p class="text-center text-sm text-muted-foreground">
-                In ProjectTrucks open <strong>Settings → Hub</strong>, click
+                In ProjectTrucks open
+                <strong>Settings → ProjectTrucks Hub</strong>, click
                 <strong>Link account</strong> and enter the code it shows.
             </p>
             <div class="grid gap-2">
