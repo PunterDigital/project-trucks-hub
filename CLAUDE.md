@@ -141,6 +141,16 @@ Specs share one database and run in file order: assert on named rows, not counts
 Fortify allows **5 logins a minute per email**: CI runs the whole suite in ~35 s, so a new spec
 that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec` in CI, #4687).
 
+## Auto-refresh (#4723)
+
+- `useAutoRefresh()` in `layouts/AppLayout.vue` (so every page but `auth/*`): an Inertia
+  `router.reload({ async: true })` (props only, scroll and form state kept, no progress bar)
+  60 s after the last page load while the tab is visible. Hidden tabs don't poll; coming back
+  after more than a minute refreshes at once. It skips while a visit runs or a text field has
+  focus. Pages with their own faster `usePoll` (the map) keep it.
+- `auto-refresh.spec.ts` drives the minute with `page.clock` and fakes `document.visibilityState`;
+  `rita-refresh@example.com` renames herself in a second context.
+
 ## Quirks
 
 - The starter kit's `bunny()` font build step was removed (a font download during a Forge
