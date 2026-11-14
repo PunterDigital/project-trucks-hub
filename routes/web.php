@@ -9,7 +9,11 @@ use App\Http\Controllers\DriverController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LinkDeviceController;
+use App\Http\Controllers\VersionController;
 use Illuminate\Support\Facades\Route;
+
+// What's deployed (playbook #4445). Outside the web group: no session, no cookies.
+Route::get('version', VersionController::class)->withoutMiddleware('web')->name('version');
 
 // Public pages: anyone can browse drivers, jobs, companies and leaderboards.
 Route::get('/', HomeController::class)->name('home');
