@@ -197,7 +197,8 @@ onMounted(async () => {
             maxNativeZoom: props.tiles.maxZoom,
             maxZoom,
             noWrap: true,
-            bounds,
+            // A hair inside the grid: Leaflet also asks for tiles that only touch the edge (404s).
+            bounds: bounds.pad(-0.0005),
             attribution:
                 'Map rendered with <a href="https://github.com/dariowouters/ts-map" target="_blank" rel="noopener">ts-map</a> from Euro Truck Simulator 2 © <a href="https://scssoft.com" target="_blank" rel="noopener">SCS Software</a>',
         }).addTo(map);

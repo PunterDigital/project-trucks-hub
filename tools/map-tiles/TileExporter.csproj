@@ -21,7 +21,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="$(TsMapSrc)/TsMap/**/*.cs" Exclude="$(TsMapSrc)/TsMap/obj/**;$(TsMapSrc)/TsMap/bin/**" />
+    <Compile Include="$(TsMapSrc)/TsMap/**/*.cs" Exclude="$(TsMapSrc)/TsMap/obj/**;$(TsMapSrc)/TsMap/bin/**;$(TsMapSrc)/TsMap/Helpers/Logger/Logger.cs" />
+    <!-- QuietLogger.cs (this folder) replaces it: no log file, safe to run several at once. -->
     <None Include="$(TsMapSrc)/libs/libdeflate.dll" CopyToOutputDirectory="PreserveNewest" Link="libdeflate.dll" />
   </ItemGroup>
 
