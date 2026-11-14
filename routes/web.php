@@ -11,6 +11,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LinkDeviceController;
+use App\Http\Controllers\MapController;
 use App\Http\Controllers\VersionController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,7 @@ Route::get('version', VersionController::class)->withoutMiddleware('web')->name(
 // Public pages: anyone can browse drivers, jobs, companies and leaderboards.
 Route::get('/', HomeController::class)->name('home');
 Route::get('leaderboards', LeaderboardController::class)->name('leaderboards');
+Route::get('map', MapController::class)->name('map');
 Route::get('download', [DownloadController::class, 'show'])->name('download');
 // Permanent installer links: /download/windows (setup .exe) and /download/windows/msi.
 Route::get('download/windows/{kind?}', [DownloadController::class, 'windows'])

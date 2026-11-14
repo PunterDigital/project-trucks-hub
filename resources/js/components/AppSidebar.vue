@@ -5,6 +5,7 @@ import {
     Download,
     Home,
     LayoutGrid,
+    Map as MapIcon,
     Trophy,
     Users,
 } from '@lucide/vue';
@@ -26,6 +27,7 @@ import {
     download,
     home,
     leaderboards,
+    map,
     privacy,
     terms,
 } from '@/routes';
@@ -43,6 +45,7 @@ const mainNavItems = computed<NavItem[]>(() => [
     { title: 'Drivers', href: drivers(), icon: Users },
     { title: 'Companies', href: companies(), icon: Building2 },
     { title: 'Leaderboards', href: leaderboards(), icon: Trophy },
+    { title: 'Live map', href: map(), icon: MapIcon },
     { title: 'Get ProjectTrucks', href: download(), icon: Download },
 ]);
 </script>

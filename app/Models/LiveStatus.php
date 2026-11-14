@@ -26,13 +26,16 @@ use Illuminate\Support\Carbon;
  * @property float|null $distance_left_km
  * @property float|null $progress_pct
  * @property bool $parked
+ * @property float|null $pos_x SCS world metres, east
+ * @property float|null $pos_z SCS world metres, south
+ * @property float|null $heading_deg 0 = north, counter-clockwise (SCS)
  * @property Carbon $updated_at
  * @property-read User $user
  */
 #[Fillable([
     'user_id', 'truck_make', 'truck_model', 'cargo_name', 'cargo_mass_kg', 'source_city',
     'source_company', 'dest_city', 'dest_company', 'income', 'driven_km', 'distance_left_km',
-    'progress_pct', 'parked', 'updated_at',
+    'progress_pct', 'parked', 'pos_x', 'pos_z', 'heading_deg', 'updated_at',
 ])]
 class LiveStatus extends Model
 {
@@ -53,6 +56,9 @@ class LiveStatus extends Model
             'distance_left_km' => 'float',
             'progress_pct' => 'float',
             'parked' => 'boolean',
+            'pos_x' => 'float',
+            'pos_z' => 'float',
+            'heading_deg' => 'float',
             'updated_at' => 'datetime',
         ];
     }

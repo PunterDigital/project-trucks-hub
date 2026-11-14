@@ -46,9 +46,10 @@ defineOptions({
             </li>
             <li>
                 <strong>Live status:</strong> while you drive, the app sends
-                your truck and current job (cargo, from, to, progress). It
-                counts as offline after two minutes without an update and is
-                removed when you stop.
+                your truck, current job (cargo, from, to, progress) and your
+                truck's position and heading in the game world. It counts as
+                offline after two minutes without an update and is removed when
+                you stop.
             </li>
             <li>
                 <strong>Companies:</strong> which company you're in, your role,
@@ -83,6 +84,13 @@ defineOptions({
                 A <strong>private profile</strong> (Settings → Profile) hides
                 you and your jobs from everyone except you and your company
                 mates. Your jobs still count towards your company's totals.
+            </li>
+            <li>
+                The <strong>live map</strong> shows public profiles that are
+                driving right now: name, company, truck, current job and where
+                the truck is in the game. Private profiles never appear, and
+                "Show me on the live map" (Settings → Profile) turns it off: the
+                Hub then stops storing your position at all.
             </li>
             <li>
                 Your email address is never shown to anyone. Staff only use it

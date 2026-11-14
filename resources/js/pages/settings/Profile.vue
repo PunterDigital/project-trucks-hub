@@ -134,6 +134,28 @@ const user = computed(() => page.props.auth.user!);
                 </span>
             </label>
 
+            <label class="flex items-start gap-3 rounded-lg border p-3">
+                <input type="hidden" name="show_on_map" value="0" />
+                <input
+                    type="checkbox"
+                    name="show_on_map"
+                    value="1"
+                    :checked="page.props.showOnMap !== false"
+                    class="mt-1"
+                    data-test="show-on-map"
+                />
+                <span>
+                    <span class="block text-sm font-medium"
+                        >Show me on the live map</span
+                    >
+                    <span class="block text-xs text-muted-foreground">
+                        While you drive, your truck appears on the Hub's live
+                        map. Off: the Hub doesn't store your position at all.
+                        Private profiles never appear either way.
+                    </span>
+                </span>
+            </label>
+
             <div class="flex items-center gap-4">
                 <Button :disabled="processing" data-test="update-profile-button"
                     >Save</Button

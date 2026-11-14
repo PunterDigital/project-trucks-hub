@@ -24,6 +24,7 @@ class ProfileController extends Controller
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
             'hasPassword' => $request->user()->hasPassword(),
+            'showOnMap' => (bool) $request->user()->show_on_map,
         ]);
     }
 
@@ -36,6 +37,11 @@ class ProfileController extends Controller
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;
+        }
+
+        // Off the live map (#4687): drop the stored position now, not on the next status.
+        if ($request->user()->isDirty('show_on_map') && ! $request->user()->show_on_map) {
+            $request->user()->liveStatus()->update(['pos_x' => null, 'pos_z' => null, 'heading_deg' => null]);
         }
 
         $request->user()->save();
