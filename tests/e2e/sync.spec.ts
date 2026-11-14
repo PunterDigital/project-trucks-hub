@@ -61,11 +61,42 @@ test('linking ProjectTrucks and syncing a job', async ({ page, request }) => {
                     source_city: 'Brussel',
                     dest_city: 'Lyon',
                     distance_km: 812,
+                    // 812 km at 81.2 km/h: 10 h on the road, so the Hub's
+                    // checks (#4642) let it count.
+                    duration_sec: 36_000,
+                    avg_speed_kmh: 81.2,
+                    started_at: new Date(Date.now() - 36_060_000).toISOString(),
+                }),
+                // A job no truck could drive: the Hub flags it itself,
+                // though the "app" sent flagged: false.
+                job({
+                    id: 'e2e-teleport',
+                    source_city: 'Calais',
+                    dest_city: 'Wien',
+                    distance_km: 1200,
+                    duration_sec: 7200,
+                    avg_speed_kmh: 600,
+                    started_at: new Date(Date.now() - 10_800_000).toISOString(),
+                    completed_at: new Date(
+                        Date.now() - 3_600_000,
+                    ).toISOString(),
                 }),
             ],
         },
     });
     expect(synced.ok()).toBeTruthy();
+    const syncedJobs = (await synced.json()).jobs;
+    expect(syncedJobs[0].hub_flag_reason).toBeNull();
+    expect(syncedJobs[1].hub_flag_reason).toContain(
+        'Average speed over 150 km/h',
+    );
+
+    // The flagged job says why and stays off the stats.
+    await page.goto(new URL(syncedJobs[1].url).pathname);
+    await expect(page.locator('[data-test="hub-flag"]')).toContainText(
+        "The Hub's checks flagged this job",
+    );
+    await expect(page.getByText('Flagged', { exact: true })).toBeVisible();
 
     const status = await request.put('/api/v1/status', {
         headers: auth,
@@ -87,7 +118,9 @@ test('linking ProjectTrucks and syncing a job', async ({ page, request }) => {
     // Dashboard: the job and "right now".
     await page.goto('/dashboard');
     await expect(page.locator('[data-test="link-app-callout"]')).toHaveCount(0);
-    await expect(page.locator('[data-test="job-row"]')).toContainText('Lyon');
+    await expect(
+        page.locator('[data-test="job-row"]').filter({ hasText: 'Lyon' }),
+    ).toBeVisible();
     await expect(page.locator('[data-test="on-the-road"]')).toContainText(
         'Milano',
     );

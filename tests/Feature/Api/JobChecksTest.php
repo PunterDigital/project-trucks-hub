@@ -1,0 +1,219 @@
+<?php
+
+namespace Tests\Feature\Api;
+
+use App\Models\Delivery;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
+use Illuminate\Testing\TestResponse;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\TestCase;
+
+/** The Hub's own anti-cheat checks on synced jobs (#4642). */
+class JobChecksTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private User $user;
+
+    private string $token;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->travelTo(Carbon::parse('2026-11-14 18:00:00', 'UTC'));
+        $this->user = User::factory()->create();
+        $this->token = $this->user->createToken('PT', ['sync'])->plainTextToken;
+    }
+
+    /** @param  list<array<string, mixed>>  $jobs */
+    private function sync(array $jobs): TestResponse
+    {
+        return $this->withToken($this->token)->postJson(route('api.jobs.store'), ['jobs' => $jobs]);
+    }
+
+    private function stored(string $id = '7f1c6a8e-3c2b-4d9e-9a51-0c6f2b1e5d10'): Delivery
+    {
+        return Delivery::query()->where('client_id', $id)->sole();
+    }
+
+    public function test_a_plausible_job_passes_and_counts(): void
+    {
+        $this->sync([JobSyncTest::job()])->assertOk()->assertJsonPath('jobs.0.hub_flag_reason', null);
+
+        $job = $this->stored();
+        $this->assertNull($job->hub_flag_reason);
+        $this->assertFalse($job->hub_held);
+        $this->assertSame(1, Delivery::query()->counted()->count());
+    }
+
+    /** @return array<string, array{array<string, mixed>, string}> */
+    public static function badJobs(): array
+    {
+        return [
+            'average speed over 150 km/h' => [
+                ['distance_km' => 500, 'duration_sec' => 7200, 'avg_speed_kmh' => 250, 'started_at' => '2026-11-14T12:00:00Z'],
+                'Average speed over 150 km/h',
+            ],
+            'reported speed over 150 km/h' => [
+                ['avg_speed_kmh' => 160],
+                'Average speed over 150 km/h; Distance and driving time don\'t match',
+            ],
+            'delivery under 1 km' => [
+                ['distance_km' => 0.5, 'duration_sec' => 600, 'avg_speed_kmh' => 3, 'started_at' => '2026-11-14T13:50:00Z'],
+                'Distance under 1 km',
+            ],
+            'reported speed not distance / time' => [
+                ['duration_sec' => 7200, 'started_at' => '2026-11-14T12:00:00Z'],
+                'Distance and driving time don\'t match',
+            ],
+            'driven longer than the job lasted' => [
+                ['started_at' => '2026-11-14T12:00:00Z'],
+                'Distance and driving time don\'t match',
+            ],
+            'delivered before it started' => [
+                ['started_at' => '2026-11-14T15:00:00Z', 'duration_sec' => 0, 'avg_speed_kmh' => 0, 'distance_km' => 0.5],
+                'Distance under 1 km; Distance and driving time don\'t match',
+            ],
+            'kilometres with no driving time' => [
+                ['duration_sec' => 0, 'avg_speed_kmh' => 0],
+                'Distance and driving time don\'t match',
+            ],
+            'income far above what the distance pays' => [
+                ['declared_income' => 1_000_000],
+                'Income too high for the distance',
+            ],
+            'completed in the future' => [
+                ['started_at' => '2026-11-15T08:00:00Z', 'completed_at' => '2026-11-15T12:00:00Z'],
+                'Completed in the future',
+            ],
+        ];
+    }
+
+    /** @param  array<string, mixed>  $overrides */
+    #[DataProvider('badJobs')]
+    public function test_implausible_jobs_get_a_hub_flag(array $overrides, string $reason): void
+    {
+        $this->sync([JobSyncTest::job($overrides)])->assertOk()->assertJsonPath('jobs.0.hub_flag_reason', $reason);
+
+        $job = $this->stored();
+        $this->assertSame($reason, $job->hub_flag_reason);
+        $this->assertFalse($job->hub_held);
+        $this->assertTrue($job->isFlagged());
+        $this->assertSame(0, Delivery::query()->counted()->count());
+    }
+
+    public function test_more_than_24_hours_driven_in_one_day_is_flagged(): void
+    {
+        // 20.8 h already driven earlier the same UTC day, in five 15000 s jobs.
+        for ($i = 0; $i < 5; $i++) {
+            Delivery::factory()->for($this->user)->create([
+                'duration_sec' => 15000,
+                'completed_at' => Carbon::parse('2026-11-14 04:00:00')->addMinutes($i),
+            ]);
+        }
+
+        $this->sync([JobSyncTest::job()])->assertOk();
+        $this->assertSame('More than 24 h driven in one day', $this->stored()->hub_flag_reason);
+
+        // The day before doesn't count.
+        $this->sync([JobSyncTest::job([
+            'id' => 'yesterday',
+            'started_at' => '2026-11-13T10:00:00Z',
+            'completed_at' => '2026-11-13T14:00:00Z',
+        ])])->assertOk();
+        $this->assertNull($this->stored('yesterday')->hub_flag_reason);
+    }
+
+    public function test_more_than_six_jobs_in_an_hour_are_held_for_review(): void
+    {
+        $jobs = [];
+        for ($i = 0; $i < 7; $i++) {
+            $done = Carbon::parse('2026-11-14 16:00:00')->addMinutes($i * 9);
+            $jobs[] = JobSyncTest::job([
+                'id' => "quick-$i",
+                'distance_km' => 10,
+                'duration_sec' => 480,
+                'avg_speed_kmh' => 75,
+                'declared_income' => 900,
+                'started_at' => $done->copy()->subSeconds(480)->toIso8601String(),
+                'completed_at' => $done->toIso8601String(),
+            ]);
+        }
+
+        $this->sync($jobs)->assertOk()
+            ->assertJsonPath('jobs.5.hub_flag_reason', null)
+            ->assertJsonPath('jobs.6.hub_flag_reason', 'Held for review: more than 6 jobs in an hour');
+
+        $held = $this->stored('quick-6');
+        $this->assertTrue($held->hub_held);
+        $this->assertSame(6, Delivery::query()->counted()->count());
+
+        // Cancels don't count towards the rate.
+        Delivery::query()->delete();
+        $jobs[0]['status'] = 'CANCELLED';
+        $this->sync($jobs)->assertOk()->assertJsonPath('jobs.6.hub_flag_reason', null);
+    }
+
+    public function test_a_resync_never_clears_a_hub_flag(): void
+    {
+        $this->sync([JobSyncTest::job(['declared_income' => 1_000_000])])->assertOk();
+
+        $this->sync([JobSyncTest::job()])->assertOk()
+            ->assertJsonPath('jobs.0.hub_flag_reason', 'Income too high for the distance');
+
+        $job = $this->stored();
+        $this->assertSame(12450, $job->income);
+        $this->assertSame('Income too high for the distance', $job->hub_flag_reason);
+        $this->assertSame(0, Delivery::query()->counted()->count());
+    }
+
+    public function test_a_resync_can_add_a_hub_flag(): void
+    {
+        $this->sync([JobSyncTest::job()])->assertOk();
+        $this->sync([JobSyncTest::job(['declared_income' => 1_000_000])])->assertOk();
+
+        $this->assertSame('Income too high for the distance', $this->stored()->hub_flag_reason);
+    }
+
+    public function test_the_apps_own_flag_still_counts(): void
+    {
+        $this->sync([JobSyncTest::job(['flagged' => true, 'flag_reason' => 'Average speed over 150 km/h'])])->assertOk();
+
+        $job = $this->stored();
+        $this->assertNull($job->hub_flag_reason);
+        $this->assertTrue($job->isFlagged());
+        $this->assertSame(0, Delivery::query()->counted()->count());
+    }
+
+    public function test_cancelled_jobs_are_not_checked(): void
+    {
+        $this->sync([JobSyncTest::job(['status' => 'CANCELLED', 'distance_km' => 0.4, 'duration_sec' => 60, 'avg_speed_kmh' => 24])])
+            ->assertOk();
+
+        $this->assertNull($this->stored()->hub_flag_reason);
+    }
+
+    public function test_thresholds_come_from_config(): void
+    {
+        config(['anticheat.max_avg_speed_kmh' => 60]);
+
+        $this->sync([JobSyncTest::job()])->assertOk();
+
+        $this->assertSame('Average speed over 60 km/h', $this->stored()->hub_flag_reason);
+    }
+
+    public function test_the_job_page_shows_the_hub_flag(): void
+    {
+        $this->sync([JobSyncTest::job(['declared_income' => 1_000_000])])->assertOk();
+        $job = $this->stored();
+
+        $this->get(route('jobs.show', $job))->assertOk()->assertInertia(fn ($page) => $page
+            ->component('jobs/Show')
+            ->where('job.flagged', true)
+            ->where('job.flag_reason', null)
+            ->where('job.hub_flag_reason', 'Income too high for the distance')
+            ->where('job.hub_held', false));
+    }
+}

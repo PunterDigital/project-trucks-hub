@@ -30,7 +30,7 @@ const labels: Record<JobStatus, string> = {
             v-if="flagged"
             variant="outline"
             class="border-red-500/50 text-red-700 dark:text-red-400"
-            title="ProjectTrucks' sanity check flagged this job; it doesn't count towards stats"
+            title="Flagged as implausible (by ProjectTrucks or the Hub's checks); it doesn't count towards stats"
             >Flagged</Badge
         >
         <Badge v-if="hidden" variant="outline" class="text-muted-foreground"

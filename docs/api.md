@@ -124,9 +124,18 @@ A batch with any invalid job is refused whole (422, Laravel validation errors ke
 ```json
 {
     "synced": 1,
-    "jobs": [{ "id": "7f1c…", "url": "https://hub.example/jobs/42" }]
+    "jobs": [
+        {
+            "id": "7f1c…",
+            "url": "https://hub.example/jobs/42",
+            "hub_flag_reason": null
+        }
+    ]
 }
 ```
+
+`hub_flag_reason` is set when the Hub's own checks flagged the job (see **What counts**); the
+app may ignore it.
 
 ### `DELETE /jobs/{id}`
 
@@ -172,6 +181,13 @@ All authenticated calls share 120 requests/min per account. A 429 carries `Retry
 ## What counts
 
 Stats and leaderboards count jobs with status `DELIVERED` or `LATE` that ProjectTrucks did not
-flag and the driver did not hide. Cancelled jobs show on the driver's profile but count for
+flag, the Hub's own checks did not flag, and the driver did not hide.
+
+The Hub re-checks every delivered or late job it receives (`config/anticheat.php`): average
+speed over 150 km/h, under 1 km, `avg_speed_kmh` or `duration_sec` that don't match the
+distance and the job's start/end times, income far above what the distance pays, a
+`completed_at` in the future, more than 24 h driven on one UTC day, and more than 6 jobs
+completed within an hour (held for review). A Hub flag stays put: re-syncing the job never
+clears it. Cancelled jobs show on the driver's profile but count for
 nothing. Drivers with a private profile stay off the public feed and the driver leaderboard;
 their jobs still count for their company.
