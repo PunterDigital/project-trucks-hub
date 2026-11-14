@@ -57,11 +57,23 @@ function unlink() {
             <Button v-if="steam" variant="outline" size="sm" @click="unlink"
                 >Unlink</Button
             >
-            <Button v-else-if="steamEnabled" as-child size="sm">
-                <a :href="redirect().url">Link Steam</a>
-            </Button>
+            <!-- Valve's own "Sign in through Steam" button, as Valve asks OpenID sites to use. -->
+            <a
+                v-else-if="steamEnabled"
+                :href="redirect().url"
+                aria-label="Link Steam: sign in through Steam"
+                data-test="steam-link"
+            >
+                <img
+                    src="https://community.steamstatic.com/public/images/signinthroughsteam/sits_01.png"
+                    alt="Sign in through Steam"
+                    width="180"
+                    height="35"
+                    referrerpolicy="no-referrer"
+                />
+            </a>
             <span v-else class="text-xs text-muted-foreground"
-                >Steam sign-in isn't set up on this server.</span
+                >Steam sign-in is switched off on this server.</span
             >
         </div>
     </div>

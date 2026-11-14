@@ -27,7 +27,8 @@ class SteamController extends Controller
 
     public static function enabled(): bool
     {
-        return filled(config('services.steam.client_secret'));
+        // OpenID needs no key; STEAM_API_KEY only adds the name and avatar.
+        return (bool) config('services.steam.enabled');
     }
 
     public function redirect(): RedirectResponse|\Symfony\Component\HttpFoundation\RedirectResponse

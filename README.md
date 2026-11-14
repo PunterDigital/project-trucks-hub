@@ -35,8 +35,9 @@ composer run dev
 | Static analysis | `vendor/bin/phpstan analyse` / `npm run types:check` |
 | E2E             | `npm run build && npm run test:e2e`                  |
 
-Steam sign-in needs a Steam Web API key in `STEAM_API_KEY`
-(https://steamcommunity.com/dev/apikey); without it the Steam buttons are hidden.
+Sign in through Steam uses Steam's OpenID provider and needs no key. An optional Steam Web API
+key in `STEAM_API_KEY` (https://steamcommunity.com/dev/apikey) fills in players' Steam names and
+avatars. `STEAM_LOGIN=false` turns Steam sign-in off.
 
 The API ProjectTrucks talks to is documented in [docs/api.md](docs/api.md).
 

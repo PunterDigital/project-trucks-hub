@@ -15,7 +15,8 @@ class SteamTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['services.steam.client_secret' => 'test-key']);
+        // No Web API key: sign-in is OpenID only.
+        config(['services.steam.enabled' => true, 'services.steam.client_secret' => null]);
     }
 
     private function fakeSteam(string $id = '76561198000000001'): void
@@ -27,12 +28,33 @@ class SteamTest extends TestCase
         ]));
     }
 
-    public function test_steam_is_off_without_an_api_key(): void
+    public function test_steam_sign_in_needs_no_api_key_and_goes_to_steams_openid_page(): void
     {
-        config(['services.steam.client_secret' => null]);
+        $this->get(route('login'))->assertInertia(fn ($page) => $page->where('steamEnabled', true));
+
+        $location = $this->get(route('steam.redirect'))->assertRedirect()->headers->get('Location');
+        $this->assertStringStartsWith('https://steamcommunity.com/openid/login?', (string) $location);
+        $this->assertStringContainsString('openid.mode=checkid_setup', (string) $location);
+        $this->assertStringContainsString(urlencode(route('steam.callback')), (string) $location);
+    }
+
+    public function test_steam_can_be_switched_off(): void
+    {
+        config(['services.steam.enabled' => false]);
 
         $this->get(route('steam.redirect'))->assertNotFound();
+        $this->get(route('steam.callback'))->assertNotFound();
         $this->get(route('login'))->assertInertia(fn ($page) => $page->where('steamEnabled', false));
+    }
+
+    public function test_a_steam_player_without_a_profile_gets_a_generic_suggestion(): void
+    {
+        Socialite::fake('steam', (new SocialiteUser)->map(['id' => '76561198000000002', 'nickname' => null, 'avatar' => null]));
+
+        $this->get(route('steam.callback'))->assertRedirect(route('steam.complete'));
+        $this->get(route('steam.complete'))->assertInertia(fn ($page) => $page
+            ->where('nickname', '')
+            ->where('suggestedUsername', 'driver'));
     }
 
     public function test_a_new_steam_player_finishes_sign_up_with_an_email(): void

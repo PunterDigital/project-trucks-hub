@@ -44,8 +44,13 @@ without a full build.
   code 8 chars without vowels. Tokens are Sanctum PATs with ability `sync`; the website lists
   them under Settings → Linked apps. Contract for the app: `docs/api.md`. Change the API
   only additively; ProjectTrucks releases lag behind.
-- Steam: enabled only when `STEAM_API_KEY` is set (`SteamController::enabled()`), so CI/E2E
-  never call Steam. `allowed_hosts` comes from `APP_URL`. New Steam players finish sign-up
+- Steam: sign-in is Steam's **OpenID** provider only (`App\Auth\SteamProvider`, our subclass of
+  socialiteproviders/steam, registered in `AppServiceProvider`). The Web API key is never used
+  to authenticate: `STEAM_API_KEY` is optional and only fetches name + avatar
+  (GetPlayerSummaries, over https; the upstream provider used http and required the key). A
+  failed lookup still signs in. `STEAM_LOGIN=false` hides it (E2E does, so no test hits Steam).
+  The buttons are Valve's own "Sign in through Steam" image from Steam's CDN (Valve asks OpenID
+  sites to use them). `allowed_hosts` comes from `APP_URL`. New Steam players finish sign-up
   with an email (random password; "Forgot password" sets one). 2FA accounts still go through
   Fortify's challenge (`login.id` in the session).
 - `config/sanctum.php` `stateful` is empty on purpose: the API is bearer-token only.

@@ -28,10 +28,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
-    // Sign in with Steam (OpenID 2.0). STEAM_API_KEY is a Steam Web API key
-    // (https://steamcommunity.com/dev/apikey), used to read the player's name and avatar.
-    // Without it the Steam buttons are hidden.
+    // Sign in through Steam. Authentication is Steam's OpenID provider only (App\Auth\SteamProvider);
+    // it needs no key. STEAM_API_KEY (https://steamcommunity.com/dev/apikey) is optional and only
+    // fills in the player's Steam name and avatar. STEAM_LOGIN=false hides the Steam buttons.
     'steam' => [
+        'enabled' => (bool) env('STEAM_LOGIN', true),
         'client_id' => null,
         'client_secret' => env('STEAM_API_KEY') ?: null,
         'redirect' => env('STEAM_REDIRECT_URI') ?: rtrim((string) env('APP_URL'), '/').'/auth/steam/callback',

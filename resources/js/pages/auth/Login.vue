@@ -37,9 +37,9 @@ defineProps<{
         {{ status }}
     </div>
 
-    <PasskeyVerify />
-
     <SteamButton label="Log in with Steam" />
+
+    <PasskeyVerify />
 
     <Form
         v-bind="store.form()"

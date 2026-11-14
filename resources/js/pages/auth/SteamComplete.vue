@@ -27,8 +27,13 @@ defineProps<{
     <Head title="Finish sign-up" />
 
     <div class="mb-6 flex items-center justify-center gap-3">
-        <DriverAvatar :name="nickname" :avatar="avatar" class="size-10" />
-        <span class="font-medium">{{ nickname }}</span>
+        <!-- Without a Steam Web API key there is no Steam name or avatar, only the SteamID. -->
+        <DriverAvatar
+            :name="nickname || 'Steam'"
+            :avatar="avatar"
+            class="size-10"
+        />
+        <span class="font-medium">{{ nickname || 'Your Steam account' }}</span>
     </div>
 
     <Form
