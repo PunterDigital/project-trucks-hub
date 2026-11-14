@@ -1,0 +1,69 @@
+# ProjectTrucks Hub — notes for Claude
+
+The web side of ProjectTrucks (`../project-trucks`, Tauri desktop app): drivers link the app
+and their jobs sync here; profiles, feed, companies (VTCs), leaderboards, live "on the road"
+status. Laravel 13 + Inertia 3 + Vue 3 (Laravel Vue starter kit), Fortify (email/password,
+2FA, passkeys), Sanctum (API tokens), Socialite + `socialiteproviders/steam`. Forge-hosted:
+a merge to `main` is a production deploy (see the control repo playbook).
+
+## Commands
+
+PHP 8.4: `export PATH="$(ls -d ~/.pvm/versions/php-8.4* | sort -V | tail -1):$PATH"` first in
+every Bash call (the default `php` is 8.3), and run Composer as `php <that dir>/composer/composer.phar`.
+
+| What                 | Command                                                                                                                |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Tests                | `php artisan test` (PHPUnit, in-memory SQLite; prefix `PAO_DISABLE=1` for full output)                                 |
+| PHP style / analysis | `vendor/bin/pint --test`, `vendor/bin/phpstan analyse` (level 7)                                                       |
+| Frontend             | `npm run build` (also regenerates Wayfinder `resources/js/routes` + `actions`), `npm run check`, `npm run types:check` |
+| E2E                  | `npm run build && npm run test:e2e`                                                                                    |
+
+`php artisan wayfinder:generate --with-form` refreshes route helpers after route changes
+without a full build.
+
+## Domain
+
+- `deliveries` = synced jobs (Laravel's queue owns `jobs`; the UI says "jobs", routes are
+  `/jobs/{id}`). Upsert key `(user_id, client_id)`, `client_id` = the app's local UUID.
+  `company_id` is set when first synced and never changed by a re-sync, nor is `hidden`.
+- **Never `$this->hidden` inside `Delivery`**: that's Eloquent's `$hidden` array, not the
+  column (a job page once said every job was hidden). Use `getAttribute('hidden')`.
+- "Counted" (stats + leaderboards) = `DELIVERED|LATE`, not flagged, not hidden:
+  `Delivery::scopeCounted()` / `countedConstraint()`; all totals go through
+  `App\Support\Stats` and `Leaderboard`, so pages can't drift.
+- Visibility: `Delivery::scopeVisibleTo($viewer)` and `User::scopeVisibleTo` / `isVisibleTo`.
+  Private profiles show only to themselves and company mates; they're off the public feed and
+  driver board, still in company totals.
+- Pages get explicit arrays (`publicSummary()`, `summary()`), never models. The shared
+  `auth.user` prop is a fixed field list (`HandleInertiaRequests`); `VisibilityTest` checks no
+  email reaches public pages.
+- Companies: one per driver (`company_members.user_id` unique). Owner ⊃ manager ⊃ driver;
+  rules in `CompanyMembershipController`.
+- Live status: one row per driver, fresh for `LiveStatus::FRESH_SECONDS` (120 s).
+- Device linking: `DeviceAuthorization` (RFC 8628 style), device code stored as sha256, user
+  code 8 chars without vowels. Tokens are Sanctum PATs with ability `sync`; the website lists
+  them under Settings → Linked apps. Contract for the app: `docs/api.md`. Change the API
+  only additively; ProjectTrucks releases lag behind.
+- Steam: enabled only when `STEAM_API_KEY` is set (`SteamController::enabled()`), so CI/E2E
+  never call Steam. `allowed_hosts` comes from `APP_URL`. New Steam players finish sign-up
+  with an email (random password; "Forgot password" sets one). 2FA accounts still go through
+  Fortify's challenge (`login.id` in the session).
+- `config/sanctum.php` `stateful` is empty on purpose: the API is bearer-token only.
+
+## E2E
+
+Playwright (`tests/e2e`), headless Chromium, never takes focus. `serve.mjs` resets a throwaway
+SQLite file in the OS temp dir, seeds `E2ESeeder` (add records at the END), runs
+`php artisan serve` on 127.0.0.1:8775 (`E2E_PORT`). Accounts: `erin@example.com` (no company),
+`olga@example.com` (owner of Nordic Haulage, on the road); password `password`.
+`sync.spec.ts` plays the desktop app with Playwright's `request` (device code → approve in
+the page → poll → POST jobs / PUT status). Every spec fails on a console error.
+Specs share one database and run in file order: assert on named rows, not counts.
+
+## Quirks
+
+- The starter kit's `bunny()` font build step was removed (a font download during a Forge
+  build can fail the deploy): fonts load with a `<link>` in `app.blade.php`.
+- Starter-kit pages reading `auth.user` must handle `null`: the sidebar and public pages
+  render for guests.
+- Nested Inertia layouts: page `defineOptions({ layout: { breadcrumbs } })` only.

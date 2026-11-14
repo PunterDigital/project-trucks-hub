@@ -157,7 +157,8 @@ class Delivery extends Model
             'truck' => $this->truckName(),
             'status' => $this->status->value,
             'flagged' => $this->flagged,
-            'hidden' => $this->hidden,
+            // Not `$this->hidden`: inside the model that is Eloquent's own $hidden property.
+            'hidden' => (bool) $this->getAttribute('hidden'),
             'completed_at' => $this->completed_at->toIso8601String(),
             'driver' => $this->relationLoaded('user') ? $this->user->publicSummary() : null,
         ];

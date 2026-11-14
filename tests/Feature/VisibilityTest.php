@@ -87,6 +87,9 @@ class VisibilityTest extends TestCase
         $driver = User::factory()->create();
         $job = Delivery::factory()->for($driver)->create();
 
+        // The page must report the real flag (a `$this->hidden` slip once sent Eloquent's array).
+        $this->actingAs($driver)->get(route('jobs.show', $job))->assertInertia(fn ($page) => $page->where('job.hidden', false));
+
         $this->actingAs(User::factory()->create())->patch(route('jobs.update', $job), ['hidden' => true])->assertForbidden();
         $this->actingAs($driver)->patch(route('jobs.update', $job), ['hidden' => true]);
         $this->assertTrue($job->fresh()->hidden);

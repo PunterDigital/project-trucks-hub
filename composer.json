@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/vue-starter-kit",
+    "name": "punterdigital/project-trucks-hub",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "ProjectTrucks Hub: sync ETS2 jobs from ProjectTrucks, driver profiles, companies and leaderboards.",
     "keywords": [
         "laravel",
         "framework"
