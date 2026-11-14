@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { ExternalLink, Lock } from '@lucide/vue';
 import DriverAvatar from '@/components/hub/DriverAvatar.vue';
 import JobList from '@/components/hub/JobList.vue';
 import OnTheRoad from '@/components/hub/OnTheRoad.vue';
 import Pagination from '@/components/hub/Pagination.vue';
 import Panel from '@/components/hub/Panel.vue';
+import ReportButton from '@/components/hub/ReportButton.vue';
 import StatGrid from '@/components/hub/StatGrid.vue';
 import { Badge } from '@/components/ui/badge';
 import { formatDate, formatKm, plural } from '@/lib/format';
@@ -33,6 +34,8 @@ defineProps<{
     live: LiveSummary | null;
     jobs: Paginated<JobSummary>;
 }>();
+
+const signedIn = usePage().props.auth.user !== null;
 </script>
 
 <template>
@@ -79,6 +82,12 @@ defineProps<{
                 class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:underline"
                 >Steam profile <ExternalLink class="size-3.5"
             /></a>
+            <ReportButton
+                v-if="signedIn && !isOwner"
+                type="driver"
+                :id="driver.id!"
+                what="this driver"
+            />
         </header>
 
         <div class="grid gap-4 lg:grid-cols-3">

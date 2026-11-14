@@ -100,7 +100,7 @@ class DeliveryResource extends Resource
                 IconColumn::make('is_hidden')
                     ->label('Hidden')
                     // Not `$record->hidden` inside the model: that is Eloquent's $hidden array.
-                    ->state(fn (Delivery $record): bool => (bool) $record->getAttribute('hidden'))
+                    ->state(fn (Delivery $record): bool => (bool) $record->getAttribute('hidden') || $record->staff_hidden)
                     ->boolean()
                     ->trueColor('warning')
                     ->falseColor('gray'),
@@ -127,7 +127,9 @@ class DeliveryResource extends Resource
                         false: fn (Builder $q) => $q->where('flagged', false)->whereNull('hub_flag_reason'),
                     ),
                 TernaryFilter::make('hidden')
-                    ->label('Hidden'),
+                    ->label('Hidden by the driver'),
+                TernaryFilter::make('staff_hidden')
+                    ->label('Hidden by staff'),
                 Filter::make('completed')
                     ->schema([
                         DatePicker::make('from')->label('Completed from'),
@@ -187,6 +189,8 @@ class DeliveryResource extends Resource
                     IconEntry::make('is_hidden')->label('Hidden by the driver')
                         ->state(fn (Delivery $record): bool => (bool) $record->getAttribute('hidden'))
                         ->boolean(),
+                    IconEntry::make('staff_hidden')->label('Hidden by staff')->boolean(),
+                    IconEntry::make('staff_reviewed')->label('Reviewed by staff (no more checks)')->boolean(),
                 ]),
         ]);
     }

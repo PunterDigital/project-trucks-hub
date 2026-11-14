@@ -45,6 +45,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $hub_flag_reason
  * @property bool $hub_held
  * @property bool $hidden
+ * @property bool $staff_hidden
+ * @property bool $staff_reviewed
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $user
@@ -77,6 +79,8 @@ class Delivery extends Model
             'flagged' => 'boolean',
             'hub_held' => 'boolean',
             'hidden' => 'boolean',
+            'staff_hidden' => 'boolean',
+            'staff_reviewed' => 'boolean',
         ];
     }
 
@@ -110,12 +114,15 @@ class Delivery extends Model
 
             $q->orWhere(function (Builder $q) use ($companyId) {
                 $q->where('deliveries.hidden', false)
+                    ->where('deliveries.staff_hidden', false)
                     ->whereHas('user', function (Builder $u) use ($companyId) {
-                        $u->where('profile_private', false);
+                        $u->whereNull('suspended_at')->where(function (Builder $u) use ($companyId) {
+                            $u->where('profile_private', false);
 
-                        if ($companyId !== null) {
-                            $u->orWhereHas('membership', fn (Builder $m) => $m->where('company_id', $companyId));
-                        }
+                            if ($companyId !== null) {
+                                $u->orWhereHas('membership', fn (Builder $m) => $m->where('company_id', $companyId));
+                            }
+                        });
                     });
             });
         });
@@ -123,17 +130,32 @@ class Delivery extends Model
 
     /**
      * Jobs that count towards stats and leaderboards: delivered (on time or late), not flagged
-     * by ProjectTrucks' sanity check or the Hub's own checks ({@see JobChecks}), not hidden.
+     * by ProjectTrucks' sanity check, the Hub's own checks ({@see JobChecks}) or staff, not
+     * hidden (by the driver or by staff), and not from a suspended driver (#4651).
      *
      * @param  Builder<Delivery>  $query
      * @return Builder<Delivery>
      */
     public function scopeCounted(Builder $query): Builder
     {
+        return self::applyCounted($query);
+    }
+
+    /**
+     * @param  Builder<Delivery>  $query
+     * @return Builder<Delivery>
+     */
+    private static function applyCounted(Builder $query): Builder
+    {
         return $query->whereIn('deliveries.status', DeliveryStatus::counted())
             ->where('deliveries.flagged', false)
             ->whereNull('deliveries.hub_flag_reason')
-            ->where('deliveries.hidden', false);
+            ->where('deliveries.hidden', false)
+            ->where('deliveries.staff_hidden', false)
+            ->whereNotExists(fn (\Illuminate\Database\Query\Builder $u) => $u->selectRaw('1')
+                ->from('users as suspended_drivers')
+                ->whereColumn('suspended_drivers.id', 'deliveries.user_id')
+                ->whereNotNull('suspended_drivers.suspended_at'));
     }
 
     /**
@@ -143,10 +165,7 @@ class Delivery extends Model
      */
     public static function countedConstraint(): Closure
     {
-        return fn (Builder $query) => $query->whereIn('deliveries.status', DeliveryStatus::counted())
-            ->where('deliveries.flagged', false)
-            ->whereNull('deliveries.hub_flag_reason')
-            ->where('deliveries.hidden', false);
+        return fn (Builder $query) => self::applyCounted($query);
     }
 
     /** @return array<string, mixed> */
@@ -166,6 +185,7 @@ class Delivery extends Model
             'flagged' => $this->isFlagged(),
             // Not `$this->hidden`: inside the model that is Eloquent's own $hidden property.
             'hidden' => (bool) $this->getAttribute('hidden'),
+            'staff_hidden' => $this->staff_hidden,
             'completed_at' => $this->completed_at->toIso8601String(),
             'driver' => $this->relationLoaded('user') ? $this->user->publicSummary() : null,
         ];

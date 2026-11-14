@@ -65,6 +65,14 @@ defineOptions({
                 include your IP address, kept for a short time to keep the site
                 running.
             </li>
+            <li>
+                <strong>Reports and moderation:</strong> when you report a
+                profile, company or job we keep who sent it, the reason and any
+                details you wrote. Only Hub staff see reports, and the person
+                you reported isn't told who sent one. Staff actions (hiding a
+                job, suspending an account and so on) are kept in a log with the
+                staff member's name and reason.
+            </li>
         </ul>
 
         <h2>What never leaves your PC</h2>

@@ -1,39 +1,12 @@
-import { createHmac } from 'node:crypto';
 import type { Page } from '@playwright/test';
 import { expect, logIn, test } from './fixtures';
+import { logInWithTotp } from './totp';
 
 // #4664: the admin panel at /admin. Seeded staff: sam@example.com (2FA on).
 const SAM_SECRET = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
 
-/** RFC 6238 TOTP (SHA-1, 30 s, 6 digits), as an authenticator app computes it. */
-function totp(base32: string, at = Date.now()): string {
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-    let bits = '';
-    for (const char of base32.replace(/=+$/, '')) {
-        bits += alphabet.indexOf(char).toString(2).padStart(5, '0');
-    }
-    const key = Buffer.from(
-        bits.match(/.{8}/g)!.map((byte) => parseInt(byte, 2)),
-    );
-    const counter = Buffer.alloc(8);
-    counter.writeBigUInt64BE(BigInt(Math.floor(at / 1000 / 30)));
-    const hmac = createHmac('sha1', key).update(counter).digest();
-    const offset = hmac[hmac.length - 1] & 0x0f;
-    const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000;
-
-    return code.toString().padStart(6, '0');
-}
-
 async function logInAsStaff(page: Page): Promise<void> {
-    await page.goto('/login');
-    await page.getByLabel('Email address').fill('sam@example.com');
-    await page.getByLabel('Password', { exact: true }).fill('password');
-    await page.getByRole('button', { name: 'Log in' }).click();
-    await expect(page).toHaveURL(/\/two-factor-challenge$/);
-    await page.locator('#otp').click();
-    await page.keyboard.type(totp(SAM_SECRET));
-    await page.getByRole('button', { name: 'Continue' }).click();
-    await expect(page).toHaveURL(/\/dashboard$/);
+    await logInWithTotp(page, 'sam@example.com', SAM_SECRET);
 }
 
 test('guests and drivers get a 404 at /admin, with no Admin link', async ({
@@ -76,6 +49,8 @@ test('staff open the panel from the user menu and every resource', async ({
     // Users: search by name, open the driver, revoke (none linked, still audited).
     await page.getByRole('link', { name: 'Users' }).first().click();
     await expect(page).toHaveURL(/\/admin\/users$/);
+    // The list is paginated, newest first: newer seeded drivers push Olga off page one.
+    await page.goto('/admin/users?search=olga');
     await expect(page.getByText('olga@example.com')).toBeVisible();
     await page.getByRole('link', { name: /^Olga/ }).first().click();
     await expect(page).toHaveURL(/\/admin\/users\/\d+$/);

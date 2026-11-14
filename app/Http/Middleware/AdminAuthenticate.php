@@ -26,7 +26,8 @@ class AdminAuthenticate extends Authenticate
     {
         $user = Filament::auth()->user();
 
-        if (! $user instanceof User || ! $user->is_staff) {
+        // A suspended staff account (#4651) is turned away like a driver.
+        if (! $user instanceof User || ! $user->is_staff || $user->isSuspended()) {
             abort(404);
         }
 

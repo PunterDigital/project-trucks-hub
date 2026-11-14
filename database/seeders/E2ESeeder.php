@@ -183,5 +183,28 @@ class E2ESeeder extends Seeder
             'password' => $password,
         ]);
         $rita->forceFill(['email_verified_at' => now(), 'password_set_at' => now()])->save();
+
+        // Moderation (#4651): Rex reports Troll Tom, Mo (staff, own 2FA secret so the TOTP
+        // codes don't clash with Sam's) resolves it and suspends Susie.
+        foreach ([
+            ['Rex Reporter', 'rex-report'],
+            ['Troll Tom', 'troll-tom'],
+            ['Susie Suspend', 'susie-suspend'],
+            ['Mo Moderator', 'mo-mod'],
+        ] as [$name, $username]) {
+            $user = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+            ]);
+            $user->forceFill(['email_verified_at' => now(), 'password_set_at' => now()])->save();
+        }
+        User::query()->where('username', 'mo-mod')->firstOrFail()->forceFill([
+            'is_staff' => true,
+            'two_factor_secret' => encrypt('MFRGGZDFMZTWQ2LKNNWG23TPOBYXE43U'),
+            'two_factor_recovery_codes' => encrypt((string) json_encode(['e2e-recovery-code-mo'])),
+            'two_factor_confirmed_at' => now(),
+        ])->save();
     }
 }

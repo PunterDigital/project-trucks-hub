@@ -48,6 +48,9 @@ class DriverController extends Controller
         $viewer = $request->user();
         $driver->loadMissing('membership.company', 'liveStatus');
 
+        // Suspended (#4651): gone from the site, not even the "private profile" page.
+        abort_if($driver->isSuspended(), 404);
+
         if (! $driver->isVisibleTo($viewer)) {
             return Inertia::render('drivers/Private', ['driver' => [
                 'name' => $driver->name,

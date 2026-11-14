@@ -6,6 +6,7 @@ import DriverAvatar from '@/components/hub/DriverAvatar.vue';
 import JobList from '@/components/hub/JobList.vue';
 import OnTheRoad from '@/components/hub/OnTheRoad.vue';
 import Panel from '@/components/hub/Panel.vue';
+import ReportButton from '@/components/hub/ReportButton.vue';
 import RecruitmentBadge from '@/components/hub/RecruitmentBadge.vue';
 import StatGrid from '@/components/hub/StatGrid.vue';
 import { Button } from '@/components/ui/button';
@@ -205,6 +206,12 @@ function leaveCompany() {
                         >
                     </Form>
                 </template>
+                <ReportButton
+                    v-if="viewer.signedIn && !role"
+                    type="company"
+                    :id="company.id!"
+                    what="this company"
+                />
             </div>
         </header>
 

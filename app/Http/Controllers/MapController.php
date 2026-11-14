@@ -32,6 +32,7 @@ class MapController extends Controller
             ->whereNotNull('pos_x')
             ->whereNotNull('pos_z')
             ->whereHas('user', fn (Builder $u) => $u
+                ->whereNull('suspended_at')
                 ->where('profile_private', false)
                 ->where('show_on_map', true))
             ->with('user.membership.company')

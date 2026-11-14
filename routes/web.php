@@ -12,6 +12,7 @@ use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LinkDeviceController;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\VersionController;
 use Illuminate\Support\Facades\Route;
 
@@ -49,6 +50,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Approving ProjectTrucks' link code.
     Route::get('link', [LinkDeviceController::class, 'show'])->name('link.show');
     Route::post('link', [LinkDeviceController::class, 'update'])->middleware('throttle:20,1')->name('link.update');
+
+    Route::post('reports', [ReportController::class, 'store'])->middleware('throttle:10,1')->name('reports.store');
 
     Route::patch('jobs/{delivery}', [DeliveryController::class, 'update'])->whereNumber('delivery')->name('jobs.update');
 

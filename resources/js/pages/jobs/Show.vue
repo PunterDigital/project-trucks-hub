@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { ArrowRight, Eye, EyeOff } from '@lucide/vue';
 import DriverLink from '@/components/hub/DriverLink.vue';
 import JobStatusBadge from '@/components/hub/JobStatusBadge.vue';
 import Panel from '@/components/hub/Panel.vue';
+import ReportButton from '@/components/hub/ReportButton.vue';
 import { Button } from '@/components/ui/button';
 import {
     formatDateTime,
@@ -34,6 +35,11 @@ const props = defineProps<{
     };
     isOwner: boolean;
 }>();
+
+const signedIn = usePage().props.auth.user !== null;
+
+// Same prefix as App\Admin\Moderation::STAFF_FLAG_PREFIX (#4651).
+const STAFF_FLAG = 'Flagged by staff: ';
 
 function toggleHidden() {
     router.patch(
@@ -77,8 +83,22 @@ function toggleHidden() {
                 <component :is="job.hidden ? Eye : EyeOff" class="size-4" />
                 {{ job.hidden ? 'Show to others' : 'Hide from others' }}
             </Button>
+            <ReportButton
+                v-else-if="signedIn"
+                type="job"
+                :id="job.id"
+                what="this job"
+            />
         </header>
 
+        <p
+            v-if="job.staff_hidden"
+            class="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm"
+            data-test="staff-hidden"
+        >
+            Hub staff hid this job. Only you can see it, and it doesn't count
+            towards stats or leaderboards.
+        </p>
         <p
             v-if="job.flag_reason"
             class="rounded-lg border border-red-500/40 bg-red-500/5 p-3 text-sm"
@@ -92,7 +112,12 @@ function toggleHidden() {
             class="rounded-lg border border-red-500/40 bg-red-500/5 p-3 text-sm"
             data-test="hub-flag"
         >
-            <template v-if="job.hub_held">
+            <template v-if="job.hub_flag_reason.startsWith(STAFF_FLAG)">
+                Hub staff flagged this job ({{
+                    job.hub_flag_reason.slice(STAFF_FLAG.length)
+                }}), so it doesn't count towards stats or leaderboards.
+            </template>
+            <template v-else-if="job.hub_held">
                 The Hub is holding this job for review ({{
                     job.hub_flag_reason
                 }}). Until then it doesn't count towards stats or leaderboards.
