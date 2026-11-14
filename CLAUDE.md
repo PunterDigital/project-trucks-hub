@@ -81,12 +81,33 @@ without a full build.
   steps on the page name the app's real labels ("Install plugin", "Tracking", Settings →
   ProjectTrucks Hub): keep them in step with ProjectTrucks.
 
+## Admin panel (#4664)
+
+- Filament 5 at `/admin` (`App\Providers\Filament\AdminPanelProvider`), no Filament login: staff
+  sign in on the site and use the user menu's "Admin" link (a plain `<a>`, the panel isn't
+  Inertia; `LeaveInertia` turns stray Inertia visits into full loads). Assets are published by
+  `filament:upgrade` on `composer install` and gitignored, as in Panel.
+- Access: `users.is_staff` (never fillable), granted only with `php artisan hub:staff {email}
+  [--revoke]`. `AdminAuthenticate` (a subclass of Filament's `Authenticate`, in its place)
+  answers 404 to guests and drivers and sends staff without 2FA to Settings → Security. A
+  separate middleware next to Filament's never ran first: Laravel's middleware priority sorts
+  every `AuthenticatesRequests` middleware ahead. Shared `auth.user.is_staff` is only for the link.
+- Users and companies bind by username / slug on the site; their admin routes are
+  `/{record:id}` plus `$recordRouteKeyName = 'id'`. Without the `:id` in the route, Filament's
+  own links used the username while the page looked up an id (404; E2E caught it).
+- Every staff action goes through `App\Admin\Audit::record()` into `admin_audit_log`
+  (read-only resource "Audit log"). New admin actions must call it.
+- Resources live in `app/Filament/Resources/<Name>/`; `deliveries` is the "Jobs" resource
+  (slug `jobs`). Hidden: use `getAttribute('hidden')`, as in the model.
+
 ## E2E
 
 Playwright (`tests/e2e`), headless Chromium, never takes focus. `serve.mjs` resets a throwaway
 SQLite file in the OS temp dir, seeds `E2ESeeder` (add records at the END), runs
 `php artisan serve` on 127.0.0.1:8775 (`E2E_PORT`). Accounts: `erin@example.com` (no company),
 `olga@example.com` (owner of Nordic Haulage, on the road); password `password`.
+`sam@example.com` is staff with 2FA: `admin.spec.ts` computes the TOTP from the seeded secret.
+Filament's confirm modal is an `alertdialog`; retry the opening click until its heading shows.
 `sync.spec.ts` plays the desktop app with Playwright's `request` (device code → approve in
 the page → poll → POST jobs / PUT status). Every spec fails on a console error.
 Specs share one database and run in file order: assert on named rows, not counts.

@@ -134,5 +134,22 @@ class E2ESeeder extends Seeder
             'cargo_name' => 'Cheese',
             'completed_at' => now()->subHours(2),
         ]);
+
+        // Admin panel (#4664): staff with two-factor on. admin.spec computes the TOTP code
+        // from this secret (base32), the way an authenticator app would.
+        $sam = User::query()->create([
+            'name' => 'Sam Staff',
+            'email' => 'sam@example.com',
+            'username' => 'sam-staff',
+            'password' => $password,
+        ]);
+        $sam->forceFill([
+            'email_verified_at' => now(),
+            'password_set_at' => now(),
+            'is_staff' => true,
+            'two_factor_secret' => encrypt('JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP'),
+            'two_factor_recovery_codes' => encrypt((string) json_encode(['e2e-recovery-code'])),
+            'two_factor_confirmed_at' => now(),
+        ])->save();
     }
 }

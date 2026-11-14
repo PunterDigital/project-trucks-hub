@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { LogOut, Settings } from '@lucide/vue';
+import { LogOut, Settings, ShieldCheck } from '@lucide/vue';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -36,6 +36,17 @@ defineProps<Props>();
                 <Settings class="mr-2 h-4 w-4" />
                 Settings
             </Link>
+        </DropdownMenuItem>
+        <!-- The admin panel is Filament, not Inertia: a plain link loads it as a full page. -->
+        <DropdownMenuItem v-if="user.is_staff" :as-child="true">
+            <a
+                class="block w-full cursor-pointer"
+                href="/admin"
+                data-test="admin-link"
+            >
+                <ShieldCheck class="mr-2 h-4 w-4" />
+                Admin
+            </a>
         </DropdownMenuItem>
     </DropdownMenuGroup>
     <DropdownMenuSeparator />

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Database\Factories\UserFactory;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -26,6 +28,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $steam_id
  * @property string|null $avatar_url
  * @property bool $profile_private
+ * @property bool $is_staff
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property Carbon|null $password_set_at
@@ -40,7 +43,7 @@ use Laravel\Sanctum\HasApiTokens;
  */
 #[Fillable(['name', 'email', 'password', 'username', 'profile_private'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
+class User extends Authenticatable implements FilamentUser, MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
@@ -58,7 +61,18 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'password_set_at' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
             'profile_private' => 'boolean',
+            'is_staff' => 'boolean',
         ];
+    }
+
+    /**
+     * The admin panel (#4664): staff with two-factor authentication on. `AdminAuthenticate` turns
+     * everyone else away first (404, or Settings → Security for staff without 2FA); this is
+     * Filament's own check behind it.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->is_staff && $this->two_factor_confirmed_at !== null;
     }
 
     protected static function booted(): void
