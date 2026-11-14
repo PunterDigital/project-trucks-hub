@@ -28,6 +28,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property bool $profile_private
  * @property Carbon|null $email_verified_at
  * @property string $password
+ * @property Carbon|null $password_set_at
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
@@ -54,6 +55,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'password_set_at' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
             'profile_private' => 'boolean',
         ];
@@ -80,6 +82,21 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function liveStatus(): HasOne
     {
         return $this->hasOne(LiveStatus::class);
+    }
+
+    /**
+     * Whether the driver chose a password. Steam sign-ups get a random one nobody knows,
+     * so they confirm with Steam (or a passkey) instead until they set one (#4672).
+     */
+    public function hasPassword(): bool
+    {
+        return $this->password_set_at !== null;
+    }
+
+    /** Set a password the driver chose and remember that they did. */
+    public function setChosenPassword(string $password): void
+    {
+        $this->forceFill(['password' => $password, 'password_set_at' => now()])->save();
     }
 
     public function companyId(): ?int

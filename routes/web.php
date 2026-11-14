@@ -36,6 +36,7 @@ Route::middleware('guest')->group(function () {
 });
 Route::get('auth/steam', [SteamController::class, 'redirect'])->name('steam.redirect');
 Route::get('auth/steam/callback', [SteamController::class, 'callback'])->name('steam.callback');
+Route::get('auth/steam/confirm', [SteamController::class, 'confirm'])->middleware('auth')->name('steam.confirm');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');

@@ -142,5 +142,5 @@ const user = computed(() => page.props.auth.user!);
         </Form>
     </div>
 
-    <DeleteUser />
+    <DeleteUser :has-password="page.props.hasPassword !== false" />
 </template>

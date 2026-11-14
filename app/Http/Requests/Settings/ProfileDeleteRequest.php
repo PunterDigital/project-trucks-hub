@@ -17,6 +17,12 @@ class ProfileDeleteRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Without a password of their own, the driver confirms with Steam or a passkey
+        // instead (checked in ProfileController::destroy).
+        if (! $this->user()?->hasPassword()) {
+            return [];
+        }
+
         return [
             'password' => $this->currentPasswordRules(),
         ];

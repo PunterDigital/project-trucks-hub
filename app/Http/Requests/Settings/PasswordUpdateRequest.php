@@ -17,6 +17,12 @@ class PasswordUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        // A Steam sign-up has no password of their own yet: they set one without the
+        // "current password" (the controller checks they confirmed recently instead).
+        if (! $this->user()?->hasPassword()) {
+            return ['password' => $this->passwordRules()];
+        }
+
         return [
             'current_password' => $this->currentPasswordRules(),
             'password' => $this->passwordRules(),
