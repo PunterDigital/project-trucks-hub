@@ -174,5 +174,14 @@ class E2ESeeder extends Seeder
                 ...$live,
             ]);
         }
+
+        // Auto-refresh (#4723): renames herself while a guest watches her profile.
+        $rita = User::query()->create([
+            'name' => 'Rita Refresh',
+            'email' => 'rita-refresh@example.com',
+            'username' => 'rita-refresh',
+            'password' => $password,
+        ]);
+        $rita->forceFill(['email_verified_at' => now(), 'password_set_at' => now()])->save();
     }
 }
