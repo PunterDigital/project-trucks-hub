@@ -6,6 +6,7 @@ use App\Enums\DeliveryStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Delivery;
 use App\Models\User;
+use App\Sync\JobChecks;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -90,9 +91,25 @@ class JobSyncController extends Controller
                     'source' => $job['source'],
                     'flagged' => (bool) ($job['flagged'] ?? false),
                     'flag_reason' => $job['flag_reason'] ?? null,
-                ])->save();
+                ]);
 
-                $ids[] = ['id' => $job['id'], 'url' => route('jobs.show', $delivery)];
+                // The Hub's own checks (#4642). A Hub flag is never cleared by a re-sync, so an
+                // edited client can't send a job twice to wash it.
+                if ($delivery->hub_flag_reason === null) {
+                    $check = JobChecks::run($delivery);
+                    if ($check['reasons'] !== []) {
+                        $delivery->hub_flag_reason = implode('; ', $check['reasons']);
+                        $delivery->hub_held = $check['held'];
+                    }
+                }
+
+                $delivery->save();
+
+                $ids[] = [
+                    'id' => $job['id'],
+                    'url' => route('jobs.show', $delivery),
+                    'hub_flag_reason' => $delivery->hub_flag_reason,
+                ];
             }
 
             return $ids;

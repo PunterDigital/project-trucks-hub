@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\DeliveryStatus;
+use App\Sync\JobChecks;
 use Closure;
 use Database\Factories\DeliveryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -41,6 +42,8 @@ use Illuminate\Support\Carbon;
  * @property string $source
  * @property bool $flagged
  * @property string|null $flag_reason
+ * @property string|null $hub_flag_reason
+ * @property bool $hub_held
  * @property bool $hidden
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -72,6 +75,7 @@ class Delivery extends Model
             'completed_at' => 'datetime',
             'status' => DeliveryStatus::class,
             'flagged' => 'boolean',
+            'hub_held' => 'boolean',
             'hidden' => 'boolean',
         ];
     }
@@ -119,7 +123,7 @@ class Delivery extends Model
 
     /**
      * Jobs that count towards stats and leaderboards: delivered (on time or late), not flagged
-     * by ProjectTrucks' sanity check, not hidden.
+     * by ProjectTrucks' sanity check or the Hub's own checks ({@see JobChecks}), not hidden.
      *
      * @param  Builder<Delivery>  $query
      * @return Builder<Delivery>
@@ -128,6 +132,7 @@ class Delivery extends Model
     {
         return $query->whereIn('deliveries.status', DeliveryStatus::counted())
             ->where('deliveries.flagged', false)
+            ->whereNull('deliveries.hub_flag_reason')
             ->where('deliveries.hidden', false);
     }
 
@@ -140,6 +145,7 @@ class Delivery extends Model
     {
         return fn (Builder $query) => $query->whereIn('deliveries.status', DeliveryStatus::counted())
             ->where('deliveries.flagged', false)
+            ->whereNull('deliveries.hub_flag_reason')
             ->where('deliveries.hidden', false);
     }
 
@@ -156,12 +162,18 @@ class Delivery extends Model
             'distance_km' => $this->distance_km,
             'truck' => $this->truckName(),
             'status' => $this->status->value,
-            'flagged' => $this->flagged,
+            // Flagged by the app or by the Hub: either way it doesn't count.
+            'flagged' => $this->isFlagged(),
             // Not `$this->hidden`: inside the model that is Eloquent's own $hidden property.
             'hidden' => (bool) $this->getAttribute('hidden'),
             'completed_at' => $this->completed_at->toIso8601String(),
             'driver' => $this->relationLoaded('user') ? $this->user->publicSummary() : null,
         ];
+    }
+
+    public function isFlagged(): bool
+    {
+        return $this->flagged || $this->hub_flag_reason !== null;
     }
 
     public function truckName(): ?string

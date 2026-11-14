@@ -31,6 +31,11 @@ without a full build.
 - "Counted" (stats + leaderboards) = `DELIVERED|LATE`, not flagged, not hidden:
   `Delivery::scopeCounted()` / `countedConstraint()`; all totals go through
   `App\Support\Stats` and `Leaderboard`, so pages can't drift.
+- Anti-cheat (#4642): `JobSyncController` runs `App\Sync\JobChecks` on every delivered/late
+  job (thresholds in `config/anticheat.php`, same 150 km/h / 1 km limits as the app). A failure
+  sets `deliveries.hub_flag_reason` (`hub_held` = the rate hold, for moderation later); a
+  re-sync never clears it. "Counted" excludes it, `summary()['flagged']` is app OR Hub flag.
+  E2E jobs must be plausible (distance / duration / start-end span agree) or they won't count.
 - Visibility: `Delivery::scopeVisibleTo($viewer)` and `User::scopeVisibleTo` / `isVisibleTo`.
   Private profiles show only to themselves and company mates; they're off the public feed and
   driver board, still in company totals.

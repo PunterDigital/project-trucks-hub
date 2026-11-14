@@ -27,6 +27,8 @@ const props = defineProps<{
         started_at: string;
         source: 'TELEMETRY' | 'MANUAL';
         flag_reason: string | null;
+        hub_flag_reason: string | null;
+        hub_held: boolean;
         game: string;
         company: CompanySummary | null;
     };
@@ -78,11 +80,27 @@ function toggleHidden() {
         </header>
 
         <p
-            v-if="job.flagged && job.flag_reason"
+            v-if="job.flag_reason"
             class="rounded-lg border border-red-500/40 bg-red-500/5 p-3 text-sm"
+            data-test="app-flag"
         >
             ProjectTrucks flagged this job ({{ job.flag_reason }}), so it
             doesn't count towards stats or leaderboards.
+        </p>
+        <p
+            v-if="job.hub_flag_reason"
+            class="rounded-lg border border-red-500/40 bg-red-500/5 p-3 text-sm"
+            data-test="hub-flag"
+        >
+            <template v-if="job.hub_held">
+                The Hub is holding this job for review ({{
+                    job.hub_flag_reason
+                }}). Until then it doesn't count towards stats or leaderboards.
+            </template>
+            <template v-else>
+                The Hub's checks flagged this job ({{ job.hub_flag_reason }}),
+                so it doesn't count towards stats or leaderboards.
+            </template>
         </p>
 
         <div class="grid gap-4 lg:grid-cols-3">
