@@ -19,6 +19,10 @@ class ProfileUpdateRequest extends FormRequest
         if (config('fortify.lowercase_usernames') && is_string($this->input('email'))) {
             $this->merge(['email' => Str::lower($this->input('email'))]);
         }
+
+        if (is_string($this->input('username'))) {
+            $this->merge(['username' => Str::lower(trim($this->input('username')))]);
+        }
     }
 
     /**
@@ -28,6 +32,9 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->profileRules($this->user()->id);
+        return [
+            ...$this->profileRules($this->user()->id),
+            'profile_private' => ['sometimes', 'boolean'],
+        ];
     }
 }

@@ -20,6 +20,7 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
+            steamEnabled: boolean;
             [key: string]: unknown;
         };
     }

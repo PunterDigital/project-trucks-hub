@@ -1,0 +1,177 @@
+# ProjectTrucks Hub API (v1)
+
+The API ProjectTrucks uses to link to an account and sync jobs. JSON in, JSON out; send
+`Accept: application/json`. Base URL: the Hub's `APP_URL` + `/api/v1`.
+
+Nothing leaves the driver's PC until they link an account. Job **notes are never sent**.
+
+## 1. Linking (device code)
+
+Modelled on the OAuth 2.0 device authorization grant (RFC 8628).
+
+### `POST /device/code`
+
+```json
+{ "client_name": "ProjectTrucks on DESKTOP-1234" }
+```
+
+`client_name` (max 100) is what the driver sees on the approval page and in
+Settings → Linked apps. Rate limit: 10/min per IP.
+
+```json
+{
+    "device_code": "64 random characters, keep secret",
+    "user_code": "BCDF-GH23",
+    "verification_uri": "https://hub.example/link",
+    "verification_uri_complete": "https://hub.example/link?code=BCDF-GH23",
+    "expires_in": 900,
+    "interval": 5
+}
+```
+
+Show `user_code` and open `verification_uri_complete` in the browser. The driver signs in (or
+signs up) and approves.
+
+### `POST /device/token`
+
+```json
+{ "device_code": "…" }
+```
+
+Poll every `interval` seconds until it answers 200:
+
+| Status | `error`                 | Meaning                                       |
+| ------ | ----------------------- | --------------------------------------------- |
+| 400    | `authorization_pending` | Not approved yet: keep polling                |
+| 400    | `slow_down`             | Polled faster than `interval`: wait longer    |
+| 400    | `access_denied`         | The driver declined: stop                     |
+| 400    | `expired_token`         | Expired (15 min) or already used: start again |
+| 200    | –                       | Linked                                        |
+
+```json
+{
+    "access_token": "1|plain-text-token",
+    "token_type": "Bearer",
+    "user": {
+        "name": "Erin Example",
+        "username": "erin",
+        "profile_url": "https://hub.example/drivers/erin"
+    }
+}
+```
+
+Store the token (Windows Credential Manager, not the SQLite settings table) and send it as
+`Authorization: Bearer <token>` on every call below. A 401 means the driver unlinked the app
+on the website: drop the token and show "Not linked".
+
+## 2. Account
+
+- `GET /me` → `{ id, name, username, avatar, company: {name, slug, tag} | null, profile_url, profile_private, jobs_synced }`
+- `DELETE /token` → 204. "Unlink" in the app: revokes the token it is using.
+
+## 3. Jobs
+
+### `POST /jobs`
+
+Up to **100** jobs per call. Fields are the app's own `jobs` table columns (`notes` and
+`session_id` left out). Re-sending a job with the same `id` updates it, so edits and retries
+are safe; a re-sync never changes whether the driver hid the job on the website or which
+company it counts for.
+
+```json
+{
+    "jobs": [
+        {
+            "id": "7f1c6a8e-3c2b-4d9e-9a51-0c6f2b1e5d10",
+            "truck_make": "Scania",
+            "truck_model": "S",
+            "source_city": "Calais",
+            "source_company": "Tradeaux",
+            "dest_city": "Paris",
+            "dest_company": "Euroacres",
+            "cargo_id": "apples",
+            "cargo_name": "Apples",
+            "cargo_mass_kg": 18000,
+            "declared_income": 12450,
+            "distance_km": 291.4,
+            "duration_sec": 14400,
+            "avg_speed_kmh": 72.8,
+            "fuel_used_l": 95.2,
+            "damage_delta": 0.013,
+            "started_at": "2026-11-14T10:00:00Z",
+            "completed_at": "2026-11-14T14:00:00Z",
+            "status": "DELIVERED",
+            "source": "TELEMETRY",
+            "flagged": false,
+            "flag_reason": null
+        }
+    ]
+}
+```
+
+| Field                        | Rules                                     |
+| ---------------------------- | ----------------------------------------- |
+| `id`                         | required, ≤ 64 chars, unique in the batch |
+| `game`                       | optional, `ets2` (default) or `ats`       |
+| `status`                     | `DELIVERED`, `LATE` or `CANCELLED`        |
+| `source`                     | `TELEMETRY` or `MANUAL`                   |
+| `started_at`, `completed_at` | ISO 8601; stored in UTC                   |
+| `damage_delta`               | 0–1                                       |
+
+A batch with any invalid job is refused whole (422, Laravel validation errors keyed
+`jobs.<index>.<field>`). Response:
+
+```json
+{
+    "synced": 1,
+    "jobs": [{ "id": "7f1c…", "url": "https://hub.example/jobs/42" }]
+}
+```
+
+### `DELETE /jobs/{id}`
+
+The driver deleted the job in the app. 204 (also when it was never synced).
+
+## 4. Live status ("on the road")
+
+### `PUT /status`
+
+Send on change and at least once a minute while the game is running. A status not refreshed
+for **120 s** counts as offline.
+
+```json
+{
+    "truck": { "make": "Volvo", "model": "FH" },
+    "job": {
+        "cargo_name": "Cement",
+        "cargo_mass_kg": 20000,
+        "source_city": "Berlin",
+        "source_company": "…",
+        "destination_city": "Praha",
+        "destination_company": "…",
+        "income": 9000,
+        "driven_km": 120.5,
+        "distance_left_km": 230,
+        "progress_pct": 34.4,
+        "parked": false
+    }
+}
+```
+
+`job` follows ProjectTrucks' `CurrentJob` (snake_case). `job: null` with a `truck` means free
+roam.
+
+### `DELETE /status`
+
+The game closed or auto-capture was switched off. 204.
+
+## Limits
+
+All authenticated calls share 120 requests/min per account. A 429 carries `Retry-After`.
+
+## What counts
+
+Stats and leaderboards count jobs with status `DELIVERED` or `LATE` that ProjectTrucks did not
+flag and the driver did not hide. Cancelled jobs show on the driver's profile but count for
+nothing. Drivers with a private profile stay off the public feed and the driver leaderboard;
+their jobs still count for their company.

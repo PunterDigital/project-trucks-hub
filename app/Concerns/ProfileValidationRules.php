@@ -3,6 +3,7 @@
 namespace App\Concerns;
 
 use App\Models\User;
+use App\Support\Usernames;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Unique;
@@ -19,6 +20,7 @@ trait ProfileValidationRules
         return [
             'name' => $this->nameRules(),
             'email' => $this->emailRules($userId),
+            'username' => $this->usernameRules($userId),
         ];
     }
 
@@ -44,6 +46,26 @@ trait ProfileValidationRules
             'string',
             'email',
             'max:255',
+            $userId === null
+                ? Rule::unique(User::class)
+                : Rule::unique(User::class)->ignore($userId),
+        ];
+    }
+
+    /**
+     * The public handle in profile URLs (/drivers/{username}).
+     *
+     * @return array<int, Unique|ValidationRule|array<mixed>|string>
+     */
+    protected function usernameRules(?int $userId = null): array
+    {
+        return [
+            'required',
+            'string',
+            'min:3',
+            'max:30',
+            'regex:/^[a-z0-9][a-z0-9_-]*$/',
+            Rule::notIn(Usernames::RESERVED),
             $userId === null
                 ? Rule::unique(User::class)
                 : Rule::unique(User::class)->ignore($userId),

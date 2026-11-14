@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { usePage } from '@inertiajs/vue3';
-import { ChevronsUpDown } from '@lucide/vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { ChevronsUpDown, LogIn } from '@lucide/vue';
 import { computed } from 'vue';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/sidebar';
 import UserInfo from '@/components/UserInfo.vue';
 import UserMenuContent from '@/components/UserMenuContent.vue';
+import { login, register } from '@/routes';
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -23,7 +25,7 @@ const { isMobile, state } = useSidebar();
 
 <template>
     <SidebarMenu>
-        <SidebarMenuItem>
+        <SidebarMenuItem v-if="user">
             <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                     <SidebarMenuButton
@@ -50,6 +52,23 @@ const { isMobile, state } = useSidebar();
                     <UserMenuContent :user="user" />
                 </DropdownMenuContent>
             </DropdownMenu>
+        </SidebarMenuItem>
+        <SidebarMenuItem v-else>
+            <SidebarMenuButton
+                v-if="state === 'collapsed' && !isMobile"
+                as-child
+                tooltip="Log in"
+            >
+                <Link :href="login()"><LogIn /><span>Log in</span></Link>
+            </SidebarMenuButton>
+            <div v-else class="grid gap-2 p-1">
+                <Button as-child size="sm">
+                    <Link :href="register()">Sign up</Link>
+                </Button>
+                <Button as-child size="sm" variant="outline">
+                    <Link :href="login()">Log in</Link>
+                </Button>
+            </div>
         </SidebarMenuItem>
     </SidebarMenu>
 </template>
