@@ -133,9 +133,9 @@ function megabytes(bytes: number): string {
                     <li>
                         <strong>Link it to the Hub</strong> to share your jobs
                         here: Settings → ProjectTrucks Hub → Link account, then
-                        approve the code on this site. Hub syncing arrives in an
-                        upcoming ProjectTrucks update; until then everything
-                        stays on your PC.
+                        approve the code on this site. New jobs then sync by
+                        themselves; older ones only if you click Sync history.
+                        Nothing leaves your PC until you link.
                     </li>
                 </ol>
             </Panel>
