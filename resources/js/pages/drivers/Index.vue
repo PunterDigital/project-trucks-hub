@@ -5,7 +5,7 @@ import DriverLink from '@/components/hub/DriverLink.vue';
 import Pagination from '@/components/hub/Pagination.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { formatCount, formatKm } from '@/lib/format';
+import { formatKm, plural } from '@/lib/format';
 import { index } from '@/routes/drivers';
 import type { DriverSummary, Paginated } from '@/types/hub';
 
@@ -58,7 +58,7 @@ defineProps<{
                 <div class="text-right text-sm tabular-nums">
                     <div>{{ formatKm(driver.distance_km) }}</div>
                     <div class="text-muted-foreground">
-                        {{ formatCount(driver.deliveries) }} jobs
+                        {{ plural(driver.deliveries, 'job') }}
                     </div>
                 </div>
             </li>

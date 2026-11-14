@@ -8,7 +8,7 @@ import Pagination from '@/components/hub/Pagination.vue';
 import Panel from '@/components/hub/Panel.vue';
 import StatGrid from '@/components/hub/StatGrid.vue';
 import { Badge } from '@/components/ui/badge';
-import { formatDate, formatKm } from '@/lib/format';
+import { formatDate, formatKm, plural } from '@/lib/format';
 import { show as showCompany } from '@/routes/companies';
 import type {
     CompanyRole,
@@ -128,7 +128,7 @@ defineProps<{
                             <span class="font-medium">{{ truck.name }}</span>
                             <span class="text-muted-foreground tabular-nums"
                                 >{{ formatKm(truck.distance_km) }} ·
-                                {{ truck.deliveries }} jobs</span
+                                {{ plural(truck.deliveries, 'job') }}</span
                             >
                         </li>
                     </ul>
