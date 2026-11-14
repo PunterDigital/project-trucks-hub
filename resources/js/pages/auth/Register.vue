@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
+import SteamButton from '@/components/hub/SteamButton.vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -25,6 +26,8 @@ defineOptions({
 <template>
     <Head title="Register" />
 
+    <SteamButton label="Sign up with Steam" />
+
     <Form
         v-bind="store.form()"
         :reset-on-success="['password', 'password_confirmation']"
@@ -42,9 +45,27 @@ defineOptions({
                     :tabindex="1"
                     autocomplete="name"
                     name="name"
-                    placeholder="Full name"
+                    placeholder="Name other drivers see"
                 />
                 <InputError :message="errors.name" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="username">Username</Label>
+                <Input
+                    id="username"
+                    type="text"
+                    required
+                    :tabindex="2"
+                    autocomplete="username"
+                    name="username"
+                    placeholder="big-rig-dave"
+                />
+                <p class="text-xs text-muted-foreground">
+                    Your profile address: /drivers/username (letters, numbers, -
+                    and _)
+                </p>
+                <InputError :message="errors.username" />
             </div>
 
             <div class="grid gap-2">

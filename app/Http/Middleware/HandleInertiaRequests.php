@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Controllers\Auth\SteamController;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -38,9 +39,21 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            // Only these fields, never the model: it would send whatever relations a
+            // controller loaded on it.
             'auth' => [
-                'user' => $request->user(),
+                'user' => fn () => ($user = $request->user()) ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'username' => $user->username,
+                    'avatar' => $user->avatar_url,
+                    'email_verified_at' => $user->email_verified_at?->toIso8601String(),
+                    'profile_private' => $user->profile_private,
+                    'company' => $user->membership?->company?->summary(),
+                ] : null,
             ],
+            'steamEnabled' => SteamController::enabled(),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

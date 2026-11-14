@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Auth\SteamController;
+use App\Http\Controllers\Settings\ConnectionsController;
+use App\Http\Controllers\Settings\DevicesController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
 use Illuminate\Auth\Middleware\RequirePassword;
@@ -24,6 +27,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('user-password.update');
 
     Route::inertia('settings/appearance', 'settings/Appearance')->name('appearance.edit');
+
+    Route::get('settings/devices', [DevicesController::class, 'index'])->name('devices.index');
+    Route::delete('settings/devices/{token}', [DevicesController::class, 'destroy'])->whereNumber('token')->name('devices.destroy');
+
+    Route::get('settings/connections', [ConnectionsController::class, 'edit'])->name('connections.edit');
+    Route::delete('settings/connections/steam', [SteamController::class, 'destroy'])->name('steam.destroy');
 });
 
 Route::get('.well-known/passkey-endpoints', function () {

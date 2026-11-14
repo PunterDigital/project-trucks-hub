@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
+import SteamButton from '@/components/hub/SteamButton.vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -37,6 +38,8 @@ defineProps<{
     </div>
 
     <PasskeyVerify />
+
+    <SteamButton label="Log in with Steam" />
 
     <Form
         v-bind="store.form()"
