@@ -45,3 +45,6 @@ yarn-error.log
 
 /playwright-report
 /test-results
+/public/css/filament
+/public/fonts/filament
+/public/js/filament

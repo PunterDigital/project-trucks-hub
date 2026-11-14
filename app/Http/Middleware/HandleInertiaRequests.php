@@ -51,6 +51,8 @@ class HandleInertiaRequests extends Middleware
                     'email_verified_at' => $user->email_verified_at?->toIso8601String(),
                     'profile_private' => $user->profile_private,
                     'company' => $user->membership?->company?->summary(),
+                    // Shows the "Admin" menu link (#4664); /admin checks for itself.
+                    'is_staff' => (bool) $user->is_staff,
                 ] : null,
             ],
             'steamEnabled' => SteamController::enabled(),
