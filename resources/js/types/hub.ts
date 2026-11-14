@@ -27,6 +27,7 @@ export type JobSummary = {
     status: JobStatus;
     flagged: boolean;
     hidden: boolean;
+    staff_hidden?: boolean;
     completed_at: string;
     driver: DriverSummary | null;
 };

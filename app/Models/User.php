@@ -30,6 +30,8 @@ use Laravel\Sanctum\HasApiTokens;
  * @property bool $profile_private
  * @property bool $is_staff
  * @property bool $show_on_map
+ * @property Carbon|null $suspended_at
+ * @property string|null $suspension_reason
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property Carbon|null $password_set_at
@@ -64,7 +66,17 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
             'profile_private' => 'boolean',
             'is_staff' => 'boolean',
             'show_on_map' => 'boolean',
+            'suspended_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Suspended by staff (#4651): can't sign in, linked apps revoked, hidden from every public
+     * page and from stats until staff lift it.
+     */
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null;
     }
 
     /**
@@ -74,7 +86,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->is_staff && $this->two_factor_confirmed_at !== null;
+        return $this->is_staff && $this->two_factor_confirmed_at !== null && ! $this->isSuspended();
     }
 
     protected static function booted(): void
@@ -139,7 +151,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
     {
         $companyId = $viewer?->companyId();
 
-        return $query->where(function (Builder $q) use ($viewer, $companyId) {
+        return $query->whereNull('users.suspended_at')->where(function (Builder $q) use ($viewer, $companyId) {
             $q->where('users.profile_private', false);
 
             if ($viewer !== null) {
@@ -155,6 +167,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
     /** Whether `$viewer` may see this driver's profile and jobs. */
     public function isVisibleTo(?User $viewer): bool
     {
+        if ($this->isSuspended()) {
+            return false;
+        }
+
         if (! $this->profile_private) {
             return true;
         }

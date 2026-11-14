@@ -107,6 +107,8 @@ class CompanyController extends Controller
         $members = $company->members()
             ->with('user.liveStatus')
             ->get()
+            // Suspended drivers (#4651) are off every public page, their company's too.
+            ->reject(fn (CompanyMember $m) => $m->user->isSuspended())
             ->sortBy(fn (CompanyMember $m) => [array_search($m->role, CompanyRole::cases(), true), $m->user->name])
             ->values()
             ->map(function (CompanyMember $m) use ($memberStats, $viewer, $role) {

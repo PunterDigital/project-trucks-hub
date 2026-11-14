@@ -23,6 +23,7 @@ final class Leaderboard
         $rows = self::base($period, $metric)
             ->join('users', 'users.id', '=', 'deliveries.user_id')
             ->where('users.profile_private', false)
+            ->whereNull('users.suspended_at')
             ->groupBy('deliveries.user_id')
             ->selectRaw('deliveries.user_id as subject_id')
             ->limit($limit)

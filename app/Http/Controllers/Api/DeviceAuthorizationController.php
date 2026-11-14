@@ -86,6 +86,13 @@ class DeviceAuthorizationController extends Controller
                 return $this->error('access_denied', 'The account no longer exists.');
             }
 
+            // Approved just before staff suspended the account (#4651).
+            if ($user->isSuspended()) {
+                $auth->delete();
+
+                return $this->error('access_denied', 'This account is suspended.');
+            }
+
             $token = $user->createToken($auth->client_name, ['sync']);
             $auth->delete();
 

@@ -127,6 +127,37 @@ without a full build.
 - Resources live in `app/Filament/Resources/<Name>/`; `deliveries` is the "Jobs" resource
   (slug `jobs`). Hidden: use `getAttribute('hidden')`, as in the model.
 
+## Moderation (#4651)
+
+- Reports: "Report" button (`components/hub/ReportButton.vue`) on driver, company and job
+  pages for signed-in viewers who aren't the subject (not their own profile/job, not their
+  own company). `POST /reports` (`ReportController`, throttle 10/min) takes `type`
+  (driver|company|job → `Report::TYPES`), `id`, `reason` (`ReportReason`), `details`. One open
+  report per item per reporter. Plain morphs with class names: no morph map, since Sanctum's
+  tokens are morphs too and a map would orphan every existing token.
+- Admin: Reports queue (Open/Resolved/All tabs, red nav badge = open count), the item shown
+  inline, "Open in admin" + "Resolve" (note). Staff buttons are on the item's own page and go
+  through `App\Admin\Moderation` (each refuses a stale state and writes the audit log) via
+  `App\Filament\ModerationAction` (modal with a required reason):
+    - Users: Suspend / Lift suspension. Suspend = `users.suspended_at` + reason, tokens deleted,
+      live status deleted, database sessions deleted. `SignOutSuspended` (web group) signs a
+      suspended account out on its next request and the login page shows why; `AdminAuthenticate`
+      and `canAccessPanel` turn suspended staff away; the device-token endpoint refuses them.
+      Suspended drivers are off `User::scopeVisibleTo`/`isVisibleTo`, the job visibility scope,
+      the map, the driver board, company member lists, and `counted` (their jobs don't count
+      anywhere until lifted). Their profile is a 404, not the "private profile" page.
+    - Jobs: Hide / Unhide (`deliveries.staff_hidden`: the driver still sees it with a note and
+      can't show it again), Flag as cheated (`hub_flag_reason` = the reason after
+      `Moderation::STAFF_FLAG_PREFIX`; the job page says staff flagged it), Clear Hub flag. Both
+      flag actions set `staff_reviewed`, and `JobSyncController` skips `JobChecks` on them.
+    - Companies: Reset name and description (name/tag/slug → "Company 12"/"C12"/"company-12",
+      description removed; logos once #4644 lands), Remove member (never the owner).
+- E2E (`moderation.spec.ts`): rex-report reports troll-tom; mo-mod (staff, its own TOTP
+  secret) resolves it and suspends/lifts susie-suspend. Fortify refuses a reused TOTP code, so
+  `logInWithTotp` (`tests/e2e/totp.ts`) waits for the next 30 s window before a second
+  sign-in with the same secret. Filament's form modal labels end in "*": find fields with
+  `getByRole('textbox', { name: /^Reason/ })`, `getByLabel(/^Reason/)` never matched.
+
 ## E2E
 
 Playwright (`tests/e2e`), headless Chromium, never takes focus. `serve.mjs` resets a throwaway

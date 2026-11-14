@@ -94,8 +94,9 @@ class JobSyncController extends Controller
                 ]);
 
                 // The Hub's own checks (#4642). A Hub flag is never cleared by a re-sync, so an
-                // edited client can't send a job twice to wash it.
-                if ($delivery->hub_flag_reason === null) {
+                // edited client can't send a job twice to wash it. A job staff have reviewed
+                // (#4651) keeps their decision: no more checks.
+                if ($delivery->hub_flag_reason === null && ! $delivery->staff_reviewed) {
                     $check = JobChecks::run($delivery);
                     if ($check['reasons'] !== []) {
                         $delivery->hub_flag_reason = implode('; ', $check['reasons']);

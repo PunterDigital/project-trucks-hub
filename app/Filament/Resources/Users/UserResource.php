@@ -18,6 +18,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -90,6 +91,18 @@ class UserResource extends Resource
                     ->label('Staff')
                     ->boolean()
                     ->toggleable(),
+                TextColumn::make('suspended_at')
+                    ->label('Suspended')
+                    ->since()
+                    ->placeholder('—')
+                    ->color('danger')
+                    ->sortable(),
+            ])
+            ->filters([
+                TernaryFilter::make('suspended')
+                    ->label('Suspended')
+                    ->nullable()
+                    ->attribute('suspended_at'),
             ])
             ->recordActions([
                 ViewAction::make(),
@@ -112,6 +125,13 @@ class UserResource extends Resource
                     IconEntry::make('is_staff')->label('Staff')->boolean(),
                     TextEntry::make('two_factor_confirmed_at')->label('Two-factor since')->dateTime()->placeholder('Off'),
                     TextEntry::make('created_at')->label('Joined')->dateTime(),
+                ]),
+            Section::make('Suspension')
+                ->visible(fn (User $record): bool => $record->isSuspended())
+                ->columns(2)
+                ->schema([
+                    TextEntry::make('suspended_at')->label('Suspended')->dateTime(),
+                    TextEntry::make('suspension_reason')->label('Reason'),
                 ]),
             Section::make('ProjectTrucks')
                 ->columns(3)
