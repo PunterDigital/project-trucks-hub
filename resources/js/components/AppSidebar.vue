@@ -10,7 +10,6 @@ import {
 } from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
-import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import {
@@ -22,7 +21,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, home, leaderboards } from '@/routes';
+import { dashboard, download, home, leaderboards } from '@/routes';
 import { index as companies } from '@/routes/companies';
 import { index as drivers } from '@/routes/drivers';
 import type { NavItem } from '@/types';
@@ -37,15 +36,8 @@ const mainNavItems = computed<NavItem[]>(() => [
     { title: 'Drivers', href: drivers(), icon: Users },
     { title: 'Companies', href: companies(), icon: Building2 },
     { title: 'Leaderboards', href: leaderboards(), icon: Trophy },
+    { title: 'Get ProjectTrucks', href: download(), icon: Download },
 ]);
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Get ProjectTrucks',
-        href: 'https://punterdigital.github.io/personal-apps/',
-        icon: Download,
-    },
-];
 </script>
 
 <template>
@@ -67,7 +59,6 @@ const footerNavItems: NavItem[] = [
         </SidebarContent>
 
         <SidebarFooter>
-            <NavFooter :items="footerNavItems" />
             <NavUser />
         </SidebarFooter>
     </Sidebar>

@@ -33,7 +33,7 @@ class DashboardController extends Controller
             ],
             'live' => $live !== null && $live->isFresh() ? $live->summary() : null,
             'recent' => Feed::latestDeliveries($user, 10, fn ($q) => $q->where('deliveries.user_id', $user->id)),
-            'downloadUrl' => 'https://punterdigital.github.io/personal-apps/',
+            'downloadUrl' => route('download'),
         ]);
     }
 }

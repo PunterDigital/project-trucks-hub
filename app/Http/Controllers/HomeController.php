@@ -32,7 +32,7 @@ class HomeController extends Controller
             'onTheRoad' => Feed::onTheRoad($viewer, 8),
             'latest' => Feed::latestDeliveries($viewer, 12),
             'topDrivers' => Leaderboard::drivers(Period::Week, 'distance', 5),
-            'downloadUrl' => 'https://punterdigital.github.io/personal-apps/',
+            'downloadUrl' => route('download'),
         ]);
     }
 }

@@ -54,6 +54,14 @@ without a full build.
   with an email (random password; "Forgot password" sets one). 2FA accounts still go through
   Fortify's challenge (`login.id` in the session).
 - `config/sanctum.php` `stateful` is empty on purpose: the API is bearer-token only.
+- `/download`: ProjectTrucks' latest GitHub release via `App\Support\LatestRelease` (GitHub API,
+  cached 15 min, last good answer kept forever, only `github.com/PunterDigital/project-trucks/
+  releases/download/` URLs accepted). `/download/windows[/msi]` are permanent links that 302 to
+  the current installer. E2ESeeder puts a release in the cache so E2E never calls GitHub. Every
+  "Get ProjectTrucks" link points here, not at the personal-apps downloads page. The install
+  steps on the page name the app's real labels ("Install plugin", "Tracking"): keep them in
+  step with ProjectTrucks, and drop the "Hub syncing arrives in an upcoming update" line once
+  #4634 ships.
 
 ## E2E
 
