@@ -20,7 +20,8 @@ const appEnv = {
     SESSION_DRIVER: 'file',
     MAIL_MAILER: 'array',
     LOG_CHANNEL: 'single',
-    // Steam stays off: its OpenID page is a real outside service.
+    // Steam stays off: its OpenID page and button image are real outside services.
+    STEAM_LOGIN: 'false',
     STEAM_API_KEY: '',
 };
 

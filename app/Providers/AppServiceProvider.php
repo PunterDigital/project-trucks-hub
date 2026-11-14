@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Auth\SteamProvider;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -12,7 +13,6 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use SocialiteProviders\Manager\SocialiteWasCalled;
-use SocialiteProviders\Steam\SteamExtendSocialite;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,7 +32,8 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->configureRateLimiting();
 
-        Event::listen(SocialiteWasCalled::class, [SteamExtendSocialite::class, 'handle']);
+        // Our subclass of the Steam provider: OpenID sign-in that works without a Web API key.
+        Event::listen(SocialiteWasCalled::class, fn (SocialiteWasCalled $event) => $event->extendSocialite('steam', SteamProvider::class));
     }
 
     protected function configureRateLimiting(): void
