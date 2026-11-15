@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Auth\SteamProvider;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
@@ -12,7 +13,10 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Sentry\State\Scope;
 use SocialiteProviders\Manager\SocialiteWasCalled;
+
+use function Sentry\configureScope;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -34,6 +38,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Our subclass of the Steam provider: OpenID sign-in that works without a Web API key.
         Event::listen(SocialiteWasCalled::class, fn (SocialiteWasCalled $event) => $event->extendSocialite('steam', SteamProvider::class));
+
+        // Sentry (#4653): the signed-in user's id and nothing else (send_default_pii is off, so
+        // no name, email, IP or cookies). Inert while SENTRY_LARAVEL_DSN is empty.
+        Event::listen(Authenticated::class, function (Authenticated $event): void {
+            configureScope(fn (Scope $scope) => $scope->setUser(['id' => $event->user->getAuthIdentifier()]));
+        });
     }
 
     protected function configureRateLimiting(): void

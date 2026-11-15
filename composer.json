@@ -19,6 +19,7 @@
         "laravel/socialite": "^5.32",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
+        "sentry/sentry-laravel": "^4.21",
         "socialiteproviders/steam": "^4.6"
     },
     "require-dev": {
