@@ -3,6 +3,7 @@ export type CompanySummary = {
     name: string;
     slug: string;
     tag: string;
+    logo?: string | null;
 };
 
 export type DriverSummary = {

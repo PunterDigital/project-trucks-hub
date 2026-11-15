@@ -50,7 +50,7 @@ class HandleInertiaRequests extends Middleware
                     'name' => $user->name,
                     'email' => $user->email,
                     'username' => $user->username,
-                    'avatar' => $user->avatar_url,
+                    'avatar' => $user->avatar(),
                     'email_verified_at' => $user->email_verified_at?->toIso8601String(),
                     'profile_private' => $user->profile_private,
                     'company' => $user->membership?->company?->summary(),

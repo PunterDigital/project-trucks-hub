@@ -228,5 +228,22 @@ class E2ESeeder extends Seeder
             'user_id' => User::query()->where('username', 'nora-notify')->value('id'),
             'role' => CompanyRole::Owner,
         ]);
+
+        // Uploads (#4644): Uma sets a profile picture and her company's logo and banner.
+        $uma = User::query()->create([
+            'name' => 'Uma Upload',
+            'email' => 'uma-upload@example.com',
+            'username' => 'uma-upload',
+            'password' => $password,
+        ]);
+        $uma->forceFill(['email_verified_at' => now(), 'password_set_at' => now()])->save();
+        $pictures = Company::query()->create([
+            'name' => 'Picture Perfect Haulage',
+            'slug' => 'picture-perfect-haulage',
+            'tag' => 'PIX',
+            'description' => 'Looks good on the leaderboard.',
+            'recruitment' => Recruitment::Apply,
+        ]);
+        $pictures->members()->create(['user_id' => $uma->id, 'role' => CompanyRole::Owner]);
     }
 }

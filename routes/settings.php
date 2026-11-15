@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\SteamController;
+use App\Http\Controllers\Settings\AvatarController;
 use App\Http\Controllers\Settings\ConnectionsController;
 use App\Http\Controllers\Settings\DevicesController;
 use App\Http\Controllers\Settings\NotificationSettingsController;
@@ -15,6 +16,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('settings/profile/avatar', [AvatarController::class, 'store'])->middleware('throttle:20,1')->name('avatar.store');
+    Route::delete('settings/profile/avatar', [AvatarController::class, 'destroy'])->name('avatar.destroy');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

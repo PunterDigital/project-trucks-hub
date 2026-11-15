@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { Building2, Link2, MonitorSmartphone } from '@lucide/vue';
+import CompanyLogo from '@/components/hub/CompanyLogo.vue';
 import JobList from '@/components/hub/JobList.vue';
 import OnTheRoad from '@/components/hub/OnTheRoad.vue';
 import Panel from '@/components/hub/Panel.vue';
@@ -102,7 +103,15 @@ defineProps<{
 
                 <Panel title="Company">
                     <div v-if="driver.company" class="flex items-center gap-3">
-                        <Building2 class="size-5 text-muted-foreground" />
+                        <CompanyLogo
+                            v-if="driver.company.logo"
+                            :company="driver.company"
+                            class="size-8"
+                        />
+                        <Building2
+                            v-else
+                            class="size-5 text-muted-foreground"
+                        />
                         <div class="flex-1">
                             <Link
                                 :href="showCompany(driver.company.slug)"

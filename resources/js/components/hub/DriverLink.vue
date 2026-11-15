@@ -35,8 +35,16 @@ withDefaults(
             <Link
                 v-if="showCompany && driver.company"
                 :href="showCompany(driver.company.slug)"
-                class="block truncate text-xs text-muted-foreground hover:underline"
-                >[{{ driver.company.tag }}] {{ driver.company.name }}</Link
+                class="flex items-center gap-1 truncate text-xs text-muted-foreground hover:underline"
+                ><img
+                    v-if="driver.company.logo"
+                    :src="driver.company.logo"
+                    alt=""
+                    class="size-3.5 shrink-0 rounded-sm object-cover"
+                    loading="lazy"
+                /><span class="truncate"
+                    >[{{ driver.company.tag }}] {{ driver.company.name }}</span
+                ></Link
             >
         </div>
     </div>

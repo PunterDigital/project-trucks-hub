@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
 import { Plus, Search } from '@lucide/vue';
+import CompanyLogo from '@/components/hub/CompanyLogo.vue';
 import Pagination from '@/components/hub/Pagination.vue';
 import RecruitmentBadge from '@/components/hub/RecruitmentBadge.vue';
 import { Button } from '@/components/ui/button';
@@ -66,7 +67,8 @@ defineProps<{
                     data-test="company-card"
                 >
                     <div class="flex items-start justify-between gap-2">
-                        <h2 class="font-semibold">
+                        <CompanyLogo :company="company" />
+                        <h2 class="flex-1 font-semibold">
                             <span class="text-muted-foreground"
                                 >[{{ company.tag }}]</span
                             >

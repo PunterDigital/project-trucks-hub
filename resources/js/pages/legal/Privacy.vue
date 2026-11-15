@@ -38,6 +38,13 @@ defineOptions({
                 password.
             </li>
             <li>
+                <strong>Pictures you upload:</strong> a profile picture, and a
+                company logo and banner if you run a company. We keep a resized
+                copy only (the original file and anything inside it, such as
+                camera or location details, is thrown away). They're public, and
+                replacing or removing one deletes the old copy.
+            </li>
+            <li>
                 <strong>Synced jobs:</strong> only once you link the app and
                 only jobs it records after that. Each job has the truck, cities
                 and companies, cargo, weight, income, distance, duration,

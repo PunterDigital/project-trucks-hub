@@ -2,6 +2,7 @@
 import { Form, Head, Link, router } from '@inertiajs/vue3';
 import { Settings } from '@lucide/vue';
 import { computed } from 'vue';
+import CompanyLogo from '@/components/hub/CompanyLogo.vue';
 import DriverAvatar from '@/components/hub/DriverAvatar.vue';
 import JobList from '@/components/hub/JobList.vue';
 import OnTheRoad from '@/components/hub/OnTheRoad.vue';
@@ -41,6 +42,7 @@ const props = defineProps<{
     company: CompanySummary & {
         description: string | null;
         recruitment: Recruitment;
+        banner: string | null;
         created_at: string | null;
     };
     role: CompanyRole | null;
@@ -120,7 +122,15 @@ function leaveCompany() {
     <Head :title="company.name" />
 
     <div class="flex flex-col gap-4 p-4">
+        <img
+            v-if="company.banner"
+            :src="company.banner"
+            :alt="`${company.name} banner`"
+            class="aspect-[15/4] w-full rounded-xl object-cover"
+            data-test="company-banner"
+        />
         <header class="flex flex-col gap-3 sm:flex-row sm:items-start">
+            <CompanyLogo :company="company" class="size-16 text-sm" />
             <div class="flex-1 space-y-1">
                 <h1
                     class="flex flex-wrap items-center gap-2 text-2xl font-semibold"
