@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ApplicationStatus;
 use App\Enums\CompanyRole;
 use App\Enums\Recruitment;
+use App\Support\ImageStore;
 use Database\Factories\CompanyFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,6 +20,8 @@ use Illuminate\Support\Carbon;
  * @property string $tag
  * @property string|null $description
  * @property Recruitment $recruitment
+ * @property string|null $logo_path
+ * @property string|null $banner_path
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -33,6 +36,23 @@ class Company extends Model
         return [
             'recruitment' => Recruitment::class,
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Uploaded pictures (#4644) live on disk, not in the row.
+        static::deleted(function (Company $company) {
+            ImageStore::delete($company->logo_path);
+            ImageStore::delete($company->banner_path);
+        });
+    }
+
+    /** Deletes the logo and banner files and clears both columns (no save). */
+    public function forgetImages(): void
+    {
+        ImageStore::delete($this->logo_path);
+        ImageStore::delete($this->banner_path);
+        $this->forceFill(['logo_path' => null, 'banner_path' => null]);
     }
 
     public function getRouteKeyName(): string
@@ -83,6 +103,7 @@ class Company extends Model
             'name' => $this->name,
             'slug' => $this->slug,
             'tag' => $this->tag,
+            'logo' => ImageStore::url($this->logo_path),
         ];
     }
 }

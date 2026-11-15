@@ -2,9 +2,11 @@
 import { Form, Head, usePage } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import AvatarController from '@/actions/App/Http/Controllers/Settings/AvatarController';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/DeleteUser.vue';
 import Heading from '@/components/Heading.vue';
+import ImageUpload from '@/components/hub/ImageUpload.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +40,18 @@ const user = computed(() => page.props.auth.user!);
             variant="small"
             title="Profile"
             description="Your name, username, email and who can see your profile"
+        />
+
+        <ImageUpload
+            id="avatar"
+            label="Profile picture"
+            hint="PNG, JPEG or WebP, up to 2 MB. Cropped to a square."
+            field="avatar"
+            shape="round"
+            :current="user.avatar ?? null"
+            :store="AvatarController.store.form()"
+            :remove="AvatarController.destroy.url()"
+            remove-label="Remove picture"
         />
 
         <Form

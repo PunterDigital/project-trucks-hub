@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { Trophy } from '@lucide/vue';
+import CompanyLogo from '@/components/hub/CompanyLogo.vue';
 import DriverLink from '@/components/hub/DriverLink.vue';
 import { formatCount, formatKm, formatMoney } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -160,16 +161,22 @@ function asCompany(row: LeaderboardRow) {
                                 v-if="board === 'drivers'"
                                 :driver="row.subject as DriverSummary"
                             />
-                            <div v-else>
-                                <Link
-                                    :href="showCompany(asCompany(row).slug)"
-                                    class="font-medium hover:underline"
-                                    >[{{ asCompany(row).tag }}]
-                                    {{ asCompany(row).name }}</Link
-                                >
-                                <p class="text-xs text-muted-foreground">
-                                    {{ asCompany(row).members }} members
-                                </p>
+                            <div v-else class="flex items-center gap-2">
+                                <CompanyLogo
+                                    :company="asCompany(row)"
+                                    class="size-8"
+                                />
+                                <div class="min-w-0">
+                                    <Link
+                                        :href="showCompany(asCompany(row).slug)"
+                                        class="font-medium hover:underline"
+                                        >[{{ asCompany(row).tag }}]
+                                        {{ asCompany(row).name }}</Link
+                                    >
+                                    <p class="text-xs text-muted-foreground">
+                                        {{ asCompany(row).members }} members
+                                    </p>
+                                </div>
                             </div>
                         </td>
                         <td

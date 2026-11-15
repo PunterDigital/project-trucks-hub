@@ -11,6 +11,7 @@ use App\Models\CompanyMember;
 use App\Models\Delivery;
 use App\Models\User;
 use App\Support\Feed;
+use App\Support\ImageStore;
 use App\Support\Period;
 use App\Support\Stats;
 use Illuminate\Database\Eloquent\Builder;
@@ -120,7 +121,7 @@ class CompanyController extends Controller
                     'role' => $m->role->value,
                     'joined_at' => $m->created_at?->toIso8601String(),
                     'driver' => $visible
-                        ? ['name' => $m->user->name, 'username' => $m->user->username, 'avatar' => $m->user->avatar_url]
+                        ? ['name' => $m->user->name, 'username' => $m->user->username, 'avatar' => $m->user->avatar()]
                         : ['name' => __('Private driver'), 'username' => null, 'avatar' => null],
                     'month' => [
                         'deliveries' => (int) ($stats->deliveries ?? 0),
@@ -139,6 +140,7 @@ class CompanyController extends Controller
                 ...$company->summary(),
                 'description' => $company->description,
                 'recruitment' => $company->recruitment->value,
+                'banner' => ImageStore::url($company->banner_path),
                 'created_at' => $company->created_at?->toIso8601String(),
             ],
             'role' => $role?->value,
@@ -160,7 +162,7 @@ class CompanyController extends Controller
                     'id' => $a->id,
                     'message' => $a->message,
                     'created_at' => $a->created_at?->toIso8601String(),
-                    'driver' => ['name' => $a->user->name, 'username' => $a->user->username, 'avatar' => $a->user->avatar_url],
+                    'driver' => ['name' => $a->user->name, 'username' => $a->user->username, 'avatar' => $a->user->avatar()],
                 ])
                 : [],
         ]);
@@ -175,6 +177,7 @@ class CompanyController extends Controller
                 ...$company->summary(),
                 'description' => $company->description,
                 'recruitment' => $company->recruitment->value,
+                'banner' => ImageStore::url($company->banner_path),
             ],
             'isOwner' => $company->roleOf($request->user()) === CompanyRole::Owner,
         ]);

@@ -121,7 +121,7 @@ class Moderation
      */
     public static function resetCompanyProfile(Company $company, string $reason, ?User $staff = null): void
     {
-        $before = $company->only(['name', 'tag', 'slug', 'description']);
+        $before = $company->only(['name', 'tag', 'slug', 'description', 'logo_path', 'banner_path']);
         $tag = 'C'.$company->id;
 
         $name = 'Company '.$company->id;
@@ -133,6 +133,8 @@ class Moderation
             $slug = 'company-'.$company->id.'-'.$n;
         }
 
+        // The logo and banner go too (#4644): they're part of what a company shows the world.
+        $company->forgetImages();
         $company->forceFill([
             'name' => $name,
             // Tags are 2–5 capitals or digits; past C9999 fall back to a free 5-character one.
@@ -144,7 +146,7 @@ class Moderation
         ])->save();
 
         Audit::record('company.profile_reset', $company, $before, [
-            ...$company->only(['name', 'tag', 'slug', 'description']),
+            ...$company->only(['name', 'tag', 'slug', 'description', 'logo_path', 'banner_path']),
             'reason' => $reason,
         ], $staff);
     }

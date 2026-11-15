@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\SteamController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CompanyImageController;
 use App\Http\Controllers\CompanyMembershipController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryController;
@@ -12,13 +13,22 @@ use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LinkDeviceController;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\VersionController;
+use App\Support\ImageStore;
 use Illuminate\Support\Facades\Route;
 
 // What's deployed (playbook #4445). Outside the web group: no session, no cookies.
 Route::get('version', VersionController::class)->withoutMiddleware('web')->name('version');
+
+// Uploaded pictures (#4644), straight from the public disk. No session or cookies either.
+Route::get('media/{kind}/{file}', MediaController::class)
+    ->whereIn('kind', ['avatars', 'logos', 'banners'])
+    ->where('file', ImageStore::FILE_PATTERN)
+    ->withoutMiddleware('web')
+    ->name('media');
 
 // Public pages: anyone can browse drivers, jobs, companies and leaderboards.
 Route::get('/', HomeController::class)->name('home');
@@ -65,6 +75,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('companies/{company:slug}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
     Route::put('companies/{company:slug}', [CompanyController::class, 'update'])->name('companies.update');
     Route::delete('companies/{company:slug}', [CompanyController::class, 'destroy'])->name('companies.destroy');
+    Route::post('companies/{company:slug}/images/{kind}', [CompanyImageController::class, 'store'])
+        ->whereIn('kind', ['logo', 'banner'])
+        ->middleware('throttle:20,1')
+        ->name('companies.images.store');
+    Route::delete('companies/{company:slug}/images/{kind}', [CompanyImageController::class, 'destroy'])
+        ->whereIn('kind', ['logo', 'banner'])
+        ->name('companies.images.destroy');
 
     Route::post('companies/{company:slug}/join', [CompanyMembershipController::class, 'join'])->name('companies.join');
     Route::post('companies/{company:slug}/apply', [CompanyMembershipController::class, 'apply'])->name('companies.apply');

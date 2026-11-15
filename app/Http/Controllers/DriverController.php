@@ -55,7 +55,7 @@ class DriverController extends Controller
             return Inertia::render('drivers/Private', ['driver' => [
                 'name' => $driver->name,
                 'username' => $driver->username,
-                'avatar' => $driver->avatar_url,
+                'avatar' => $driver->avatar(),
             ]]);
         }
 

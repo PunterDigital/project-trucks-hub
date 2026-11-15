@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CompanyApplication;
 use App\Models\Delivery;
 use App\Models\User;
+use App\Support\ImageStore;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -67,6 +68,8 @@ class PrivacyController extends Controller
                 'profile_private' => $user->profile_private,
                 'steam_id' => $user->steam_id,
                 'avatar_url' => $user->avatar_url,
+                // An uploaded picture (#4644), as the address it is served from.
+                'uploaded_avatar' => $user->avatar_path === null ? null : url(ImageStore::url($user->avatar_path)),
                 'two_factor_enabled' => $user->two_factor_confirmed_at !== null,
                 'created_at' => $user->created_at?->toIso8601String(),
             ],

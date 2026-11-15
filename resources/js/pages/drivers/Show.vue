@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { ExternalLink, Lock } from '@lucide/vue';
+import CompanyLogo from '@/components/hub/CompanyLogo.vue';
 import DriverAvatar from '@/components/hub/DriverAvatar.vue';
 import JobList from '@/components/hub/JobList.vue';
 import OnTheRoad from '@/components/hub/OnTheRoad.vue';
@@ -64,8 +65,16 @@ const signedIn = usePage().props.auth.user !== null;
                         · {{ onTime }}% on time</template
                     >
                 </p>
-                <p v-if="driver.company" class="text-sm">
+                <p
+                    v-if="driver.company"
+                    class="flex flex-wrap items-center gap-1.5 text-sm"
+                >
                     <span class="capitalize">{{ driver.role }}</span> at
+                    <CompanyLogo
+                        v-if="driver.company.logo"
+                        :company="driver.company"
+                        class="size-5 rounded-sm"
+                    />
                     <Link
                         :href="showCompany(driver.company.slug)"
                         class="font-medium hover:underline"

@@ -156,7 +156,7 @@ without a full build.
       `Moderation::STAFF_FLAG_PREFIX`; the job page says staff flagged it), Clear Hub flag. Both
       flag actions set `staff_reviewed`, and `JobSyncController` skips `JobChecks` on them.
     - Companies: Reset name and description (name/tag/slug → "Company 12"/"C12"/"company-12",
-      description removed; logos once #4644 lands), Remove member (never the owner).
+      description, logo and banner removed), Remove member (never the owner).
 - E2E (`moderation.spec.ts`): rex-report reports troll-tom; mo-mod (staff, its own TOTP
   secret) resolves it and suspends/lifts susie-suspend. Fortify refuses a reused TOTP code, so
   `logInWithTotp` (`tests/e2e/totp.ts`) waits for the next 30 s window before a second
@@ -187,6 +187,25 @@ without a full build.
 - E2E (`notifications.spec.ts`): abe-apply applies to nora-notify's Bell Freight. An open
   reka menu hides the rest of the page from the accessibility tree: press Escape before
   asserting the bell's accessible name.
+
+## Uploads (#4644)
+
+- Profile picture (Settings → Profile, `Settings\AvatarController`), company logo and banner
+  (company edit page, `CompanyImageController`, owners/managers). `App\Support\ImageStore`
+  decodes every upload with intervention/image 4 (GD), crops it (`ImageKind`: 256² avatar/logo,
+  1500×400 banner) and re-encodes WebP, so nothing from the original file (EXIF, GPS, hidden
+  bytes) is kept. PNG/JPEG/WebP, 2 MB (`ImageStore::RULES`). Random 40-char names; the old
+  file is deleted on replace/remove, account deletion, company deletion and the staff
+  "Reset name and description".
+- Served by `MediaController` at `/media/{avatars|logos|banners}/{name}.webp` from the
+  `public` disk: outside the web group (no cookies), cached a year (`immutable`). No
+  `storage:link` needed on Forge. `storage/app/public` must survive deploys (it does: Forge
+  shares `storage/`).
+- Pages read `User::avatar()` (upload, else the Steam `avatar_url`), never `avatar_url`
+  directly; companies carry `logo` in `summary()`. Removing with no upload clears the Steam
+  picture (linking Steam again brings it back).
+- E2E: `PUBLIC_DISK_ROOT` (config/filesystems.php) points the disk at a temp folder; Uma
+  Upload owns Picture Perfect Haulage (`uploads.spec.ts`).
 
 ## E2E
 

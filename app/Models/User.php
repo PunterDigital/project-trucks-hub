@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\NoticeType;
+use App\Support\ImageStore;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
@@ -28,6 +29,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $username
  * @property string|null $steam_id
  * @property string|null $avatar_url
+ * @property string|null $avatar_path
  * @property bool $profile_private
  * @property bool $is_staff
  * @property bool $show_on_map
@@ -108,7 +110,14 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
         static::deleting(function (User $user) {
             $user->tokens()->delete();
             $user->notifications()->delete();
+            ImageStore::delete($user->avatar_path);
         });
+    }
+
+    /** The picture pages show (#4644): an upload first, else the Steam one. */
+    public function avatar(): ?string
+    {
+        return ImageStore::url($this->avatar_path) ?? $this->avatar_url;
     }
 
     public function getRouteKeyName(): string
@@ -215,12 +224,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
             'id' => $this->id,
             'name' => $this->name,
             'username' => $this->username,
-            'avatar' => $this->avatar_url,
-            'company' => $company ? [
-                'name' => $company->name,
-                'slug' => $company->slug,
-                'tag' => $company->tag,
-            ] : null,
+            'avatar' => $this->avatar(),
+            'company' => $company?->summary(),
         ];
     }
 }

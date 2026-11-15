@@ -15,6 +15,8 @@ const appEnv = {
     DB_CONNECTION: 'sqlite',
     DB_DATABASE:
         process.env.E2E_DB ?? join(tmpdir(), 'pt-hub-e2e', 'e2e.sqlite'),
+    // Uploads (#4644) go to a throwaway folder, never the checkout's storage/.
+    PUBLIC_DISK_ROOT: join(tmpdir(), 'pt-hub-e2e', 'public'),
     CACHE_STORE: 'database',
     QUEUE_CONNECTION: 'sync',
     SESSION_DRIVER: 'file',
