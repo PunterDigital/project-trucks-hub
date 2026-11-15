@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
 
-// Stats charts (#4650): Cora's one job ended at 23:30 UTC six days ago, Cody's at 12:30 UTC.
+// Stats charts (#4650): Cora's one job ended at 23:30 UTC eight days ago, Cody's at 12:30 UTC.
 
 async function daysWithDistance(page: Page): Promise<string[]> {
     const chart = page.locator('[data-test="distance-chart"]');
