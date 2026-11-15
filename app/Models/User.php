@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\NoticeType;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
@@ -31,6 +32,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property bool $is_staff
  * @property bool $show_on_map
  * @property Carbon|null $suspended_at
+ * @property list<string>|null $mail_opt_outs
  * @property string|null $suspension_reason
  * @property Carbon|null $email_verified_at
  * @property string $password
@@ -67,7 +69,17 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
             'is_staff' => 'boolean',
             'show_on_map' => 'boolean',
             'suspended_at' => 'datetime',
+            'mail_opt_outs' => 'array',
         ];
+    }
+
+    /**
+     * Whether this driver gets the email for `$type` (#4643). Every emailed type is on until
+     * they switch it off in Settings → Notifications.
+     */
+    public function wantsMail(NoticeType $type): bool
+    {
+        return $type->emails() && ! in_array($type->value, $this->mail_opt_outs ?? [], true);
     }
 
     /**
@@ -95,6 +107,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
         // stop working the moment the account goes (#4641). Everything else cascades.
         static::deleting(function (User $user) {
             $user->tokens()->delete();
+            $user->notifications()->delete();
         });
     }
 

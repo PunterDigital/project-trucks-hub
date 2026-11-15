@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\SteamController;
 use App\Http\Controllers\Settings\ConnectionsController;
 use App\Http\Controllers\Settings\DevicesController;
+use App\Http\Controllers\Settings\NotificationSettingsController;
 use App\Http\Controllers\Settings\PrivacyController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
@@ -37,6 +38,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('throttle:6,1')
         ->name('privacy-settings.export');
     Route::delete('settings/privacy/jobs', [PrivacyController::class, 'destroyJobs'])->name('privacy-settings.jobs.destroy');
+
+    Route::get('settings/notifications', [NotificationSettingsController::class, 'edit'])->name('notification-settings.edit');
+    Route::put('settings/notifications', [NotificationSettingsController::class, 'update'])->name('notification-settings.update');
 
     Route::get('settings/connections', [ConnectionsController::class, 'edit'])->name('connections.edit');
     Route::delete('settings/connections/steam', [SteamController::class, 'destroy'])->name('steam.destroy');

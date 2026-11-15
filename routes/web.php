@@ -12,6 +12,7 @@ use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LinkDeviceController;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\VersionController;
 use Illuminate\Support\Facades\Route;
@@ -52,6 +53,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('link', [LinkDeviceController::class, 'update'])->middleware('throttle:20,1')->name('link.update');
 
     Route::post('reports', [ReportController::class, 'store'])->middleware('throttle:10,1')->name('reports.store');
+
+    // The header bell (#4643).
+    Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+    Route::post('notifications/{notification}', [NotificationController::class, 'open'])->whereUuid('notification')->name('notifications.open');
 
     Route::patch('jobs/{delivery}', [DeliveryController::class, 'update'])->whereNumber('delivery')->name('jobs.update');
 

@@ -140,7 +140,8 @@ defineOptions({
             </li>
             <li>
                 Our hosting provider runs the server and our email provider
-                sends account emails (verification and password resets).
+                sends account emails (verification, password resets, and the
+                notification emails you keep on under Settings → Notifications).
             </li>
         </ul>
         <p>We don't sell or share your data with anyone else.</p>
