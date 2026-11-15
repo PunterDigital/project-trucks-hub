@@ -198,6 +198,7 @@ class CompanyController extends Controller
                 'recruitment' => $company->recruitment->value,
                 'banner' => ImageStore::url($company->banner_path),
             ],
+            'discord' => $company->discordSummary(),
             'isOwner' => $company->roleOf($request->user()) === CompanyRole::Owner,
         ]);
     }

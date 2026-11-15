@@ -7,6 +7,7 @@ use App\Enums\DeliveryStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Delivery;
 use App\Models\User;
+use App\Support\DiscordWebhook;
 use App\Sync\JobChecks;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -61,7 +62,9 @@ class JobSyncController extends Controller
         $companyId = $user->companyId();
 
         $skipped = [];
-        $ids = DB::transaction(function () use ($data, $user, $companyId, &$skipped) {
+        /** @var list<Delivery> $announce */
+        $announce = [];
+        $ids = DB::transaction(function () use ($data, $user, $companyId, &$skipped, &$announce) {
             $ids = [];
             foreach ($data['jobs'] as $job) {
                 // Jobs typed in by hand stay on the driver's PC (#4751): nothing on the Hub can
@@ -124,7 +127,13 @@ class JobSyncController extends Controller
                     }
                 }
 
+                $isNew = ! $delivery->exists;
                 $delivery->save();
+
+                // Discord (#4652): only jobs the Hub hasn't seen before.
+                if ($isNew) {
+                    $announce[] = $delivery;
+                }
 
                 $ids[] = [
                     'id' => $job['id'],
@@ -138,6 +147,15 @@ class JobSyncController extends Controller
 
         // Levels and achievements (#4645), now that the batch is stored.
         Progress::refresh($user);
+
+        // A first sync can bring a long backlog: a few recent ones at most.
+        $posted = 0;
+        foreach ($announce as $delivery) {
+            if ($posted >= DiscordWebhook::JOBS_PER_BATCH) {
+                break;
+            }
+            $posted += DiscordWebhook::jobDelivered($delivery) ? 1 : 0;
+        }
 
         return response()->json(['synced' => count($ids), 'jobs' => $ids, 'skipped' => $skipped]);
     }

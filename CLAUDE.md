@@ -306,6 +306,31 @@ without a full build.
   a changed card anew; the older file is deleted when the new one is drawn.
 - E2E: `link-preview.spec.ts` (Nordic Haulage's tags and card, Jack's job, Pia gets none).
 
+## Company Discord webhook (#4652)
+
+- `companies.discord_webhook` (`encrypted` cast, in `$hidden`), `discord_webhook_disabled_at`,
+  `discord_webhook_error`. Pages only get `discordSummary()` (set, last 4 characters, disabled
+  state): the URL is the secret and never goes back to a browser. Only Discord's own webhook
+  URLs pass `DiscordWebhook::URL_PATTERN`, so the Hub can't be made to post anywhere else.
+- `CompanyDiscordController` (owners/managers): save (clears a disabled state), "Send test
+  message" (posted **in the request**, so the toast says if it worked; success turns a
+  disabled webhook back on), remove. Edit page section `#discord`.
+- `App\Support\DiscordWebhook` builds the embeds; `App\Jobs\PostToDiscord` (queued, 4 tries,
+  back-off 30 s / 2 min / 10 min) posts them and reads the webhook when it runs. 401/403/404 =
+  deleted webhook, switched off at once; 429 waits `retry_after`; a final failure switches it
+  off. Switching off rings the bell for owner + managers (`NoticeType::DiscordWebhookDisabled`).
+  The stored error is our own wording: HTTP client exceptions name the full URL.
+- Posted: a **new** synced job that counts (delivered/late, not flagged/hidden, driver not
+  suspended) and finished in the last 24 h, at most `JOBS_PER_BATCH` (3) per sync, so a first
+  sync's backlog doesn't flood the channel; joining (open join or accepted application); a new
+  event (`<t:…:F>` so Discord shows the reader's time). `allowed_mentions` is empty: names never
+  ping anyone. Needs the queue worker (#4762); without it posts wait in `jobs`.
+- The privacy page says members' jobs go to the company's Discord even from a private profile.
+- E2E (`discord.spec.ts`): Dina Discord saves, sees "…wxyz", removes. The test button isn't
+  clicked (it would call Discord); PHPUnit covers it with `Http::fake`.
+- vue-tsc here is 3.3.13, which breaks on `https://` in a template attribute
+  (vuejs/language-tools#6240): put such strings in the script (the webhook placeholder).
+
 ## E2E
 
 Playwright (`tests/e2e`), headless Chromium, never takes focus. `serve.mjs` resets a throwaway

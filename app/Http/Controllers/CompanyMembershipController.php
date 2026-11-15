@@ -11,6 +11,7 @@ use App\Models\CompanyApplication;
 use App\Models\CompanyMember;
 use App\Models\User;
 use App\Notifications\HubNotice;
+use App\Support\DiscordWebhook;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
@@ -44,6 +45,7 @@ class CompanyMembershipController extends Controller
         }
 
         Notification::send($this->staffOf($company, CompanyRole::Owner), HubNotice::memberJoined($company, $user));
+        DiscordWebhook::memberJoined($company, $user);
 
         return $this->done($company, __('Welcome to :name!', ['name' => $company->name]));
     }
@@ -114,6 +116,7 @@ class CompanyMembershipController extends Controller
         }
         $application->update([...$decided, 'status' => ApplicationStatus::Accepted]);
         $application->user->notify(HubNotice::applicationDecided($company, true));
+        DiscordWebhook::memberJoined($company, $application->user);
 
         return $this->done($company, __(':name joined the company.', ['name' => $application->user->name]));
     }
