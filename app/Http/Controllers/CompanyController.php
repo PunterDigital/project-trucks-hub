@@ -13,6 +13,7 @@ use App\Models\CompanyEvent;
 use App\Models\CompanyMember;
 use App\Models\Delivery;
 use App\Models\User;
+use App\Support\Charts;
 use App\Support\Feed;
 use App\Support\ImageStore;
 use App\Support\Period;
@@ -161,6 +162,8 @@ class CompanyController extends Controller
                 'all' => Stats::totals($deliveries, Period::All),
             ],
             'members' => $members,
+            // Charts (#4650): distance per member, folded into the viewer's days on the page.
+            'chart' => Charts::companyDistance($company, $viewer, $role),
             'onTheRoad' => Feed::onTheRoad($viewer, 20, fn ($q) => $q->whereHas('user.membership', fn (Builder $m) => $m->where('company_id', $company->id))),
             'latest' => Feed::latestDeliveries($viewer, 15, fn ($q) => $q->where('deliveries.company_id', $company->id)),
             // Company events (#4648): the next five.

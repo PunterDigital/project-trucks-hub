@@ -2,7 +2,9 @@
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { ExternalLink, Lock, Trophy } from '@lucide/vue';
 import { computed, onMounted, ref } from 'vue';
+import CargoChart from '@/components/hub/CargoChart.vue';
 import CompanyLogo from '@/components/hub/CompanyLogo.vue';
+import DistanceChart from '@/components/hub/DistanceChart.vue';
 import DriverAvatar from '@/components/hub/DriverAvatar.vue';
 import JobList from '@/components/hub/JobList.vue';
 import OnTheRoad from '@/components/hub/OnTheRoad.vue';
@@ -14,6 +16,9 @@ import { Badge } from '@/components/ui/badge';
 import { formatDate, formatKm, plural } from '@/lib/format';
 import { show as showCompany } from '@/routes/companies';
 import type {
+    CargoRow,
+    ChartPoint,
+    ChartSeries,
     CompanyRole,
     DriverProgress,
     DriverSummary,
@@ -34,6 +39,7 @@ const props = defineProps<{
     stats: PeriodTotals;
     onTime: number | null;
     trucks: { name: string; deliveries: number; distance_km: number }[];
+    charts: { distance: ChartPoint[]; cargo: CargoRow[] };
     live: LiveSummary | null;
     jobs: Paginated<JobSummary>;
     progress: DriverProgress;
@@ -48,6 +54,15 @@ onMounted(() => {
         tab.value = 'achievements';
     }
 });
+const distanceSeries = computed<ChartSeries[]>(() => [
+    {
+        key: 'driver',
+        name: props.driver.name,
+        username: props.driver.username,
+        distance_km: 0,
+        points: props.charts.distance,
+    },
+]);
 const unlockedCount = computed(
     () => props.progress.achievements.filter((a) => a.unlocked_at).length,
 );
@@ -142,6 +157,9 @@ const unlockedCount = computed(
             <div class="flex flex-col gap-4 lg:col-span-2">
                 <Panel title="Stats">
                     <StatGrid :stats="stats" />
+                </Panel>
+                <Panel title="Last 30 days" description="Distance per day">
+                    <DistanceChart :series="distanceSeries" />
                 </Panel>
                 <div
                     id="achievements"
@@ -251,6 +269,9 @@ const unlockedCount = computed(
                             >
                         </li>
                     </ul>
+                </Panel>
+                <Panel title="Cargo" description="Top cargo by jobs">
+                    <CargoChart :cargo="charts.cargo" />
                 </Panel>
             </div>
         </div>

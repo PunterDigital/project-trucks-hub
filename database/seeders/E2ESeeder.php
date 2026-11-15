@@ -292,6 +292,40 @@ class E2ESeeder extends Seeder
         $convoy->members()->create(['user_id' => User::query()->where('username', 'eve-events')->value('id'), 'role' => CompanyRole::Owner]);
         $convoy->members()->create(['user_id' => User::query()->where('username', 'max-member')->value('id'), 'role' => CompanyRole::Driver]);
 
+        // Charts (#4650): Cora and Cody drive for Chart Haulage. Cora's one job ends at 23:30
+        // UTC six days ago, so it falls on different days in London and Tokyo. Short and old,
+        // so it stays below the rows other specs expect at the top of the feed and boards.
+        $chartCompany = Company::query()->create([
+            'name' => 'Chart Haulage',
+            'slug' => 'chart-haulage',
+            'tag' => 'CHRT',
+            'description' => 'We like numbers.',
+            'recruitment' => Recruitment::Apply,
+        ]);
+        foreach ([['Cora Chart', 'cora-chart', 'Chart paper', 23, 120.0], ['Cody Chart', 'cody-chart', 'Graph paper', 12, 80.0]] as $i => [$name, $username, $cargo, $hour, $km]) {
+            $user = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+            ]);
+            $user->forceFill(['email_verified_at' => now(), 'password_set_at' => now()])->save();
+            $chartCompany->members()->create(['user_id' => $user->id, 'role' => $i === 0 ? CompanyRole::Owner : CompanyRole::Driver]);
+            $done = now('UTC')->subDays(6)->setTime($hour, 30);
+            Delivery::factory()->for($user)->create([
+                'company_id' => $chartCompany->id,
+                'source_city' => 'Calais',
+                'dest_city' => 'Brussel',
+                'cargo_name' => $cargo,
+                'distance_km' => $km,
+                'income' => 2000,
+                'duration_sec' => 2 * 3600,
+                'avg_speed_kmh' => $km / 2,
+                'started_at' => $done->copy()->subHours(2),
+                'completed_at' => $done,
+            ]);
+        }
+
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');
     }
