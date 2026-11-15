@@ -9,10 +9,13 @@ use App\Models\Company;
 use App\Models\CompanyApplication;
 use App\Models\CompanyMember;
 use App\Models\User;
+use App\Notifications\HubNotice;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 
 /**
@@ -39,6 +42,8 @@ class CompanyMembershipController extends Controller
             return $this->fail($company, __('Leave your current company first.'));
         }
 
+        Notification::send($this->staffOf($company, CompanyRole::Owner), HubNotice::memberJoined($company, $user));
+
         return $this->done($company, __('Welcome to :name!', ['name' => $company->name]));
     }
 
@@ -55,10 +60,18 @@ class CompanyMembershipController extends Controller
             return $this->fail($company, __('Leave your current company first.'));
         }
 
-        $company->applications()->firstOrCreate(
+        $application = $company->applications()->firstOrCreate(
             ['user_id' => $user->id, 'status' => ApplicationStatus::Pending],
             ['message' => $data['message'] ?? null],
         );
+
+        // A second click on Apply finds the pending one: owners hear about it once.
+        if ($application->wasRecentlyCreated) {
+            Notification::send(
+                $this->staffOf($company, CompanyRole::Manager),
+                HubNotice::applicationReceived($company, $user, $data['message'] ?? null),
+            );
+        }
 
         return $this->done($company, __('Application sent. The company will get back to you.'));
     }
@@ -88,6 +101,7 @@ class CompanyMembershipController extends Controller
 
         if ($data['decision'] === 'decline') {
             $application->update([...$decided, 'status' => ApplicationStatus::Declined]);
+            $application->user->notify(HubNotice::applicationDecided($company, false));
 
             return $this->done($company, __('Application declined.'));
         }
@@ -98,6 +112,7 @@ class CompanyMembershipController extends Controller
             return $this->fail($company, __(':name has joined another company.', ['name' => $application->user->name]));
         }
         $application->update([...$decided, 'status' => ApplicationStatus::Accepted]);
+        $application->user->notify(HubNotice::applicationDecided($company, true));
 
         return $this->done($company, __(':name joined the company.', ['name' => $application->user->name]));
     }
@@ -136,11 +151,16 @@ class CompanyMembershipController extends Controller
                 $request->user()->membership->update(['role' => CompanyRole::Manager]);
                 $member->update(['role' => CompanyRole::Owner]);
             });
+            $member->user->notify(HubNotice::ownershipHandedOver($company, $request->user()));
 
             return $this->done($company, __(':name is now the owner.', ['name' => $member->user->name]));
         }
 
+        $previous = $member->role;
         $member->update(['role' => $data['role']]);
+        if ($member->role !== $previous) {
+            $member->user->notify(HubNotice::roleChanged($company, $member->role));
+        }
 
         return $this->done($company, __('Role updated.'));
     }
@@ -159,8 +179,25 @@ class CompanyMembershipController extends Controller
         }
 
         $member->delete();
+        $member->user->notify(HubNotice::removedFromCompany($company));
 
         return $this->done($company, __(':name was removed from the company.', ['name' => $member->user->name]));
+    }
+
+    /**
+     * The members at `$minimum` or above (Manager = owner and managers), as users.
+     *
+     * @return Collection<int, User>
+     */
+    private function staffOf(Company $company, CompanyRole $minimum): Collection
+    {
+        $roles = $minimum === CompanyRole::Owner
+            ? [CompanyRole::Owner]
+            : [CompanyRole::Owner, CompanyRole::Manager];
+
+        return User::query()
+            ->whereIn('id', $company->members()->whereIn('role', $roles)->select('user_id'))
+            ->get();
     }
 
     /** Adds `$user` as a driver; false when they are already in a company. */

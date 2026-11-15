@@ -3,7 +3,10 @@
 namespace App\Http\Middleware;
 
 use App\Http\Controllers\Auth\SteamController;
+use App\Http\Controllers\NotificationController;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\DatabaseNotification;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -57,6 +60,31 @@ class HandleInertiaRequests extends Middleware
             ],
             'steamEnabled' => SteamController::enabled(),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            // The header bell (#4643). The 60 s auto-refresh reloads shared props too, so the
+            // count stays current without its own poll.
+            'notifications' => fn () => ($user = $request->user()) ? self::notificationsFor($user) : null,
+        ];
+    }
+
+    /**
+     * @return array{unread: int, items: array<int, array{id: string, type: string, message: string, read: bool, at: string|null}>}
+     */
+    public static function notificationsFor(User $user): array
+    {
+        return [
+            'unread' => $user->unreadNotifications()->count(),
+            'items' => $user->notifications()
+                ->limit(NotificationController::SHOWN)
+                ->get()
+                ->map(fn (DatabaseNotification $n) => [
+                    'id' => $n->id,
+                    'type' => (string) ($n->data['type'] ?? ''),
+                    'message' => (string) ($n->data['message'] ?? ''),
+                    'read' => $n->read_at !== null,
+                    'at' => $n->created_at?->toIso8601String(),
+                ])
+                ->values()
+                ->all(),
         ];
     }
 }

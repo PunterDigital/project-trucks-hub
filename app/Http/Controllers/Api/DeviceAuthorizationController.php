@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\DeviceAuthorization;
+use App\Notifications\HubNotice;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -95,6 +96,8 @@ class DeviceAuthorizationController extends Controller
 
             $token = $user->createToken($auth->client_name, ['sync']);
             $auth->delete();
+            // Security notice (#4643): the bell at once, the email (if on) after the commit.
+            $user->notify(HubNotice::appLinked($auth->client_name)->afterCommit());
 
             return response()->json([
                 'access_token' => $token->plainTextToken,

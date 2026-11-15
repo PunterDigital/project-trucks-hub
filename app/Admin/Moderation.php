@@ -8,6 +8,7 @@ use App\Models\CompanyMember;
 use App\Models\Delivery;
 use App\Models\Report;
 use App\Models\User;
+use App\Notifications\HubNotice;
 use App\Sync\JobChecks;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -157,6 +158,7 @@ class Moderation
 
         $member->loadMissing('user', 'company');
         $member->delete();
+        $member->user->notify(HubNotice::removedFromCompany($member->company));
 
         Audit::record('company.member_removed', $member->company, [
             'member' => $member->user->name,

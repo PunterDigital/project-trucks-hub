@@ -163,6 +163,31 @@ without a full build.
   sign-in with the same secret. Filament's form modal labels end in "*": find fields with
   `getByRole('textbox', { name: /^Reason/ })`, `getByLabel(/^Reason/)` never matched.
 
+## Notifications (#4643)
+
+- One class, `App\Notifications\HubNotice` (named constructors per event), typed by
+  `App\Enums\NoticeType`. It holds strings only (message, url, subject), never models, so a
+  queued email still sends after the membership or application it was about is gone.
+- Sent from `CompanyMembershipController` (apply → owner + managers, once per application;
+  decide → applicant; open join → owner; role change → member, not when the role is unchanged;
+  handover → new owner; remove → member), `Moderation::removeMember` (staff removal) and
+  `DeviceAuthorizationController::token` (app linked, `afterCommit`). Suspended drivers get
+  nothing (`via()` returns `[]`).
+- The bell's database rows go on the `sync` connection (`viaConnections`), emails on the
+  default queue: **production needs a queue worker** (Forge daemon `queue:work`). Without one
+  the emails wait in `jobs`; the bell still works.
+- Emails: `ApplicationReceived`, `ApplicationDecided`, `AppLinked` (`NoticeType::emails()`),
+  on by default; `users.mail_opt_outs` lists the ones switched off in Settings → Notifications.
+- The bell (`components/hub/NotificationBell.vue`, in `AppSidebarHeader`) reads the shared
+  `notifications` prop (`HandleInertiaRequests::notificationsFor()`: unread count + latest 15),
+  so the 60 s auto-refresh updates it. Opening an item posts to `notifications.open` (marks
+  read, redirects only to our own URLs); "Mark all read" → `notifications.read-all`.
+- Account deletion removes notifications (morph, no FK: `User::booted()`); the privacy
+  export includes them and the email opt-outs.
+- E2E (`notifications.spec.ts`): abe-apply applies to nora-notify's Bell Freight. An open
+  reka menu hides the rest of the page from the accessibility tree: press Escape before
+  asserting the bell's accessible name.
+
 ## E2E
 
 Playwright (`tests/e2e`), headless Chromium, never takes focus. `serve.mjs` resets a throwaway

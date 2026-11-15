@@ -86,3 +86,15 @@ export type LeaderboardRow = {
     distance_km: number;
     income: number;
 };
+
+/** The header bell's shared prop (#4643); null for guests. */
+export type HubNotifications = {
+    unread: number;
+    items: {
+        id: string;
+        type: string;
+        message: string;
+        read: boolean;
+        at: string | null;
+    }[];
+};

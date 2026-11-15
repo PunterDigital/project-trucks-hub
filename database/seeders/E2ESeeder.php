@@ -206,5 +206,27 @@ class E2ESeeder extends Seeder
             'two_factor_recovery_codes' => encrypt((string) json_encode(['e2e-recovery-code-mo'])),
             'two_factor_confirmed_at' => now(),
         ])->save();
+
+        // Notifications (#4643): Abe applies to Nora's Bell Freight, Nora accepts from the bell.
+        foreach ([['Nora Notify', 'nora-notify'], ['Abe Apply', 'abe-apply']] as [$name, $username]) {
+            $user = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+            ]);
+            $user->forceFill(['email_verified_at' => now(), 'password_set_at' => now()])->save();
+        }
+        $bell = Company::query()->create([
+            'name' => 'Bell Freight',
+            'slug' => 'bell-freight',
+            'tag' => 'BELL',
+            'description' => 'Night runs, mostly.',
+            'recruitment' => Recruitment::Apply,
+        ]);
+        $bell->members()->create([
+            'user_id' => User::query()->where('username', 'nora-notify')->value('id'),
+            'role' => CompanyRole::Owner,
+        ]);
     }
 }

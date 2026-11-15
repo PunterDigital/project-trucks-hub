@@ -89,6 +89,16 @@ class PrivacyController extends Controller
                     'decided_at' => $a->getAttribute('decided_at')?->toIso8601String(),
                 ])
                 ->all(),
+            'email_notifications_off' => $user->mail_opt_outs ?? [],
+            'notifications' => $user->notifications()
+                ->get()
+                ->map(fn ($n) => [
+                    'message' => $n->data['message'] ?? null,
+                    'created_at' => $n->created_at?->toIso8601String(),
+                    'read_at' => $n->read_at?->toIso8601String(),
+                ])
+                ->values()
+                ->all(),
             'linked_apps' => $user->tokens()
                 ->orderBy('id')
                 ->get()
