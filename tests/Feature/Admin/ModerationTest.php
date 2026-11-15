@@ -329,9 +329,9 @@ class ModerationTest extends TestCase
     {
         $driver = User::factory()->create();
         $token = $driver->createToken('ProjectTrucks', ['sync'])->plainTextToken;
-        // An implausible job: 150 km in 10 minutes.
+        // An implausible job: 150 km in 10 in-game minutes.
         $implausible = JobSyncTest::job([
-            'distance_km' => 150, 'duration_sec' => 600, 'avg_speed_kmh' => 900,
+            'distance_km' => 150, 'duration_sec' => 600, 'game_duration_min' => 10, 'avg_speed_kmh' => 900,
             'started_at' => '2026-11-14T10:00:00Z', 'completed_at' => '2026-11-14T10:10:00Z',
         ]);
         $this->withToken($token)->postJson(route('api.jobs.store'), ['jobs' => [$implausible]])->assertOk();

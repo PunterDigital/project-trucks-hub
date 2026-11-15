@@ -109,14 +109,16 @@ company it counts for.
 }
 ```
 
-| Field                        | Rules                                     |
-| ---------------------------- | ----------------------------------------- |
-| `id`                         | required, ≤ 64 chars, unique in the batch |
-| `game`                       | optional, `ets2` (default) or `ats`       |
-| `status`                     | `DELIVERED`, `LATE` or `CANCELLED`        |
-| `source`                     | `TELEMETRY` or `MANUAL` (see below)       |
-| `started_at`, `completed_at` | ISO 8601; stored in UTC                   |
-| `damage_delta`               | 0–1                                       |
+| Field                        | Rules                                                                   |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| `id`                         | required, ≤ 64 chars, unique in the batch                               |
+| `game`                       | optional, `ets2` (default) or `ats`                                     |
+| `status`                     | `DELIVERED`, `LATE` or `CANCELLED`                                      |
+| `source`                     | `TELEMETRY` or `MANUAL` (see below)                                     |
+| `started_at`, `completed_at` | ISO 8601; stored in UTC                                                 |
+| `damage_delta`               | 0–1                                                                     |
+| `game_duration_min`          | optional, in-game minutes from pickup to delivery (ProjectTrucks 0.11+) |
+| `avg_speed_kmh`              | `distance_km` per in-game hour; before 0.11, per real hour              |
 
 A batch with any invalid job is refused whole (422, Laravel validation errors keyed
 `jobs.<index>.<field>`). Response:
@@ -196,8 +198,10 @@ Stats and leaderboards count jobs with status `DELIVERED` or `LATE` that Project
 flag, the Hub's own checks did not flag, and the driver did not hide.
 
 The Hub re-checks every delivered or late job it receives (`config/anticheat.php`): average
-speed over 150 km/h, under 1 km, `avg_speed_kmh` or `duration_sec` that don't match the
-distance and the job's start/end times, income far above what the distance pays, a
+speed over 150 km/h per in-game hour (#4771: the game's odometer counts game kilometres, ~19 per
+real one on roads, so a real-time average means nothing), more than 3,000 km per real hour (the
+only speed check for jobs without `game_duration_min`), under 1 km, `avg_speed_kmh` or
+`duration_sec` that don't match the distance, the game time and the job's start/end times, income far above what the distance pays, a
 `completed_at` in the future, more than 24 h driven on one UTC day, and more than 6 jobs
 completed within an hour (held for review). A Hub flag stays put: re-syncing the job never
 clears it. Cancelled jobs show on the driver's profile but count for

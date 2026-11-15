@@ -42,7 +42,10 @@ class JobSyncController extends Controller
             'jobs.*.declared_income' => ['required', 'integer', 'min:-100000000', 'max:100000000'],
             'jobs.*.distance_km' => ['required', 'numeric', 'min:0', 'max:100000'],
             'jobs.*.duration_sec' => ['required', 'integer', 'min:0', 'max:31536000'],
-            'jobs.*.avg_speed_kmh' => ['required', 'numeric', 'min:0', 'max:1000'],
+            // No upper limit worth refusing a batch for: apps before 0.11 sent km per real hour
+            // (#4771), which passes 1,000 on any long job. JobChecks judges the number instead.
+            'jobs.*.avg_speed_kmh' => ['required', 'numeric', 'min:0', 'max:10000000'],
+            'jobs.*.game_duration_min' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:52560000'],
             'jobs.*.fuel_used_l' => ['nullable', 'numeric', 'min:0', 'max:1000000'],
             'jobs.*.damage_delta' => ['nullable', 'numeric', 'min:0', 'max:1'],
             'jobs.*.started_at' => ['required', 'date'],
@@ -99,6 +102,7 @@ class JobSyncController extends Controller
                     'distance_km' => $job['distance_km'],
                     'duration_sec' => $job['duration_sec'],
                     'avg_speed_kmh' => $job['avg_speed_kmh'],
+                    'game_duration_min' => $job['game_duration_min'] ?? null,
                     'fuel_used_l' => $job['fuel_used_l'] ?? null,
                     'damage' => $job['damage_delta'] ?? null,
                     'started_at' => Carbon::parse($job['started_at'])->utc(),

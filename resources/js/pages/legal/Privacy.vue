@@ -47,9 +47,9 @@ defineOptions({
             <li>
                 <strong>Synced jobs:</strong> only once you link the app and
                 only jobs it records after that. Each job has the truck, cities
-                and companies, cargo, weight, income, distance, duration,
-                average speed, fuel used, damage, start and end times, and
-                whether it was delivered, late or cancelled.
+                and companies, cargo, weight, income, distance, duration (real
+                and in-game), average speed, fuel used, damage, start and end
+                times, and whether it was delivered, late or cancelled.
             </li>
             <li>
                 <strong>Live status:</strong> while you drive, the app sends

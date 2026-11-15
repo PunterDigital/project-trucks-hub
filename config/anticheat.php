@@ -9,11 +9,19 @@
 return [
 
     // Same limits as ProjectTrucks' own sanity check (src-tauri/src/commands/jobs.rs).
+    // The average is per in-game hour (#4771): the game's odometer counts game kilometres,
+    // which pass ~19x faster than real time on roads, so km per real hour means nothing.
     'max_avg_speed_kmh' => 150,
     'min_delivery_km' => 1.0,
 
-    // The app's avg_speed_kmh is distance / duration. A reported speed this far from that
-    // (whichever is larger) means the numbers were edited.
+    // Kilometres per real hour. ETS2/ATS time runs at most ~20x real time, so even a game-time
+    // average of 150 km/h stays under this. Above it the truck jumped (a teleport, an edited
+    // odometer). It's the only speed check for jobs from apps older than 0.11, which don't send
+    // game_duration_min.
+    'max_real_km_per_hour' => 3000,
+
+    // The app's avg_speed_kmh is distance / game time (distance / duration before 0.11). A
+    // reported speed this far from that (whichever is larger) means the numbers were edited.
     'speed_mismatch_kmh' => 10,
     'speed_mismatch_ratio' => 0.25,
 
