@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Support\Charts;
 use App\Support\Feed;
 use App\Support\ImageStore;
+use App\Support\LinkPreview;
 use App\Support\Period;
 use App\Support\Stats;
 use Illuminate\Database\Eloquent\Builder;
@@ -183,7 +184,7 @@ class CompanyController extends Controller
                     'driver' => ['name' => $a->user->name, 'username' => $a->user->username, 'avatar' => $a->user->avatar()],
                 ])
                 : [],
-        ]);
+        ])->withViewData('preview', fn () => LinkPreview::meta('company', $company->id));
     }
 
     public function edit(Request $request, Company $company): Response

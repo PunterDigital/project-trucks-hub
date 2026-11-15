@@ -38,6 +38,28 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
+        {{-- Link previews (#4652): printed by Blade, so crawlers get them without SSR. Built as a guest sees the item. --}}
+        <meta property="og:site_name" content="{{ config('app.name') }}">
+        {{-- A closure, so Inertia's JSON reloads (which never render this view) skip its queries. --}}
+        @php($preview = isset($preview) ? value($preview) : null)
+        @isset($preview)
+            <meta property="og:type" content="website">
+            <meta property="og:title" content="{{ $preview['title'] }}">
+            <meta property="og:description" content="{{ $preview['description'] }}">
+            <meta property="og:url" content="{{ $preview['url'] }}">
+            <meta property="og:image" content="{{ $preview['image'] }}">
+            <meta property="og:image:type" content="image/png">
+            <meta property="og:image:width" content="{{ \App\Support\LinkPreview::WIDTH }}">
+            <meta property="og:image:height" content="{{ \App\Support\LinkPreview::HEIGHT }}">
+            <meta property="og:image:alt" content="{{ $preview['image_alt'] }}">
+            <meta name="description" content="{{ $preview['description'] }}">
+            <meta name="twitter:card" content="summary_large_image">
+            <meta name="twitter:title" content="{{ $preview['title'] }}">
+            <meta name="twitter:description" content="{{ $preview['description'] }}">
+            <meta name="twitter:image" content="{{ $preview['image'] }}">
+            <meta name="theme-color" content="#f59e0b">
+        @endisset
+
         @vite(['resources/css/app.css', 'resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         <x-inertia::head>
             <title>{{ config('app.name', 'Laravel') }}</title>

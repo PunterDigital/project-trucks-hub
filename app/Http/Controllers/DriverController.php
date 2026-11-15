@@ -7,6 +7,7 @@ use App\Enums\DeliveryStatus;
 use App\Models\Delivery;
 use App\Models\User;
 use App\Support\Charts;
+use App\Support\LinkPreview;
 use App\Support\Period;
 use App\Support\Stats;
 use Illuminate\Database\Eloquent\Builder;
@@ -111,7 +112,7 @@ class DriverController extends Controller
             'live' => $live !== null && $live->isFresh() ? $live->summary() : null,
             'jobs' => $jobs,
             'progress' => Progress::summary($driver),
-        ]);
+        ])->withViewData('preview', fn () => LinkPreview::meta('driver', $driver->id));
     }
 
     /** Share of counted deliveries that weren't late, as 0–100, or null with none. */

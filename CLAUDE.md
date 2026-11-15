@@ -288,6 +288,24 @@ without a full build.
 - E2E (`charts.spec.ts`): Cora (23:30 UTC) and Cody (12:30 UTC) of Chart Haulage, eight days
   ago (before this week, accounts backdated); Playwright's `timezoneId` shows them on one UTC day and two Tokyo days.
 
+## Link previews (#4652)
+
+- `App\Support\LinkPreview`: Open Graph + Twitter tags and a 1200×630 PNG card for driver
+  profiles, jobs, companies and events. Controllers pass `->withViewData('preview', fn () =>
+  LinkPreview::meta(type, id))`; `app.blade.php` prints the tags. A closure so Inertia's JSON
+  reloads (auto-refresh) never run its queries; Blade, not `<Head>`, because production runs
+  without SSR and crawlers don't run JS.
+- Built **as a guest** sees the item, whoever views the page: a company mate looking at a
+  private profile gets no preview tags, so a pasted link can't show it. Not guest-visible
+  (private, hidden, suspended) = no tags and a 404 card.
+- Cards: `/og/{driver|job|company|event}/{id}.png` (`PreviewImageController`, outside the web
+  group: no cookies). Drawn with GD via intervention/image and DejaVu Sans
+  (`resources/fonts`, covers ä/ł/Cyrillic), cached on the public disk as
+  `og/{type}/{id}-{hash}.png`. The hash covers the card's content (plus a layout version in
+  `hash()`: bump it when the design changes) and is the `?v=` on `og:image`, so Discord fetches
+  a changed card anew; the older file is deleted when the new one is drawn.
+- E2E: `link-preview.spec.ts` (Nordic Haulage's tags and card, Jack's job, Pia gets none).
+
 ## E2E
 
 Playwright (`tests/e2e`), headless Chromium, never takes focus. `serve.mjs` resets a throwaway
