@@ -3,6 +3,7 @@ import { Form, Head, Link, router } from '@inertiajs/vue3';
 import { CalendarPlus, Settings } from '@lucide/vue';
 import { computed } from 'vue';
 import CompanyLogo from '@/components/hub/CompanyLogo.vue';
+import DistanceChart from '@/components/hub/DistanceChart.vue';
 import DriverAvatar from '@/components/hub/DriverAvatar.vue';
 import EventList from '@/components/hub/EventList.vue';
 import JobList from '@/components/hub/JobList.vue';
@@ -23,6 +24,7 @@ import {
 import { show as showDriver } from '@/routes/drivers';
 import { create as createEvent } from '@/routes/companies/events';
 import type {
+    ChartSeries,
     CompanyRole,
     CompanySummary,
     EventSummary,
@@ -56,6 +58,7 @@ const props = defineProps<{
     };
     stats: PeriodTotals;
     members: Member[];
+    chart: ChartSeries[];
     onTheRoad: LiveSummary[];
     latest: JobSummary[];
     events: EventSummary[];
@@ -350,6 +353,12 @@ function leaveCompany() {
                 </Panel>
                 <Panel title="Company stats">
                     <StatGrid :stats="stats" />
+                </Panel>
+                <Panel
+                    title="Last 30 days"
+                    description="Distance per day by driver"
+                >
+                    <DistanceChart :series="chart" />
                 </Panel>
                 <Panel title="Latest deliveries">
                     <JobList

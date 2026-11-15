@@ -144,3 +144,20 @@ export type HubNotifications = {
         at: string | null;
     }[];
 };
+
+/** Charts (#4650): `[unix seconds, km]`, one per 15-minute UTC bucket that has distance. */
+export type ChartPoint = [number, number];
+
+export type ChartSeries = {
+    key: string;
+    name: string;
+    username: string | null;
+    distance_km: number;
+    points: ChartPoint[];
+};
+
+export type CargoRow = {
+    name: string;
+    deliveries: number;
+    distance_km: number;
+};

@@ -292,6 +292,41 @@ class E2ESeeder extends Seeder
         $convoy->members()->create(['user_id' => User::query()->where('username', 'eve-events')->value('id'), 'role' => CompanyRole::Owner]);
         $convoy->members()->create(['user_id' => User::query()->where('username', 'max-member')->value('id'), 'role' => CompanyRole::Driver]);
 
+        // Charts (#4650): Cora and Cody drive for Chart Haulage. Cora's one job ends at 23:30
+        // UTC eight days ago, so it falls on different days in UTC and Tokyo. Eight days is always
+        // before this week (the default boards), and the accounts are backdated so they sit at
+        // the end of the admin users list (newest first) that moderation.spec pages through.
+        $chartCompany = Company::query()->create([
+            'name' => 'Chart Haulage',
+            'slug' => 'chart-haulage',
+            'tag' => 'CHRT',
+            'description' => 'We like numbers.',
+            'recruitment' => Recruitment::Apply,
+        ]);
+        foreach ([['Cora Chart', 'cora-chart', 'Chart paper', 23, 120.0], ['Cody Chart', 'cody-chart', 'Graph paper', 12, 80.0]] as $i => [$name, $username, $cargo, $hour, $km]) {
+            $user = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+            ]);
+            $user->forceFill(['email_verified_at' => now(), 'password_set_at' => now(), 'created_at' => now()->subYear()])->save();
+            $chartCompany->members()->create(['user_id' => $user->id, 'role' => $i === 0 ? CompanyRole::Owner : CompanyRole::Driver]);
+            $done = now('UTC')->subDays(8)->setTime($hour, 30);
+            Delivery::factory()->for($user)->create([
+                'company_id' => $chartCompany->id,
+                'source_city' => 'Calais',
+                'dest_city' => 'Brussel',
+                'cargo_name' => $cargo,
+                'distance_km' => $km,
+                'income' => 2000,
+                'duration_sec' => 2 * 3600,
+                'avg_speed_kmh' => $km / 2,
+                'started_at' => $done->copy()->subHours(2),
+                'completed_at' => $done,
+            ]);
+        }
+
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');
     }

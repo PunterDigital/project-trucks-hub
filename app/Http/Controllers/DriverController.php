@@ -6,6 +6,7 @@ use App\Achievements\Progress;
 use App\Enums\DeliveryStatus;
 use App\Models\Delivery;
 use App\Models\User;
+use App\Support\Charts;
 use App\Support\Period;
 use App\Support\Stats;
 use Illuminate\Database\Eloquent\Builder;
@@ -102,6 +103,11 @@ class DriverController extends Controller
             ],
             'onTime' => $this->onTimeRate($driver),
             'trucks' => $trucks,
+            // Charts (#4650): 15-minute UTC buckets, folded into the viewer's days on the page.
+            'charts' => [
+                'distance' => Charts::distance($deliveries),
+                'cargo' => Charts::cargo($deliveries),
+            ],
             'live' => $live !== null && $live->isFresh() ? $live->summary() : null,
             'jobs' => $jobs,
             'progress' => Progress::summary($driver),

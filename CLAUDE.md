@@ -273,6 +273,21 @@ without a full build.
   (`User::isVisibleTo`); suspended drivers are left out.
 - E2E (`events.spec.ts`): Eve Events owns Convoy Club, Max Member answers, Otto Outsider can't.
 
+## Charts (#4650)
+
+- `App\Support\Charts`, counted jobs only. Driver profile: `charts.distance` + `charts.cargo`
+  (top 8 by jobs, all time). Company page: `chart` = one series per driver, the top 5 by distance
+  in the window plus "Others"; private drivers are "Private driver" to anyone who couldn't see
+  them on the members list.
+- Distance is sent as sparse `[unix seconds, km]` 15-minute **UTC** buckets for the last 31
+  days (+1 day each side), and `components/hub/DistanceChart.vue` folds them into the viewer's
+  own last 30 days with `Date`'s local getters. Every real time zone is a whole number of
+  quarter hours from UTC, so no offset is sent and DST needs nothing. Bars are plain divs
+  coloured with `var(--chart-n)` (light and dark), no chart library.
+- Buckets are made in PHP from `completed_at` (no SQL date functions, so SQLite and MySQL agree).
+- E2E (`charts.spec.ts`): Cora (23:30 UTC) and Cody (12:30 UTC) of Chart Haulage, eight days
+  ago (before this week, accounts backdated); Playwright's `timezoneId` shows them on one UTC day and two Tokyo days.
+
 ## E2E
 
 Playwright (`tests/e2e`), headless Chromium, never takes focus. `serve.mjs` resets a throwaway
