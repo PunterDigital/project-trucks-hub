@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\SteamController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CompanyDiscordController;
 use App\Http\Controllers\CompanyEventController;
 use App\Http\Controllers\CompanyImageController;
 use App\Http\Controllers\CompanyMembershipController;
@@ -99,6 +100,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('companies', [CompanyController::class, 'store'])->name('companies.store');
     Route::get('companies/{company:slug}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
     Route::put('companies/{company:slug}', [CompanyController::class, 'update'])->name('companies.update');
+    // Discord webhook (#4652): owners and managers.
+    Route::put('companies/{company:slug}/discord', [CompanyDiscordController::class, 'update'])
+        ->middleware('throttle:20,1')->name('companies.discord.update');
+    Route::post('companies/{company:slug}/discord/test', [CompanyDiscordController::class, 'test'])
+        ->middleware('throttle:6,1')->name('companies.discord.test');
+    Route::delete('companies/{company:slug}/discord', [CompanyDiscordController::class, 'destroy'])->name('companies.discord.destroy');
     Route::delete('companies/{company:slug}', [CompanyController::class, 'destroy'])->name('companies.destroy');
     Route::post('companies/{company:slug}/images/{kind}', [CompanyImageController::class, 'store'])
         ->whereIn('kind', ['logo', 'banner'])

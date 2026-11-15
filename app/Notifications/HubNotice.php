@@ -177,6 +177,19 @@ class HubNotice extends Notification implements ShouldQueue
         );
     }
 
+    /** Bell only (#4652), to the owner and managers: Discord refused the company's posts. */
+    public static function discordWebhookDisabled(Company $company): self
+    {
+        return new self(
+            NoticeType::DiscordWebhookDisabled,
+            __('Posts to :company’s Discord kept failing, so the webhook is switched off. Check it and send a test message.', [
+                'company' => $company->name,
+            ]),
+            route('companies.edit', $company).'#discord',
+            __('Discord webhook switched off'),
+        );
+    }
+
     /** @return list<string> */
     public function via(User $notifiable): array
     {

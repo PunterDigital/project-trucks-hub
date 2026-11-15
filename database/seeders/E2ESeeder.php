@@ -327,6 +327,22 @@ class E2ESeeder extends Seeder
             ]);
         }
 
+        // Discord webhook (#4652): Dina owns Dispatch Club and connects its Discord. Backdated
+        // like the chart drivers, so the admin users list's first page stays as it was.
+        $dina = User::query()->create([
+            'name' => 'Dina Discord',
+            'email' => 'dina-discord@example.com',
+            'username' => 'dina-discord',
+            'password' => $password,
+        ]);
+        $dina->forceFill(['email_verified_at' => now(), 'password_set_at' => now(), 'created_at' => now()->subYear()])->save();
+        Company::query()->create([
+            'name' => 'Dispatch Club',
+            'slug' => 'dispatch-club',
+            'tag' => 'DSPC',
+            'recruitment' => Recruitment::Apply,
+        ])->members()->create(['user_id' => $dina->id, 'role' => CompanyRole::Owner]);
+
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');
     }

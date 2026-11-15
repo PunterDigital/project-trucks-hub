@@ -8,6 +8,7 @@ use App\Models\CompanyEvent;
 use App\Models\EventRsvp;
 use App\Models\User;
 use App\Notifications\HubNotice;
+use App\Support\DiscordWebhook;
 use App\Support\EventCalendar;
 use App\Support\LinkPreview;
 use Illuminate\Database\Eloquent\Builder;
@@ -98,6 +99,7 @@ class CompanyEventController extends Controller
         $event->company_id = $company->id;
         $event->created_by = $request->user()?->id;
         $event->save();
+        DiscordWebhook::eventCreated($event);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Event created.')]);
 

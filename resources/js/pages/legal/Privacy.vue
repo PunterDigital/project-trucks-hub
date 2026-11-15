@@ -126,6 +126,13 @@ defineOptions({
                 Company owners and managers see applications to their company.
             </li>
             <li>
+                <strong>Company Discord:</strong> if your company's owner or a
+                manager connects a Discord webhook, your new jobs (route, cargo,
+                distance, truck), your joining and the company's new events are
+                posted to their Discord channel with your name, even if your
+                profile is private.
+            </li>
+            <li>
                 <strong>Comments and kudos</strong> are shown to everyone who
                 can see the job, with your name, even if your own profile is
                 private. The job's driver can delete any comment on it, and you
@@ -156,6 +163,11 @@ defineOptions({
                 <Link :href="download()">download page</Link> asks GitHub which
                 ProjectTrucks release is the latest, and installers download
                 from GitHub.
+            </li>
+            <li>
+                <strong>Discord</strong>: only when a company connects a webhook
+                (see above). The Hub sends the posts to Discord's servers;
+                Discord's own privacy policy covers them from there.
             </li>
             <li>
                 <strong>Bunny Fonts</strong>: the site's font loads from

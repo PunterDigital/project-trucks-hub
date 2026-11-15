@@ -22,6 +22,9 @@ use Illuminate\Support\Carbon;
  * @property Recruitment $recruitment
  * @property string|null $logo_path
  * @property string|null $banner_path
+ * @property string|null $discord_webhook
+ * @property Carbon|null $discord_webhook_disabled_at
+ * @property string|null $discord_webhook_error
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -35,6 +38,36 @@ class Company extends Model
     {
         return [
             'recruitment' => Recruitment::class,
+            // Discord webhook (#4652): the URL is the secret, so it's encrypted at rest and
+            // never sent back to a page in full (see `discordSummary()`).
+            'discord_webhook' => 'encrypted',
+            'discord_webhook_disabled_at' => 'datetime',
+        ];
+    }
+
+    /** @var list<string> */
+    protected $hidden = ['discord_webhook'];
+
+    /** The webhook posts only while it's set and hasn't been switched off by failures. */
+    public function discordActive(): bool
+    {
+        return $this->discord_webhook !== null && $this->discord_webhook_disabled_at === null;
+    }
+
+    /**
+     * What the edit page may know about the webhook: never the URL itself.
+     *
+     * @return array{set: bool, hint: string|null, disabled_at: string|null, error: string|null}
+     */
+    public function discordSummary(): array
+    {
+        $url = $this->discord_webhook;
+
+        return [
+            'set' => $url !== null,
+            'hint' => $url !== null ? '…'.substr($url, -4) : null,
+            'disabled_at' => $this->discord_webhook_disabled_at?->toIso8601String(),
+            'error' => $this->discord_webhook_error,
         ];
     }
 

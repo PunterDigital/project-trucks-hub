@@ -20,6 +20,7 @@ enum NoticeType: string
     case KudosReceived = 'kudos_received';
     case CommentReceived = 'comment_received';
     case EventCancelled = 'event_cancelled';
+    case DiscordWebhookDisabled = 'discord_webhook_disabled';
 
     public function emails(): bool
     {
