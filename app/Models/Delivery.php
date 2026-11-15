@@ -33,6 +33,7 @@ use Illuminate\Support\Carbon;
  * @property int $income
  * @property float $distance_km
  * @property int $duration_sec
+ * @property int|null $game_duration_min In-game minutes between pickup and delivery (#4771), null from apps before 0.11
  * @property float $avg_speed_kmh
  * @property float|null $fuel_used_l
  * @property float|null $damage
@@ -55,7 +56,7 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'user_id', 'client_id', 'company_id', 'game', 'truck_make', 'truck_model',
     'source_city', 'source_company', 'dest_city', 'dest_company', 'cargo_id', 'cargo_name',
-    'cargo_mass_kg', 'income', 'distance_km', 'duration_sec', 'avg_speed_kmh', 'fuel_used_l',
+    'cargo_mass_kg', 'income', 'distance_km', 'duration_sec', 'game_duration_min', 'avg_speed_kmh', 'fuel_used_l',
     'damage', 'started_at', 'completed_at', 'status', 'source', 'flagged', 'flag_reason', 'hidden',
 ])]
 class Delivery extends Model
@@ -70,6 +71,7 @@ class Delivery extends Model
             'income' => 'integer',
             'distance_km' => 'float',
             'duration_sec' => 'integer',
+            'game_duration_min' => 'integer',
             'avg_speed_kmh' => 'float',
             'fuel_used_l' => 'float',
             'damage' => 'float',

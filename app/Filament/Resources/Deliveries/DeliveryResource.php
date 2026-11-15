@@ -173,6 +173,11 @@ class DeliveryResource extends Resource
                     TextEntry::make('truck')->state(fn (Delivery $record): ?string => $record->truckName())->placeholder('—'),
                     TextEntry::make('distance_km')->label('Distance')->numeric(1)->suffix(' km'),
                     TextEntry::make('avg_speed_kmh')->label('Average speed')->numeric(1)->suffix(' km/h'),
+                    TextEntry::make('duration_sec')->label('Real time')
+                        ->state(fn (Delivery $record): string => intdiv($record->duration_sec, 3600).' h '.str_pad((string) intdiv($record->duration_sec % 3600, 60), 2, '0', STR_PAD_LEFT).' m'),
+                    TextEntry::make('game_duration_min')->label('In-game time')->placeholder('— (app before 0.11)')
+                        ->state(fn (Delivery $record): ?string => $record->game_duration_min === null ? null
+                            : intdiv($record->game_duration_min, 60).' h '.str_pad((string) ($record->game_duration_min % 60), 2, '0', STR_PAD_LEFT).' m'),
                     TextEntry::make('income')->numeric(),
                     TextEntry::make('started_at')->label('Started')->dateTime(),
                     TextEntry::make('completed_at')->label('Completed')->dateTime(),

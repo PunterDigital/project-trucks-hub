@@ -61,9 +61,10 @@ test('linking ProjectTrucks and syncing a job', async ({ page, request }) => {
                     source_city: 'Brussel',
                     dest_city: 'Lyon',
                     distance_km: 812,
-                    // 812 km at 81.2 km/h: 10 h on the road, so the Hub's
-                    // checks (#4642) let it count.
+                    // 812 km at 81.2 km/h: 10 in-game hours (#4771) and
+                    // 10 real ones, so the Hub's checks (#4642) let it count.
                     duration_sec: 36_000,
+                    game_duration_min: 600,
                     avg_speed_kmh: 81.2,
                     started_at: new Date(Date.now() - 36_060_000).toISOString(),
                 }),
@@ -75,6 +76,8 @@ test('linking ProjectTrucks and syncing a job', async ({ page, request }) => {
                     dest_city: 'Wien',
                     distance_km: 1200,
                     duration_sec: 7200,
+                    // 1,200 km in two in-game hours.
+                    game_duration_min: 120,
                     avg_speed_kmh: 600,
                     started_at: new Date(Date.now() - 10_800_000).toISOString(),
                     completed_at: new Date(

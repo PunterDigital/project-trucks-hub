@@ -36,6 +36,10 @@ without a full build.
   sets `deliveries.hub_flag_reason` (`hub_held` = the rate hold, for moderation later); a
   re-sync never clears it. "Counted" excludes it, `summary()['flagged']` is app OR Hub flag.
   E2E jobs must be plausible (distance / duration / start-end span agree) or they won't count.
+  Speed (#4771): ETS2's odometer counts game km (~19 per real km on roads), so the 150 km/h
+  limit is per **in-game** hour (`game_duration_min`, sent by ProjectTrucks 0.11+); every job
+  also gets a 3,000 km per real hour limit, the only one for older apps. Before this every
+  recorded job was flagged; the migration re-ran the checks once (`JobChecks::recheckSpeedFlags`).
 - Manual jobs (#4751): `source: MANUAL` (typed in by hand in the app) is never stored.
   `JobSyncController` accepts it (older apps still send it), deletes any copy it holds, leaves
   it out of `jobs` (older apps read that as synced, no link) and lists it under `skipped`.

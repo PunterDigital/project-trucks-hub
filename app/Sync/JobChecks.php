@@ -2,6 +2,7 @@
 
 namespace App\Sync;
 
+use App\Admin\Moderation;
 use App\Enums\DeliveryStatus;
 use App\Models\Delivery;
 use Illuminate\Database\Eloquent\Builder;
@@ -46,10 +47,20 @@ class JobChecks
             $reasons[] = sprintf('Distance under %s km', self::num($minKm));
         }
 
-        $computedSpeed = $duration > 0 ? $distance / ($duration / 3600) : null;
+        // Kilometres per real hour, and per in-game hour when the app sent the game time
+        // (#4771). The game's odometer runs on game time, so only the game-time average is a
+        // truck speed; apps before 0.11 report distance / real time and get the real-time
+        // limit alone.
+        $realSpeed = $duration > 0 ? $distance / ($duration / 3600) : null;
+        $gameMinutes = $job->game_duration_min;
+        $gameSpeed = $gameMinutes !== null && $gameMinutes > 0 ? $distance / ($gameMinutes / 60) : null;
+        $computedSpeed = $gameMinutes !== null ? $gameSpeed : $realSpeed;
         $reportedSpeed = (float) $job->avg_speed_kmh;
 
-        if ($reportedSpeed > $maxSpeed || ($computedSpeed !== null && $computedSpeed > $maxSpeed)) {
+        $tooFast = $gameMinutes !== null
+            && ($reportedSpeed > $maxSpeed || ($gameSpeed !== null && $gameSpeed > $maxSpeed));
+        $maxReal = (float) $config['max_real_km_per_hour'];
+        if ($tooFast || ($realSpeed !== null && $realSpeed > $maxReal)) {
             $reasons[] = sprintf('Average speed over %s km/h', self::num($maxSpeed));
         }
 
@@ -83,6 +94,34 @@ class JobChecks
         return ['reasons' => $reasons, 'held' => false];
     }
 
+    /**
+     * Check again every job the Hub flagged for its average speed (#4771: the old check divided
+     * game kilometres by real time, so it caught nearly every recorded job). Staff decisions
+     * stay as they are; a job that still fails keeps a flag with today's reasons. Returns how
+     * many jobs lost their flag.
+     */
+    public static function recheckSpeedFlags(): int
+    {
+        $cleared = 0;
+        Delivery::query()
+            ->where('hub_flag_reason', 'like', '%Average speed over%')
+            ->where('hub_flag_reason', 'not like', Moderation::STAFF_FLAG_PREFIX.'%')
+            ->where('staff_reviewed', false)
+            ->orderBy('id')
+            ->each(function (Delivery $job) use (&$cleared) {
+                $check = self::run($job);
+                $job->forceFill([
+                    'hub_flag_reason' => $check['reasons'] === [] ? null : implode('; ', $check['reasons']),
+                    'hub_held' => $check['held'],
+                ])->save();
+                if ($check['reasons'] === []) {
+                    $cleared++;
+                }
+            });
+
+        return $cleared;
+    }
+
     private static function inconsistent(
         Delivery $job,
         float $distance,
@@ -99,12 +138,12 @@ class JobChecks
             return true;
         }
 
-        // Kilometres with no time to drive them.
+        // Kilometres with no time to drive them (no real time, or a game time of zero).
         if ($computedSpeed === null) {
             return $distance >= $minKm;
         }
 
-        // The reported average isn't distance / time.
+        // The reported average isn't distance / (game) time.
         $allowed = max((float) $config['speed_mismatch_kmh'], $computedSpeed * (float) $config['speed_mismatch_ratio']);
 
         return abs($reportedSpeed - $computedSpeed) > $allowed;

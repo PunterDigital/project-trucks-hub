@@ -4,6 +4,7 @@ namespace Tests\Feature\Api;
 
 use App\Models\Delivery;
 use App\Models\User;
+use App\Sync\JobChecks;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Testing\TestResponse;
@@ -53,11 +54,11 @@ class JobChecksTest extends TestCase
     {
         return [
             'average speed over 150 km/h' => [
-                ['distance_km' => 500, 'duration_sec' => 7200, 'avg_speed_kmh' => 250, 'started_at' => '2026-11-14T12:00:00Z'],
+                ['distance_km' => 500, 'duration_sec' => 7200, 'game_duration_min' => 120, 'avg_speed_kmh' => 250, 'started_at' => '2026-11-14T12:00:00Z'],
                 'Average speed over 150 km/h',
             ],
             'reported speed over 150 km/h' => [
-                ['avg_speed_kmh' => 160],
+                ['game_duration_min' => 240, 'avg_speed_kmh' => 160],
                 'Average speed over 150 km/h; Distance and driving time don\'t match',
             ],
             'delivery under 1 km' => [
@@ -79,6 +80,22 @@ class JobChecksTest extends TestCase
             'kilometres with no driving time' => [
                 ['duration_sec' => 0, 'avg_speed_kmh' => 0],
                 'Distance and driving time don\'t match',
+            ],
+            'kilometres with no game time' => [
+                ['game_duration_min' => 0, 'avg_speed_kmh' => 0],
+                'Distance and driving time don\'t match',
+            ],
+            'reported speed not distance / game time' => [
+                ['game_duration_min' => 2400, 'avg_speed_kmh' => 72.8],
+                'Distance and driving time don\'t match',
+            ],
+            'older app: faster than any time scale allows' => [
+                ['distance_km' => 3500, 'avg_speed_kmh' => 3500, 'duration_sec' => 3600, 'started_at' => '2026-11-14T13:00:00Z', 'declared_income' => 100],
+                'Average speed over 150 km/h',
+            ],
+            'newer app: game time is fine but the real time is too short' => [
+                ['distance_km' => 3500, 'duration_sec' => 3600, 'game_duration_min' => 2880, 'avg_speed_kmh' => 72.9, 'started_at' => '2026-11-14T13:00:00Z', 'declared_income' => 100],
+                'Average speed over 150 km/h',
             ],
             'income far above what the distance pays' => [
                 ['declared_income' => 1_000_000],
@@ -187,6 +204,53 @@ class JobChecksTest extends TestCase
         $this->assertSame(0, Delivery::query()->counted()->count());
     }
 
+    /**
+     * #4771: the game's odometer counts game kilometres (~19 per real km on roads), so a real
+     * delivery is several hundred km per real hour. Algeciras → Rotterdam: 2,455 km in 2 h 27 min.
+     */
+    public function test_a_real_long_delivery_passes_with_its_game_time(): void
+    {
+        $this->sync([JobSyncTest::job([
+            'distance_km' => 2455.2, 'duration_sec' => 8797, 'game_duration_min' => 2790, 'avg_speed_kmh' => 52.8,
+            'declared_income' => 111284, 'started_at' => '2026-11-14T11:30:00Z',
+        ])])->assertOk()->assertJsonPath('jobs.0.hub_flag_reason', null);
+
+        $this->assertSame(2790, $this->stored()->game_duration_min);
+        $this->assertSame(1, Delivery::query()->counted()->count());
+    }
+
+    public function test_an_older_app_job_over_1000_km_per_real_hour_is_accepted_and_passes(): void
+    {
+        // ProjectTrucks before 0.11 reports distance / real time and no game time. The Hub
+        // used to refuse anything over 1,000 km/h, which failed the whole batch.
+        $this->sync([JobSyncTest::job([
+            'distance_km' => 2455.2, 'duration_sec' => 8797, 'avg_speed_kmh' => 1004.7,
+            'declared_income' => 111284, 'started_at' => '2026-11-14T11:30:00Z',
+        ])])->assertOk()->assertJsonPath('jobs.0.hub_flag_reason', null);
+
+        $this->assertNull($this->stored()->game_duration_min);
+    }
+
+    public function test_speed_flags_from_the_old_check_are_cleared_once(): void
+    {
+        $old = fn (string $id, array $extra = []) => Delivery::factory()->for($this->user)->create([
+            'client_id' => $id, 'distance_km' => 2455.2, 'duration_sec' => 8797, 'avg_speed_kmh' => 1004.7,
+            'income' => 111284, 'started_at' => '2026-11-14 11:30:00', 'completed_at' => '2026-11-14 14:00:00',
+            'status' => 'DELIVERED', 'hub_flag_reason' => 'Average speed over 150 km/h', ...$extra,
+        ]);
+        $wrong = $old('a');
+        $stillBad = $old('b', ['income' => 5_000_000, 'hub_flag_reason' => 'Average speed over 150 km/h; Income too high for the distance']);
+        $staff = $old('c', ['hub_flag_reason' => 'Flagged by staff: Average speed over 150 km/h', 'staff_reviewed' => true]);
+        $other = $old('d', ['hub_flag_reason' => 'Completed in the future']);
+
+        $this->assertSame(1, JobChecks::recheckSpeedFlags());
+
+        $this->assertNull($wrong->fresh()?->hub_flag_reason);
+        $this->assertSame('Income too high for the distance', $stillBad->fresh()?->hub_flag_reason);
+        $this->assertSame('Flagged by staff: Average speed over 150 km/h', $staff->fresh()?->hub_flag_reason);
+        $this->assertSame('Completed in the future', $other->fresh()?->hub_flag_reason);
+    }
+
     public function test_cancelled_jobs_are_not_checked(): void
     {
         $this->sync([JobSyncTest::job(['status' => 'CANCELLED', 'distance_km' => 0.4, 'duration_sec' => 60, 'avg_speed_kmh' => 24])])
@@ -199,7 +263,7 @@ class JobChecksTest extends TestCase
     {
         config(['anticheat.max_avg_speed_kmh' => 60]);
 
-        $this->sync([JobSyncTest::job()])->assertOk();
+        $this->sync([JobSyncTest::job(['game_duration_min' => 240])])->assertOk();
 
         $this->assertSame('Average speed over 60 km/h', $this->stored()->hub_flag_reason);
     }
