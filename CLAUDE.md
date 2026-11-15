@@ -36,6 +36,11 @@ without a full build.
   sets `deliveries.hub_flag_reason` (`hub_held` = the rate hold, for moderation later); a
   re-sync never clears it. "Counted" excludes it, `summary()['flagged']` is app OR Hub flag.
   E2E jobs must be plausible (distance / duration / start-end span agree) or they won't count.
+- Manual jobs (#4751): `source: MANUAL` (typed in by hand in the app) is never stored.
+  `JobSyncController` accepts it (older apps still send it), deletes any copy it holds, leaves
+  it out of `jobs` (older apps read that as synced, no link) and lists it under `skipped`.
+  Migration `2026_11_15_110000` removed the ones stored before. ProjectTrucks 0.10+ doesn't
+  send them. `source` is what the app reports, so `JobChecks` stays the real defence.
 - Visibility: `Delivery::scopeVisibleTo($viewer)` and `User::scopeVisibleTo` / `isVisibleTo`.
   Private profiles show only to themselves and company mates; they're off the public feed and
   driver board, still in company totals.
