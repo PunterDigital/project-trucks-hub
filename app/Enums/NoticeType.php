@@ -17,6 +17,8 @@ enum NoticeType: string
     case OwnershipHandedOver = 'ownership_handed_over';
     case AppLinked = 'app_linked';
     case AchievementUnlocked = 'achievement_unlocked';
+    case KudosReceived = 'kudos_received';
+    case CommentReceived = 'comment_received';
 
     public function emails(): bool
     {

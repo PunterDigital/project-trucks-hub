@@ -247,6 +247,30 @@ class E2ESeeder extends Seeder
         ]);
         $pictures->members()->create(['user_id' => $uma->id, 'role' => CompanyRole::Owner]);
 
+        // Kudos and comments (#4646): Kira reacts to Jack's Rotterdam → Lyon job.
+        foreach ([['Kira Kudos', 'kira-kudos'], ['Jack Job', 'jack-job']] as [$name, $username]) {
+            $user = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+            ]);
+            $user->forceFill(['email_verified_at' => now(), 'password_set_at' => now()])->save();
+        }
+        Delivery::factory()->for(User::query()->where('username', 'jack-job')->firstOrFail())->create([
+            'source_city' => 'Rotterdam',
+            'dest_city' => 'Lyon',
+            'cargo_name' => 'Tulips',
+            // Short and two days old, so it stays below the jobs other specs expect at the top
+            // of the feed and the leaderboards.
+            'distance_km' => 120.0,
+            'income' => 3000,
+            'duration_sec' => 2 * 3600,
+            'avg_speed_kmh' => 60,
+            'started_at' => now()->subDays(2)->subHours(2),
+            'completed_at' => now()->subDays(2),
+        ]);
+
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');
     }

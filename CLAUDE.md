@@ -233,6 +233,26 @@ without a full build.
   the second, the bell links there). Joining a company now rings the bell twice (decision +
   "Team player"): `notifications.spec.ts` expects 2 unread.
 
+## Kudos and comments (#4646)
+
+- `delivery_kudos` (one per driver and job, unique) and `delivery_comments` (plain text, ≤
+  `DeliveryComment::MAX_LENGTH` = 1,000, printed with `{{ }}` + `whitespace-pre-line`, never as
+  HTML or links). Both cascade with the job and with the writer's account.
+- `DeliveryReactionController`: give/take kudos (`POST`/`DELETE jobs/{id}/kudos`, 60/min),
+  comment (10/min), delete comment (author or the job's driver). Every action checks
+  `Delivery::scopeVisibleTo` first (404 otherwise), so hidden jobs and private profiles follow
+  the job page's rules. No kudos on your own job (403; the UI shows only the count).
+- Job lists get `kudos`, `kudos_given`, `comments` and `driver_id` in `summary()` from
+  `Delivery::scopeWithReactions($viewer)` (Feed, driver profile, job page). A list that skips
+  the scope shows 0. Suspended drivers' kudos and comments are left out of counts and lists.
+- Bell only (no email): `KudosReceived` (once per giver and job, so take-back + give again
+  doesn't ring twice) and `CommentReceived` (links to `#comments`). Nothing for your own job.
+- Privacy export lists kudos given and comments written; the privacy page says comments show
+  with your name to anyone who can see the job, even from a private profile.
+- E2E: Kira Kudos reacts to Jack Job's Rotterdam → Lyon job (`reactions.spec.ts`). The job is
+  short and two days old on purpose: an 840 km one topped the leaderboard and the feed, and
+  `public.spec` / `sync.spec` expect other rows first.
+
 ## E2E
 
 Playwright (`tests/e2e`), headless Chromium, never takes focus. `serve.mjs` resets a throwaway

@@ -68,6 +68,10 @@ defineOptions({
                 is stored only as a hash.
             </li>
             <li>
+                <strong>Kudos and comments:</strong> the kudos you give and the
+                comments you write on jobs, with when you wrote them.
+            </li>
+            <li>
                 <strong>Server logs:</strong> errors and requests, which can
                 include your IP address, kept for a short time to keep the site
                 running.
@@ -115,6 +119,12 @@ defineOptions({
             <li>
                 Company owners and managers see applications to their company.
             </li>
+            <li>
+                <strong>Comments and kudos</strong> are shown to everyone who
+                can see the job, with your name, even if your own profile is
+                private. The job's driver can delete any comment on it, and you
+                can delete your own.
+            </li>
         </ul>
 
         <h2>Cookies</h2>
@@ -160,7 +170,8 @@ defineOptions({
             download everything we hold about you as a file, or delete all your
             synced jobs and keep your account. Deleting your account (Settings →
             Profile) removes your profile, jobs, live status, linked apps,
-            company memberships and applications straight away.
+            company memberships, applications, kudos and comments straight away.
+            Deleting a job also removes the kudos and comments on it.
         </p>
 
         <h2>Questions</h2>

@@ -6,11 +6,13 @@ use App\Achievements\Achievement;
 use App\Enums\CompanyRole;
 use App\Enums\NoticeType;
 use App\Models\Company;
+use App\Models\Delivery;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Str;
 
 /**
  * Every Hub notification (#4643): one class, a `NoticeType` and the text worked out when it
@@ -124,6 +126,36 @@ class HubNotice extends Notification implements ShouldQueue
             __('Achievement unlocked: :title. :description', ['title' => $achievement->title(), 'description' => $achievement->description()]),
             $driver->username !== null ? route('drivers.show', $driver).'#achievements' : route('dashboard'),
             __('Achievement unlocked: :title', ['title' => $achievement->title()]),
+        );
+    }
+
+    /** Bell only (#4646). */
+    public static function kudosReceived(Delivery $job, User $from): self
+    {
+        $route = $job->source_city.' → '.$job->dest_city;
+
+        return new self(
+            NoticeType::KudosReceived,
+            __(':name gave kudos to your job :route.', ['name' => $from->name, 'route' => $route]),
+            route('jobs.show', $job),
+            __(':name gave kudos to your job', ['name' => $from->name]),
+        );
+    }
+
+    /** Bell only (#4646). */
+    public static function commentReceived(Delivery $job, User $from, string $body): self
+    {
+        $route = $job->source_city.' → '.$job->dest_city;
+
+        return new self(
+            NoticeType::CommentReceived,
+            __(':name commented on your job :route: “:excerpt”', [
+                'name' => $from->name,
+                'route' => $route,
+                'excerpt' => Str::limit(preg_replace('/\s+/u', ' ', $body) ?? $body, 80),
+            ]),
+            route('jobs.show', $job).'#comments',
+            __(':name commented on your job', ['name' => $from->name]),
         );
     }
 
