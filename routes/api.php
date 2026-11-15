@@ -23,6 +23,9 @@ Route::prefix('v1')->name('api.')->group(function () {
         Route::delete('jobs/{clientId}', [JobSyncController::class, 'destroy'])
             ->where('clientId', '[A-Za-z0-9_-]{1,64}')
             ->name('jobs.destroy');
+        Route::patch('jobs/{clientId}', [JobSyncController::class, 'update'])
+            ->where('clientId', '[A-Za-z0-9_-]{1,64}')
+            ->name('jobs.update');
 
         Route::put('status', [LiveStatusController::class, 'update'])->name('status.update');
         Route::delete('status', [LiveStatusController::class, 'destroy'])->name('status.destroy');

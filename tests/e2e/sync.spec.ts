@@ -180,6 +180,31 @@ test('linking ProjectTrucks and syncing a job', async ({ page, request }) => {
     const guestPage = await guest.newPage();
     const response = await guestPage.goto(jobUrl);
     expect(response?.status()).toBe(404);
+
+    // The app's "Hide on Hub" switch (#4654) flips the same flag.
+    const brussel = syncedJobs.find(
+        (j: { url: string }) =>
+            new URL(j.url).pathname === new URL(jobUrl).pathname,
+    );
+    expect(brussel).toBeTruthy();
+    const shown = await request.patch(`/api/v1/jobs/${brussel.id}`, {
+        headers: auth,
+        data: { hidden: false },
+    });
+    expect(shown.ok()).toBeTruthy();
+    expect((await shown.json()).hidden).toBe(false);
+    expect((await guestPage.goto(jobUrl))?.status()).toBe(200);
+    await page.reload();
+    await expect(page.locator('[data-test="toggle-hidden"]')).not.toContainText(
+        'Show to others',
+    );
+
+    const hiddenAgain = await request.patch(`/api/v1/jobs/${brussel.id}`, {
+        headers: auth,
+        data: { hidden: true },
+    });
+    expect((await hiddenAgain.json()).hidden).toBe(true);
+    expect((await guestPage.goto(jobUrl))?.status()).toBe(404);
     await guest.close();
 
     // Unlinking from the website stops the token working.

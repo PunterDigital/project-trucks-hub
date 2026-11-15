@@ -139,6 +139,8 @@ class JobSyncController extends Controller
                     'id' => $job['id'],
                     'url' => route('jobs.show', $delivery),
                     'hub_flag_reason' => $delivery->hub_flag_reason,
+                    // Not `$delivery->hidden`: that is Eloquent's own $hidden property.
+                    'hidden' => (bool) $delivery->getAttribute('hidden'),
                 ];
             }
 
@@ -158,6 +160,28 @@ class JobSyncController extends Controller
         }
 
         return response()->json(['synced' => count($ids), 'jobs' => $ids, 'skipped' => $skipped]);
+    }
+
+    /**
+     * "Hide on Hub" from the app (#4654): the same switch as the job page's own toggle. Only the
+     * driver's own synced jobs; 404 for a job the Hub doesn't have (never synced, or manual).
+     */
+    public function update(Request $request, string $clientId): JsonResponse
+    {
+        $data = $request->validate(['hidden' => ['required', 'boolean']]);
+
+        $delivery = Delivery::query()
+            ->where('user_id', $request->user()->id)
+            ->where('client_id', $clientId)
+            ->firstOrFail();
+
+        $delivery->forceFill(['hidden' => $data['hidden']])->save();
+
+        return response()->json([
+            'id' => $clientId,
+            'url' => route('jobs.show', $delivery),
+            'hidden' => (bool) $delivery->getAttribute('hidden'),
+        ]);
     }
 
     /** The driver deleted the job in ProjectTrucks. */
