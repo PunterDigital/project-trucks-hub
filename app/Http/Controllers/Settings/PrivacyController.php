@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Settings;
 use App\Achievements\Progress;
 use App\Http\Controllers\Controller;
 use App\Models\CompanyApplication;
+use App\Models\CompanyEvent;
 use App\Models\Delivery;
 use App\Models\DeliveryComment;
 use App\Models\DeliveryKudos;
+use App\Models\EventRsvp;
 use App\Models\User;
 use App\Support\ImageStore;
 use Illuminate\Http\RedirectResponse;
@@ -118,6 +120,29 @@ class PrivacyController extends Controller
                     'job' => route('jobs.show', $c->delivery_id),
                     'body' => $c->body,
                     'created_at' => $c->created_at?->toIso8601String(),
+                ])
+                ->all(),
+            // Company events (#4648): answers given and events created.
+            'event_answers' => EventRsvp::query()
+                ->with('event')
+                ->where('user_id', $user->id)
+                ->orderBy('id')
+                ->get()
+                ->map(fn (EventRsvp $r) => [
+                    'event' => $r->event->title,
+                    'starts_at' => $r->event->starts_at->toIso8601String(),
+                    'answer' => $r->status->value,
+                    'updated_at' => $r->updated_at?->toIso8601String(),
+                ])
+                ->all(),
+            'events_created' => CompanyEvent::query()
+                ->where('created_by', $user->id)
+                ->orderBy('id')
+                ->get()
+                ->map(fn (CompanyEvent $e) => [
+                    'title' => $e->title,
+                    'starts_at' => $e->starts_at->toIso8601String(),
+                    'created_at' => $e->created_at?->toIso8601String(),
                 ])
                 ->all(),
             'email_notifications_off' => $user->mail_opt_outs ?? [],

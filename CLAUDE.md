@@ -253,6 +253,26 @@ without a full build.
   short and two days old on purpose: an 840 km one topped the leaderboard and the feed, and
   `public.spec` / `sync.spec` expect other rows first.
 
+## Company events (#4648)
+
+- `company_events` (UTC `starts_at`, game, server, start/dest city + company, route notes,
+  `max_drivers`, `open`, `cancelled_at`) and `event_rsvps` (going / maybe / not_going, one per
+  driver and event). `CompanyEventController`; `/events` lists every company's upcoming ones,
+  the company page shows the next five ("Upcoming events", "New event" for owners/managers).
+- "Upcoming" = not cancelled and starting less than `UPCOMING_GRACE_HOURS` (3) ago. Answers
+  close then, and on cancel. Every company is public, so every event is; members answer, and
+  with `open` any signed-in driver can (`CompanyEvent::canAnswer`). A full event refuses new
+  "going" answers (maybe still works).
+- Times: the form's `datetime-local` is the browser's local time; a hidden `starts_at` input
+  sends it as UTC ISO. Pages format with `formatEventTime` (viewer's zone). Create and changed
+  start times must be in the future; an unchanged past one can still be edited.
+- `.ics`: `/events/{id}.ics` (`App\Support\EventCalendar`, RFC 5545 escaping + 75-octet folding,
+  a 2 h slot, `STATUS:CANCELLED` once cancelled).
+- Cancelling rings the bell for going + maybe (`NoticeType::EventCancelled`, no email).
+- Attendees: private-profile drivers show as "Private driver" to people who can't see them
+  (`User::isVisibleTo`); suspended drivers are left out.
+- E2E (`events.spec.ts`): Eve Events owns Convoy Club, Max Member answers, Otto Outsider can't.
+
 ## E2E
 
 Playwright (`tests/e2e`), headless Chromium, never takes focus. `serve.mjs` resets a throwaway

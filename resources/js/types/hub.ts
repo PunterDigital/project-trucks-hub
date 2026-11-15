@@ -53,6 +53,23 @@ export type JobSummary = {
     comments: number;
 };
 
+export type RsvpStatus = 'going' | 'maybe' | 'not_going';
+
+export type EventSummary = {
+    id: number;
+    title: string;
+    starts_at: string;
+    game: 'ets2' | 'ats';
+    server: string | null;
+    start_city: string;
+    dest_city: string;
+    open: boolean;
+    max_drivers: number | null;
+    cancelled: boolean;
+    going: number;
+    company: CompanySummary | null;
+};
+
 export type JobComment = {
     id: number;
     body: string;

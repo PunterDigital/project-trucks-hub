@@ -72,6 +72,12 @@ defineOptions({
                 comments you write on jobs, with when you wrote them.
             </li>
             <li>
+                <strong>Events:</strong> events you create for your company and
+                your answers (going, maybe, not going). Anyone can see who is
+                going to an event, except drivers with a private profile, who
+                show as "Private driver" to people outside their company.
+            </li>
+            <li>
                 <strong>Server logs:</strong> errors and requests, which can
                 include your IP address, kept for a short time to keep the site
                 running.

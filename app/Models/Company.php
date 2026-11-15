@@ -72,6 +72,12 @@ class Company extends Model
         return $this->hasMany(CompanyApplication::class);
     }
 
+    /** @return HasMany<CompanyEvent, $this> */
+    public function events(): HasMany
+    {
+        return $this->hasMany(CompanyEvent::class);
+    }
+
     /** @return HasMany<CompanyApplication, $this> */
     public function pendingApplications(): HasMany
     {
