@@ -23,12 +23,23 @@ withDefaults(
             :class="size === 'md' ? 'size-10' : 'size-7'"
         />
         <div class="min-w-0">
-            <Link
+            <div
                 v-if="driver.username"
-                :href="showDriver(driver.username)"
-                class="block truncate font-medium hover:underline"
-                >{{ driver.name }}</Link
+                class="flex min-w-0 items-center gap-1.5"
             >
+                <Link
+                    :href="showDriver(driver.username)"
+                    class="truncate font-medium hover:underline"
+                    >{{ driver.name }}</Link
+                >
+                <span
+                    v-if="driver.level"
+                    :title="`Level ${driver.level} · ${driver.rank}`"
+                    class="shrink-0 rounded bg-muted px-1 text-[0.65rem] font-semibold text-muted-foreground tabular-nums"
+                    data-test="driver-level-badge"
+                    >Lv {{ driver.level }}</span
+                >
+            </div>
             <span v-else class="block truncate text-muted-foreground">{{
                 driver.name
             }}</span>

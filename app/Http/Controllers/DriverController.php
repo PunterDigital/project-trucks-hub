@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Achievements\Progress;
 use App\Enums\DeliveryStatus;
 use App\Models\Delivery;
 use App\Models\User;
@@ -102,6 +103,7 @@ class DriverController extends Controller
             'trucks' => $trucks,
             'live' => $live !== null && $live->isFresh() ? $live->summary() : null,
             'jobs' => $jobs,
+            'progress' => Progress::summary($driver),
         ]);
     }
 

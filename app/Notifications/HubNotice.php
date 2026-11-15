@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Achievements\Achievement;
 use App\Enums\CompanyRole;
 use App\Enums\NoticeType;
 use App\Models\Company;
@@ -112,6 +113,17 @@ class HubNotice extends Notification implements ShouldQueue
             __('A ProjectTrucks app was linked to your account'),
             [__('If this wasn’t you, unlink it under Settings → Linked apps and change your password.')],
             __('See linked apps'),
+        );
+    }
+
+    /** Bell only (#4645). */
+    public static function achievementUnlocked(User $driver, Achievement $achievement): self
+    {
+        return new self(
+            NoticeType::AchievementUnlocked,
+            __('Achievement unlocked: :title. :description', ['title' => $achievement->title(), 'description' => $achievement->description()]),
+            $driver->username !== null ? route('drivers.show', $driver).'#achievements' : route('dashboard'),
+            __('Achievement unlocked: :title', ['title' => $achievement->title()]),
         );
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Admin;
 
+use App\Achievements\Progress;
 use App\Enums\CompanyRole;
 use App\Models\Company;
 use App\Models\CompanyMember;
@@ -70,6 +71,7 @@ class Moderation
 
         $job->forceFill(['staff_hidden' => true])->save();
         Audit::record('job.hidden', $job, ['staff_hidden' => false], ['staff_hidden' => true, 'reason' => $reason], $staff);
+        self::refreshProgress($job);
     }
 
     public static function unhideJob(Delivery $job, string $reason, ?User $staff = null): void
@@ -80,6 +82,7 @@ class Moderation
 
         $job->forceFill(['staff_hidden' => false])->save();
         Audit::record('job.unhidden', $job, ['staff_hidden' => true], ['staff_hidden' => false, 'reason' => $reason], $staff);
+        self::refreshProgress($job);
     }
 
     /** Marks the job as cheated: off stats and leaderboards, whatever the checks said. */
@@ -97,6 +100,7 @@ class Moderation
         ])->save();
 
         Audit::record('job.flagged', $job, $before, ['hub_flag_reason' => $job->hub_flag_reason], $staff);
+        self::refreshProgress($job);
     }
 
     /**
@@ -113,11 +117,18 @@ class Moderation
         $job->forceFill(['hub_flag_reason' => null, 'hub_held' => false, 'staff_reviewed' => true])->save();
 
         Audit::record('job.flag_cleared', $job, $before, ['hub_flag_reason' => null, 'reason' => $reason], $staff);
+        self::refreshProgress($job);
+    }
+
+    /** The job counts differently now: levels and achievements follow (#4645). */
+    private static function refreshProgress(Delivery $job): void
+    {
+        Progress::refresh($job->user, notify: false);
     }
 
     /**
      * Replaces a company's name, tag, link and description with neutral ones. The owner can
-     * choose new ones on the company's Edit page. (Logos arrive with #4644.)
+     * choose new ones on the company's Edit page. The logo and banner go too (#4644).
      */
     public static function resetCompanyProfile(Company $company, string $reason, ?User $staff = null): void
     {
