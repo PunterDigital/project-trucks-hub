@@ -331,6 +331,17 @@ without a full build.
 - vue-tsc here is 3.3.13, which breaks on `https://` in a template attribute
   (vuejs/language-tools#6240): put such strings in the script (the webhook placeholder).
 
+## Sentry (#4653)
+
+- `sentry/sentry-laravel` with AniTrack's `config/sentry.php`, `Integration::handles()` in
+  `bootstrap/app.php`. Off unless `SENTRY_LARAVEL_DSN` is set: phpunit.xml forces it empty,
+  `playwright.config.ts` passes it empty, `.env.example` leaves it blank. The config reads every
+  value with `?:` because an empty `X=` line is `''`, not null (an empty DSN string must mean off).
+- `send_default_pii` is hard-coded false; `AppServiceProvider` puts only the user id on the
+  scope (`Authenticated` listener). `SentryTest` checks both. The privacy page says so.
+- Production DSN: Forge `.env` (Shay's step on #4653); `php artisan sentry:test` on the server
+  sends a test event.
+
 ## E2E
 
 Playwright (`tests/e2e`), headless Chromium, never takes focus. `serve.mjs` resets a throwaway

@@ -25,6 +25,8 @@ const appEnv = {
     // Steam stays off: its OpenID page and button image are real outside services.
     STEAM_LOGIN: 'false',
     STEAM_API_KEY: '',
+    // Sentry (#4653) stays off whatever the local .env says.
+    SENTRY_LARAVEL_DSN: '',
 };
 
 export default defineConfig({

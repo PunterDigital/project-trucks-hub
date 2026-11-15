@@ -170,6 +170,13 @@ defineOptions({
                 Discord's own privacy policy covers them from there.
             </li>
             <li>
+                <strong>Sentry</strong>: when the site hits an error, a report
+                goes to Sentry (Functional Software, Inc.) so we can fix it: the
+                error, the page address and your browser, plus your account
+                number if you're signed in. No name, email, IP address or
+                cookies.
+            </li>
+            <li>
                 <strong>Bunny Fonts</strong>: the site's font loads from
                 fonts.bunny.net, which doesn't log IP addresses or set cookies.
             </li>
