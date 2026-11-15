@@ -16,9 +16,13 @@ test('an application rings the owner’s bell and the decision rings the applica
     await abe.keyboard.press('Escape');
 
     await abe.goto('/companies/bell-freight');
-    await abe.getByLabel('Message to the company').fill('Happy to drive nights.');
+    await abe
+        .getByLabel('Message to the company')
+        .fill('Happy to drive nights.');
     await abe.locator('[data-test="apply"]').click();
-    await expect(abe.getByText('Application sent', { exact: true })).toBeVisible();
+    await expect(
+        abe.getByText('Application sent', { exact: true }),
+    ).toBeVisible();
 
     // Nora sees one unread notification and opens it: it goes to the company page.
     const noraContext = await browser.newContext();
@@ -26,7 +30,9 @@ test('an application rings the owner’s bell and the decision rings the applica
     await logIn(nora, 'nora-notify@example.com');
     const noraBell = nora.locator('[data-test="notification-bell"]');
     await expect(noraBell).toHaveAccessibleName('Notifications, 1 unread');
-    await expect(nora.locator('[data-test="notification-count"]')).toHaveText('1');
+    await expect(nora.locator('[data-test="notification-count"]')).toHaveText(
+        '1',
+    );
     await noraBell.click();
     const item = nora.locator('[data-test="notification-item"]', {
         hasText: 'Abe Apply applied to join Bell Freight.',
@@ -35,7 +41,9 @@ test('an application rings the owner’s bell and the decision rings the applica
     await item.click();
     await expect(nora).toHaveURL(/\/companies\/bell-freight$/);
     await expect(noraBell).toHaveAccessibleName('Notifications');
-    await expect(nora.locator('[data-test="notification-count"]')).toHaveCount(0);
+    await expect(nora.locator('[data-test="notification-count"]')).toHaveCount(
+        0,
+    );
 
     // Read now, still listed.
     await noraBell.click();
@@ -61,7 +69,9 @@ test('an application rings the owner’s bell and the decision rings the applica
         }),
     ).toBeVisible();
     await abe.getByRole('button', { name: 'Mark all read' }).click();
-    await expect(abe.locator('[data-test="notification-count"]')).toHaveCount(0);
+    await expect(abe.locator('[data-test="notification-count"]')).toHaveCount(
+        0,
+    );
     // An open menu hides the rest of the page from assistive tech: close it first.
     await abe.keyboard.press('Escape');
     await expect(abeBell).toHaveAccessibleName('Notifications');
