@@ -9,6 +9,7 @@ use App\Models\EventRsvp;
 use App\Models\User;
 use App\Notifications\HubNotice;
 use App\Support\EventCalendar;
+use App\Support\LinkPreview;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -75,7 +76,7 @@ class CompanyEventController extends Controller
                 'canManage' => $event->company->roleOf($viewer)?->canManage() ?? false,
                 'rsvp' => $mine?->status->value,
             ],
-        ]);
+        ])->withViewData('preview', fn () => LinkPreview::meta('event', $event->id));
     }
 
     public function create(Request $request, Company $company): Response

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Delivery;
 use App\Models\DeliveryComment;
+use App\Support\LinkPreview;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -57,7 +58,7 @@ class DeliveryController extends Controller
             'isOwner' => $viewer?->is($delivery->user) ?? false,
             'comments' => $comments,
             'commentMaxLength' => DeliveryComment::MAX_LENGTH,
-        ]);
+        ])->withViewData('preview', fn () => LinkPreview::meta('job', $delivery->id));
     }
 
     /** The driver hides a job from everyone else (or shows it again). */

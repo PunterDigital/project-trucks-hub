@@ -17,9 +17,11 @@ use App\Http\Controllers\LinkDeviceController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PreviewImageController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\VersionController;
 use App\Support\ImageStore;
+use App\Support\LinkPreview;
 use Illuminate\Support\Facades\Route;
 
 // What's deployed (playbook #4445). Outside the web group: no session, no cookies.
@@ -31,6 +33,13 @@ Route::get('media/{kind}/{file}', MediaController::class)
     ->where('file', ImageStore::FILE_PATTERN)
     ->withoutMiddleware('web')
     ->name('media');
+
+// Link-preview cards (#4652): a guest's view of the item, no session or cookies.
+Route::get('og/{type}/{id}.png', PreviewImageController::class)
+    ->whereIn('type', LinkPreview::TYPES)
+    ->whereNumber('id')
+    ->withoutMiddleware('web')
+    ->name('preview-image');
 
 // Public pages: anyone can browse drivers, jobs, companies and leaderboards.
 Route::get('/', HomeController::class)->name('home');
