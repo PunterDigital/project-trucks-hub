@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Form, Head, Link, router } from '@inertiajs/vue3';
-import { Settings } from '@lucide/vue';
+import { CalendarPlus, Settings } from '@lucide/vue';
 import { computed } from 'vue';
 import CompanyLogo from '@/components/hub/CompanyLogo.vue';
 import DriverAvatar from '@/components/hub/DriverAvatar.vue';
+import EventList from '@/components/hub/EventList.vue';
 import JobList from '@/components/hub/JobList.vue';
 import OnTheRoad from '@/components/hub/OnTheRoad.vue';
 import Panel from '@/components/hub/Panel.vue';
@@ -20,9 +21,11 @@ import {
     update as updateMember,
 } from '@/routes/companies/members';
 import { show as showDriver } from '@/routes/drivers';
+import { create as createEvent } from '@/routes/companies/events';
 import type {
     CompanyRole,
     CompanySummary,
+    EventSummary,
     JobSummary,
     LiveSummary,
     PeriodTotals,
@@ -55,6 +58,7 @@ const props = defineProps<{
     members: Member[];
     onTheRoad: LiveSummary[];
     latest: JobSummary[];
+    events: EventSummary[];
     applications: {
         id: number;
         message: string | null;
@@ -328,6 +332,22 @@ function leaveCompany() {
 
         <div class="grid gap-4 lg:grid-cols-3">
             <div class="flex flex-col gap-4 lg:col-span-2">
+                <Panel title="Upcoming events" data-test="company-events">
+                    <template v-if="canManage" #actions>
+                        <Button as-child variant="outline" size="sm">
+                            <Link
+                                :href="createEvent(company.slug)"
+                                data-test="new-event"
+                                ><CalendarPlus class="size-4" /> New event</Link
+                            >
+                        </Button>
+                    </template>
+                    <EventList
+                        :events="events"
+                        :show-company="false"
+                        empty="No upcoming events."
+                    />
+                </Panel>
                 <Panel title="Company stats">
                     <StatGrid :stats="stats" />
                 </Panel>

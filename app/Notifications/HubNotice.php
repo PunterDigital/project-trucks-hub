@@ -6,6 +6,7 @@ use App\Achievements\Achievement;
 use App\Enums\CompanyRole;
 use App\Enums\NoticeType;
 use App\Models\Company;
+use App\Models\CompanyEvent;
 use App\Models\Delivery;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
@@ -156,6 +157,23 @@ class HubNotice extends Notification implements ShouldQueue
             ]),
             route('jobs.show', $job).'#comments',
             __(':name commented on your job', ['name' => $from->name]),
+        );
+    }
+
+    /** Bell only (#4648), to everyone who answered going or maybe. */
+    public static function eventCancelled(CompanyEvent $event): self
+    {
+        $event->loadMissing('company');
+
+        return new self(
+            NoticeType::EventCancelled,
+            __(':company cancelled “:title” (:date UTC).', [
+                'company' => $event->company->name,
+                'title' => $event->title,
+                'date' => $event->starts_at->utc()->format('j M H:i'),
+            ]),
+            route('events.show', $event),
+            __('“:title” was cancelled', ['title' => $event->title]),
         );
     }
 

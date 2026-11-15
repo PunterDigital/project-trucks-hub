@@ -2,6 +2,7 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     Building2,
+    CalendarDays,
     Download,
     Home,
     LayoutGrid,
@@ -33,6 +34,7 @@ import {
 } from '@/routes';
 import { index as companies } from '@/routes/companies';
 import { index as drivers } from '@/routes/drivers';
+import { index as events } from '@/routes/events';
 import type { NavItem } from '@/types';
 
 const page = usePage();
@@ -44,6 +46,7 @@ const mainNavItems = computed<NavItem[]>(() => [
         : []),
     { title: 'Drivers', href: drivers(), icon: Users },
     { title: 'Companies', href: companies(), icon: Building2 },
+    { title: 'Events', href: events(), icon: CalendarDays },
     { title: 'Leaderboards', href: leaderboards(), icon: Trophy },
     { title: 'Live map', href: map(), icon: MapIcon },
     { title: 'Get ProjectTrucks', href: download(), icon: Download },

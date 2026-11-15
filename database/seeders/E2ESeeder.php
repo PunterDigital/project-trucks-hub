@@ -271,6 +271,27 @@ class E2ESeeder extends Seeder
             'completed_at' => now()->subDays(2),
         ]);
 
+        // Company events (#4648): Eve (owner) plans a convoy, Max (member) answers, Otto
+        // (no company) can only look.
+        foreach ([['Eve Events', 'eve-events'], ['Max Member', 'max-member'], ['Otto Outsider', 'otto-outsider']] as [$name, $username]) {
+            $user = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+            ]);
+            $user->forceFill(['email_verified_at' => now(), 'password_set_at' => now()])->save();
+        }
+        $convoy = Company::query()->create([
+            'name' => 'Convoy Club',
+            'slug' => 'convoy-club',
+            'tag' => 'CVY',
+            'description' => 'Sunday convoys.',
+            'recruitment' => Recruitment::Apply,
+        ]);
+        $convoy->members()->create(['user_id' => User::query()->where('username', 'eve-events')->value('id'), 'role' => CompanyRole::Owner]);
+        $convoy->members()->create(['user_id' => User::query()->where('username', 'max-member')->value('id'), 'role' => CompanyRole::Driver]);
+
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');
     }

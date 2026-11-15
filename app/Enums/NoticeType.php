@@ -19,6 +19,7 @@ enum NoticeType: string
     case AchievementUnlocked = 'achievement_unlocked';
     case KudosReceived = 'kudos_received';
     case CommentReceived = 'comment_received';
+    case EventCancelled = 'event_cancelled';
 
     public function emails(): bool
     {

@@ -6,8 +6,10 @@ use App\Achievements\Progress;
 use App\Enums\ApplicationStatus;
 use App\Enums\CompanyRole;
 use App\Enums\Recruitment;
+use App\Enums\RsvpStatus;
 use App\Models\Company;
 use App\Models\CompanyApplication;
+use App\Models\CompanyEvent;
 use App\Models\CompanyMember;
 use App\Models\Delivery;
 use App\Models\User;
@@ -161,6 +163,15 @@ class CompanyController extends Controller
             'members' => $members,
             'onTheRoad' => Feed::onTheRoad($viewer, 20, fn ($q) => $q->whereHas('user.membership', fn (Builder $m) => $m->where('company_id', $company->id))),
             'latest' => Feed::latestDeliveries($viewer, 15, fn ($q) => $q->where('deliveries.company_id', $company->id)),
+            // Company events (#4648): the next five.
+            'events' => $company->events()
+                ->upcoming()
+                ->withCount(['rsvps as going_count' => fn (Builder $q) => $q->where('status', RsvpStatus::Going)])
+                ->limit(5)
+                ->get()
+                ->map(fn (CompanyEvent $e) => $e->summary())
+                ->values()
+                ->all(),
             'applications' => $role?->canManage()
                 ? $company->pendingApplications()->with('user')->oldest()->get()->map(fn (CompanyApplication $a) => [
                     'id' => $a->id,
