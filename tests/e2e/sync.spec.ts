@@ -81,11 +81,24 @@ test('linking ProjectTrucks and syncing a job', async ({ page, request }) => {
                         Date.now() - 3_600_000,
                     ).toISOString(),
                 }),
+                // Typed in by hand: older apps still send these, the Hub
+                // drops them (#4751).
+                job({
+                    id: 'e2e-manual',
+                    source: 'MANUAL',
+                    source_city: 'Gent',
+                    dest_city: 'Bordeaux',
+                }),
             ],
         },
     });
     expect(synced.ok()).toBeTruthy();
-    const syncedJobs = (await synced.json()).jobs;
+    const syncedBody = await synced.json();
+    expect(syncedBody.skipped).toEqual([
+        { id: 'e2e-manual', reason: 'manual' },
+    ]);
+    const syncedJobs = syncedBody.jobs;
+    expect(syncedJobs).toHaveLength(2);
     expect(syncedJobs[0].hub_flag_reason).toBeNull();
     expect(syncedJobs[1].hub_flag_reason).toContain(
         'Average speed over 150 km/h',
@@ -121,6 +134,9 @@ test('linking ProjectTrucks and syncing a job', async ({ page, request }) => {
     await expect(
         page.locator('[data-test="job-row"]').filter({ hasText: 'Lyon' }),
     ).toBeVisible();
+    await expect(
+        page.locator('[data-test="job-row"]').filter({ hasText: 'Bordeaux' }),
+    ).toHaveCount(0);
     await expect(page.locator('[data-test="on-the-road"]')).toContainText(
         'Milano',
     );

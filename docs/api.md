@@ -114,7 +114,7 @@ company it counts for.
 | `id`                         | required, ≤ 64 chars, unique in the batch |
 | `game`                       | optional, `ets2` (default) or `ats`       |
 | `status`                     | `DELIVERED`, `LATE` or `CANCELLED`        |
-| `source`                     | `TELEMETRY` or `MANUAL`                   |
+| `source`                     | `TELEMETRY` or `MANUAL` (see below)       |
 | `started_at`, `completed_at` | ISO 8601; stored in UTC                   |
 | `damage_delta`               | 0–1                                       |
 
@@ -133,6 +133,11 @@ A batch with any invalid job is refused whole (422, Laravel validation errors ke
     ]
 }
 ```
+
+Jobs with `source: MANUAL` (typed in by hand) are never stored (#4751): they are accepted,
+left out of `jobs` and listed under `skipped` (`{"id": "…", "reason": "manual"}`), and a copy the
+Hub stored before is deleted. ProjectTrucks 0.10+ doesn't send them; older versions read the
+missing entry as synced without a link. `skipped` is `[]` when nothing was skipped.
 
 `hub_flag_reason` is set when the Hub's own checks flagged the job (see **What counts**); the
 app may ignore it.

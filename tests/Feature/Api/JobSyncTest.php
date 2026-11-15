@@ -106,6 +106,46 @@ class JobSyncTest extends TestCase
         $this->assertSame(2, Delivery::query()->count());
     }
 
+    public function test_manual_jobs_are_skipped_and_never_stored(): void
+    {
+        [, $token] = $this->driver();
+        $manual = self::job(['id' => 'manual-1', 'source' => 'MANUAL']);
+
+        $this->withToken($token)->postJson(route('api.jobs.store'), ['jobs' => [self::job(), $manual]])
+            ->assertOk()
+            ->assertJsonPath('synced', 1)
+            ->assertJsonCount(1, 'jobs')
+            ->assertJsonPath('jobs.0.id', self::job()['id'])
+            ->assertJsonPath('skipped', [['id' => 'manual-1', 'reason' => 'manual']]);
+
+        $this->assertSame([self::job()['id']], Delivery::query()->pluck('client_id')->all());
+    }
+
+    public function test_a_manual_job_the_hub_already_has_is_removed_on_the_next_sync(): void
+    {
+        [$user, $token] = $this->driver();
+        [$other] = $this->driver();
+        Delivery::factory()->for($user)->create(['client_id' => 'manual-1', 'source' => 'MANUAL']);
+        Delivery::factory()->for($other)->create(['client_id' => 'manual-1', 'source' => 'MANUAL']);
+
+        $this->withToken($token)->postJson(route('api.jobs.store'), [
+            'jobs' => [self::job(['id' => 'manual-1', 'source' => 'MANUAL'])],
+        ])->assertOk()->assertJsonPath('synced', 0)->assertJsonCount(0, 'jobs');
+
+        $this->assertFalse(Delivery::query()->where('user_id', $user->id)->exists());
+        $this->assertTrue(Delivery::query()->where('user_id', $other->id)->exists());
+    }
+
+    public function test_the_migration_removes_manual_jobs_the_hub_already_has(): void
+    {
+        $kept = Delivery::factory()->create(['source' => 'TELEMETRY']);
+        Delivery::factory()->create(['source' => 'MANUAL']);
+
+        (require database_path('migrations/2026_11_15_110000_remove_manual_deliveries.php'))->up();
+
+        $this->assertSame([$kept->id], Delivery::query()->pluck('id')->all());
+    }
+
     public function test_invalid_jobs_are_refused_as_a_batch(): void
     {
         [, $token] = $this->driver();

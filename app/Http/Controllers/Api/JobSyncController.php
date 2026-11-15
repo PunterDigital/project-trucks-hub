@@ -56,9 +56,24 @@ class JobSyncController extends Controller
         $user = $request->user();
         $companyId = $user->companyId();
 
-        $ids = DB::transaction(function () use ($data, $user, $companyId) {
+        $skipped = [];
+        $ids = DB::transaction(function () use ($data, $user, $companyId, &$skipped) {
             $ids = [];
             foreach ($data['jobs'] as $job) {
+                // Jobs typed in by hand stay on the driver's PC (#4751): nothing on the Hub can
+                // check them. Older apps still send them, so they're accepted and dropped, and a
+                // copy the Hub got before is removed. They're left out of `jobs` (older apps
+                // read a missing entry as "synced, no link") and listed under `skipped`.
+                if ($job['source'] === 'MANUAL') {
+                    Delivery::query()
+                        ->where('user_id', $user->id)
+                        ->where('client_id', $job['id'])
+                        ->delete();
+                    $skipped[] = ['id' => $job['id'], 'reason' => 'manual'];
+
+                    continue;
+                }
+
                 $delivery = Delivery::query()->firstOrNew([
                     'user_id' => $user->id,
                     'client_id' => $job['id'],
@@ -116,7 +131,7 @@ class JobSyncController extends Controller
             return $ids;
         });
 
-        return response()->json(['synced' => count($ids), 'jobs' => $ids]);
+        return response()->json(['synced' => count($ids), 'jobs' => $ids, 'skipped' => $skipped]);
     }
 
     /** The driver deleted the job in ProjectTrucks. */

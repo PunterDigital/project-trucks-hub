@@ -77,9 +77,10 @@ defineOptions({
 
         <h2>What never leaves your PC</h2>
         <p>
-            Your job notes, the app's settings, jobs recorded before you linked
-            the app, and anything you don't choose to sync. Unlinking the app
-            (in the app or under Settings → Linked apps) stops syncing at once.
+            Your job notes, the app's settings, jobs you add by hand, jobs
+            recorded before you linked the app, and anything you don't choose to
+            sync. Unlinking the app (in the app or under Settings → Linked apps)
+            stops syncing at once.
         </p>
 
         <h2>Who sees what</h2>
