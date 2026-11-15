@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Achievements\Progress;
 use App\Enums\NoticeType;
 use App\Support\ImageStore;
 use Database\Factories\UserFactory;
@@ -33,6 +34,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property bool $profile_private
  * @property bool $is_staff
  * @property bool $show_on_map
+ * @property int $level
  * @property Carbon|null $suspended_at
  * @property list<string>|null $mail_opt_outs
  * @property string|null $suspension_reason
@@ -123,6 +125,12 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
     public function getRouteKeyName(): string
     {
         return 'username';
+    }
+
+    /** @return HasMany<DriverAchievement, $this> */
+    public function achievements(): HasMany
+    {
+        return $this->hasMany(DriverAchievement::class);
     }
 
     /** @return HasOne<CompanyMember, $this> */
@@ -225,6 +233,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
             'name' => $this->name,
             'username' => $this->username,
             'avatar' => $this->avatar(),
+            // Levels (#4645): kept in step with the driver's counted distance by Progress.
+            'level' => (int) ($this->level ?? 1),
+            'rank' => Progress::rank((int) ($this->level ?? 1)),
             'company' => $company?->summary(),
         ];
     }

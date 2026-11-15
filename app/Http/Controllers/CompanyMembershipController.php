@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Achievements\Progress;
 use App\Enums\ApplicationStatus;
 use App\Enums\CompanyRole;
 use App\Enums\Recruitment;
@@ -216,6 +217,9 @@ class CompanyMembershipController extends Controller
             // user_id is unique on company_members: they joined somewhere else meanwhile.
             return false;
         }
+
+        // "Team player" (#4645).
+        Progress::refresh($user->unsetRelation('membership'));
 
         return true;
     }

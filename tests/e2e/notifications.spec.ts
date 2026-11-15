@@ -59,13 +59,19 @@ test('an application rings the owner’s bell and the decision rings the applica
     await application.getByRole('button', { name: 'Accept' }).click();
     await expect(application).toHaveCount(0);
 
-    // Abe hears about it on his next page load and marks everything read.
+    // Abe hears about it on his next page load and marks everything read. Joining also
+    // unlocked the "Team player" achievement (#4645).
     await abe.goto('/dashboard');
-    await expect(abeBell).toHaveAccessibleName('Notifications, 1 unread');
+    await expect(abeBell).toHaveAccessibleName('Notifications, 2 unread');
     await abeBell.click();
     await expect(
         abe.locator('[data-test="notification-item"]', {
             hasText: 'Bell Freight accepted your application.',
+        }),
+    ).toBeVisible();
+    await expect(
+        abe.locator('[data-test="notification-item"]', {
+            hasText: 'Achievement unlocked: Team player.',
         }),
     ).toBeVisible();
     await abe.getByRole('button', { name: 'Mark all read' }).click();

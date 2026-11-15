@@ -207,6 +207,28 @@ without a full build.
 - E2E: `PUBLIC_DISK_ROOT` (config/filesystems.php) points the disk at a temp folder; Uma
   Upload owns Picture Perfect Haulage (`uploads.spec.ts`).
 
+## Levels and achievements (#4645)
+
+- `App\Achievements\Progress`: level from counted distance (level n needs 1,000·(n−1)^1.5 km,
+  so level 2 = 1,000 km), a rank every 5 levels (`RANKS`), stored in `users.level` so cards and
+  leaderboards (`publicSummary()` → `level`, `rank`) need no query. Achievements are the
+  `Achievement` enum (add cases at the end); `driver_achievements` holds key + `unlocked_at`
+  (the completed_at of the job that earned it; "Top ten" = the end of that week).
+- `Progress::refresh($user)` recomputes everything and stores the difference: runs after a
+  sync batch (bell notice per new one), API job delete, Settings → Privacy job delete, staff
+  hide/unhide/flag/clear flag, and joining or founding a company. It reads
+  `Delivery::scopeEarned()` = counted **including** suspended drivers' jobs, so a suspension
+  hides progress without wiping it. A job that stops counting takes its achievements away;
+  "Team player" (`permanent()`) stays after leaving.
+- "Top ten": a finished Monday–Monday UTC week where fewer than 10 public drivers drove
+  further. The HAVING compares with `CAST(? AS DECIMAL(12,3))`: SQLite compares a bare bound
+  value as text and nobody was ever ahead. Awarded on the driver's next sync, or by the
+  scheduled `hub:progress --notify` (Mondays 00:15, needs `schedule:run` on the server).
+- `hub:progress` (silent) ran from the migration as the backfill; E2ESeeder calls it last.
+- Profile: level + progress bar in the header, Jobs | Achievements tabs (`#achievements` opens
+  the second, the bell links there). Joining a company now rings the bell twice (decision +
+  "Team player"): `notifications.spec.ts` expects 2 unread.
+
 ## E2E
 
 Playwright (`tests/e2e`), headless Chromium, never takes focus. `serve.mjs` resets a throwaway

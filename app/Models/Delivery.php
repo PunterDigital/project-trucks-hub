@@ -142,16 +142,30 @@ class Delivery extends Model
     }
 
     /**
+     * Counted, but still including a suspended driver's jobs: levels and achievements (#4645)
+     * are the driver's own record, so a suspension hides them without taking them away.
+     *
      * @param  Builder<Delivery>  $query
      * @return Builder<Delivery>
      */
-    private static function applyCounted(Builder $query): Builder
+    public function scopeEarned(Builder $query): Builder
     {
-        return $query->whereIn('deliveries.status', DeliveryStatus::counted())
+        return self::applyCounted($query, skipSuspended: false);
+    }
+
+    /**
+     * @param  Builder<Delivery>  $query
+     * @return Builder<Delivery>
+     */
+    private static function applyCounted(Builder $query, bool $skipSuspended = true): Builder
+    {
+        $query->whereIn('deliveries.status', DeliveryStatus::counted())
             ->where('deliveries.flagged', false)
             ->whereNull('deliveries.hub_flag_reason')
             ->where('deliveries.hidden', false)
-            ->where('deliveries.staff_hidden', false)
+            ->where('deliveries.staff_hidden', false);
+
+        return ! $skipSuspended ? $query : $query
             ->whereNotExists(fn (\Illuminate\Database\Query\Builder $u) => $u->selectRaw('1')
                 ->from('users as suspended_drivers')
                 ->whereColumn('suspended_drivers.id', 'deliveries.user_id')

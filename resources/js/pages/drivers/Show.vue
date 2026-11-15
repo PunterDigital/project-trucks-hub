@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { ExternalLink, Lock } from '@lucide/vue';
+import { ExternalLink, Lock, Trophy } from '@lucide/vue';
+import { computed, onMounted, ref } from 'vue';
 import CompanyLogo from '@/components/hub/CompanyLogo.vue';
 import DriverAvatar from '@/components/hub/DriverAvatar.vue';
 import JobList from '@/components/hub/JobList.vue';
@@ -14,6 +15,7 @@ import { formatDate, formatKm, plural } from '@/lib/format';
 import { show as showCompany } from '@/routes/companies';
 import type {
     CompanyRole,
+    DriverProgress,
     DriverSummary,
     JobSummary,
     LiveSummary,
@@ -21,7 +23,7 @@ import type {
     PeriodTotals,
 } from '@/types/hub';
 
-defineProps<{
+const props = defineProps<{
     driver: DriverSummary & {
         role: CompanyRole | null;
         member_since: string | null;
@@ -34,9 +36,21 @@ defineProps<{
     trucks: { name: string; deliveries: number; distance_km: number }[];
     live: LiveSummary | null;
     jobs: Paginated<JobSummary>;
+    progress: DriverProgress;
 }>();
 
 const signedIn = usePage().props.auth.user !== null;
+
+// Jobs | Achievements (#4645); a link to #achievements opens that tab.
+const tab = ref<'jobs' | 'achievements'>('jobs');
+onMounted(() => {
+    if (window.location.hash === '#achievements') {
+        tab.value = 'achievements';
+    }
+});
+const unlockedCount = computed(
+    () => props.progress.achievements.filter((a) => a.unlocked_at).length,
+);
 </script>
 
 <template>
@@ -65,6 +79,31 @@ const signedIn = usePage().props.auth.user !== null;
                         · {{ onTime }}% on time</template
                     >
                 </p>
+                <div
+                    class="flex max-w-sm items-center gap-3 pt-1"
+                    data-test="driver-level"
+                >
+                    <span class="text-sm font-semibold whitespace-nowrap"
+                        >Level {{ progress.level }} · {{ progress.rank }}</span
+                    >
+                    <div
+                        class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"
+                        role="progressbar"
+                        :aria-valuenow="progress.level_progress"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        :aria-label="`${formatKm(progress.distance_km)} of ${formatKm(progress.next_level_km)} to level ${progress.level + 1}`"
+                    >
+                        <div
+                            class="h-full rounded-full bg-amber-500"
+                            :style="{ width: `${progress.level_progress}%` }"
+                        />
+                    </div>
+                    <span
+                        class="text-xs whitespace-nowrap text-muted-foreground tabular-nums"
+                        >{{ formatKm(progress.next_level_km) }}</span
+                    >
+                </div>
                 <p
                     v-if="driver.company"
                     class="flex flex-wrap items-center gap-1.5 text-sm"
@@ -104,7 +143,69 @@ const signedIn = usePage().props.auth.user !== null;
                 <Panel title="Stats">
                     <StatGrid :stats="stats" />
                 </Panel>
+                <div
+                    id="achievements"
+                    role="tablist"
+                    class="flex gap-1 self-start rounded-lg bg-muted p-1"
+                >
+                    <button
+                        v-for="t in ['jobs', 'achievements'] as const"
+                        :key="t"
+                        type="button"
+                        role="tab"
+                        :aria-selected="tab === t"
+                        :class="[
+                            'rounded-md px-3 py-1 text-sm',
+                            tab === t
+                                ? 'bg-background font-medium shadow-sm'
+                                : 'text-muted-foreground',
+                        ]"
+                        @click="tab = t"
+                    >
+                        {{
+                            t === 'jobs'
+                                ? 'Jobs'
+                                : `Achievements ${unlockedCount}/${progress.achievements.length}`
+                        }}
+                    </button>
+                </div>
+                <Panel v-if="tab === 'achievements'" title="Achievements">
+                    <ul class="grid gap-2 sm:grid-cols-2">
+                        <li
+                            v-for="a in progress.achievements"
+                            :key="a.key"
+                            :class="[
+                                'flex items-start gap-3 rounded-lg border p-3',
+                                a.unlocked_at ? '' : 'opacity-60',
+                            ]"
+                            :data-test="`achievement-${a.key}`"
+                            :data-unlocked="a.unlocked_at ? 'true' : 'false'"
+                        >
+                            <Trophy
+                                v-if="a.unlocked_at"
+                                class="mt-0.5 size-5 shrink-0 text-amber-500"
+                            />
+                            <Lock
+                                v-else
+                                class="mt-0.5 size-5 shrink-0 text-muted-foreground"
+                            />
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium">{{ a.title }}</p>
+                                <p class="text-xs text-muted-foreground">
+                                    {{ a.description }}
+                                </p>
+                                <p
+                                    v-if="a.unlocked_at"
+                                    class="pt-1 text-xs text-muted-foreground"
+                                >
+                                    Unlocked {{ formatDate(a.unlocked_at) }}
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
+                </Panel>
                 <Panel
+                    v-else
                     title="Jobs"
                     :description="
                         isOwner ? 'Hidden jobs show only to you' : undefined

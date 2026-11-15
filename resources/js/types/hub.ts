@@ -11,7 +11,23 @@ export type DriverSummary = {
     name: string;
     username: string | null;
     avatar: string | null;
+    level?: number;
+    rank?: string;
     company?: CompanySummary | null;
+};
+
+export type DriverProgress = {
+    level: number;
+    rank: string;
+    distance_km: number;
+    next_level_km: number;
+    level_progress: number;
+    achievements: {
+        key: string;
+        title: string;
+        description: string;
+        unlocked_at: string | null;
+    }[];
 };
 
 export type JobStatus = 'DELIVERED' | 'LATE' | 'CANCELLED';

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Achievements\Progress;
 use App\Http\Controllers\Controller;
 use App\Models\CompanyApplication;
 use App\Models\Delivery;
@@ -42,6 +43,7 @@ class PrivacyController extends Controller
     public function destroyJobs(Request $request): RedirectResponse
     {
         $deleted = $request->user()->deliveries()->delete();
+        Progress::refresh($request->user(), notify: false);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => trans_choice('{0} No synced jobs to delete.|{1} Deleted 1 synced job.|[2,*] Deleted :count synced jobs.', $deleted)]);
 
@@ -79,6 +81,10 @@ class PrivacyController extends Controller
                 'role' => $user->membership->getAttribute('role'),
                 'joined_at' => $user->membership->created_at?->toIso8601String(),
             ],
+            'level' => (int) $user->level,
+            'achievements' => $user->achievements()->orderBy('unlocked_at')->get()
+                ->map(fn ($a) => ['achievement' => $a->achievement->value, 'unlocked_at' => $a->unlocked_at->toIso8601String()])
+                ->all(),
             'company_applications' => CompanyApplication::query()
                 ->with('company')
                 ->where('user_id', $user->id)

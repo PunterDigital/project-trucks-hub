@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Achievements\Progress;
 use App\Enums\DeliveryStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Delivery;
@@ -131,6 +132,9 @@ class JobSyncController extends Controller
             return $ids;
         });
 
+        // Levels and achievements (#4645), now that the batch is stored.
+        Progress::refresh($user);
+
         return response()->json(['synced' => count($ids), 'jobs' => $ids, 'skipped' => $skipped]);
     }
 
@@ -141,6 +145,8 @@ class JobSyncController extends Controller
             ->where('user_id', $request->user()->id)
             ->where('client_id', $clientId)
             ->delete();
+
+        Progress::refresh($request->user(), notify: false);
 
         return response()->noContent();
     }

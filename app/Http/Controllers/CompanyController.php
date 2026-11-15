@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Achievements\Progress;
 use App\Enums\ApplicationStatus;
 use App\Enums\CompanyRole;
 use App\Enums\Recruitment;
@@ -84,6 +85,9 @@ class CompanyController extends Controller
 
             return $company;
         });
+
+        // "Team player" (#4645).
+        Progress::refresh($user->unsetRelation('membership'));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Company created. You are its owner.')]);
 

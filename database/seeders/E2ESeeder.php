@@ -10,6 +10,7 @@ use App\Models\LiveStatus;
 use App\Models\User;
 use App\Support\LatestRelease;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 
@@ -245,5 +246,8 @@ class E2ESeeder extends Seeder
             'recruitment' => Recruitment::Apply,
         ]);
         $pictures->members()->create(['user_id' => $uma->id, 'role' => CompanyRole::Owner]);
+
+        // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
+        Artisan::call('hub:progress');
     }
 }
