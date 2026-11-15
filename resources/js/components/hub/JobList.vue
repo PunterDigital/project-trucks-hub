@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { ArrowRight } from '@lucide/vue';
+import { ArrowRight, MessageSquare } from '@lucide/vue';
 import DriverLink from '@/components/hub/DriverLink.vue';
 import JobStatusBadge from '@/components/hub/JobStatusBadge.vue';
+import KudosButton from '@/components/hub/KudosButton.vue';
 import { formatKm, formatMoney, formatTonnes, timeAgo } from '@/lib/format';
 import { show as showJob } from '@/routes/jobs';
 import type { JobSummary } from '@/types/hub';
@@ -54,6 +55,24 @@ withDefaults(
             <div
                 class="flex items-center justify-between gap-4 text-sm sm:justify-end"
             >
+                <div class="flex items-center">
+                    <KudosButton
+                        :job-id="job.id"
+                        :driver-id="job.driver_id"
+                        :count="job.kudos"
+                        :given="job.kudos_given"
+                    />
+                    <Link
+                        v-if="job.comments > 0"
+                        :href="`${showJob(job.id).url}#comments`"
+                        :aria-label="`${job.comments} ${job.comments === 1 ? 'comment' : 'comments'}`"
+                        class="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-muted-foreground tabular-nums hover:bg-accent"
+                        data-test="comment-count"
+                    >
+                        <MessageSquare class="size-4" />
+                        <span>{{ job.comments }}</span>
+                    </Link>
+                </div>
                 <JobStatusBadge
                     :status="job.status"
                     :flagged="job.flagged"

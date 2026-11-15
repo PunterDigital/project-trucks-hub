@@ -6,6 +6,8 @@ use App\Achievements\Progress;
 use App\Http\Controllers\Controller;
 use App\Models\CompanyApplication;
 use App\Models\Delivery;
+use App\Models\DeliveryComment;
+use App\Models\DeliveryKudos;
 use App\Models\User;
 use App\Support\ImageStore;
 use Illuminate\Http\RedirectResponse;
@@ -96,6 +98,26 @@ class PrivacyController extends Controller
                     'status' => $a->getAttribute('status'),
                     'created_at' => $a->created_at?->toIso8601String(),
                     'decided_at' => $a->getAttribute('decided_at')?->toIso8601String(),
+                ])
+                ->all(),
+            // Kudos and comments the driver gave on jobs (#4646).
+            'kudos_given' => DeliveryKudos::query()
+                ->where('user_id', $user->id)
+                ->orderBy('id')
+                ->get()
+                ->map(fn (DeliveryKudos $k) => [
+                    'job' => route('jobs.show', $k->delivery_id),
+                    'created_at' => $k->created_at?->toIso8601String(),
+                ])
+                ->all(),
+            'comments' => DeliveryComment::query()
+                ->where('user_id', $user->id)
+                ->orderBy('id')
+                ->get()
+                ->map(fn (DeliveryComment $c) => [
+                    'job' => route('jobs.show', $c->delivery_id),
+                    'body' => $c->body,
+                    'created_at' => $c->created_at?->toIso8601String(),
                 ])
                 ->all(),
             'email_notifications_off' => $user->mail_opt_outs ?? [],

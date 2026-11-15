@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { ArrowRight, Eye, EyeOff } from '@lucide/vue';
+import { Form, Head, Link, router, usePage } from '@inertiajs/vue3';
+import { ArrowRight, Eye, EyeOff, Trash2 } from '@lucide/vue';
+import { ref } from 'vue';
+import InputError from '@/components/InputError.vue';
 import DriverLink from '@/components/hub/DriverLink.vue';
 import JobStatusBadge from '@/components/hub/JobStatusBadge.vue';
+import KudosButton from '@/components/hub/KudosButton.vue';
 import Panel from '@/components/hub/Panel.vue';
 import ReportButton from '@/components/hub/ReportButton.vue';
 import { Button } from '@/components/ui/button';
@@ -12,10 +15,16 @@ import {
     formatKm,
     formatMoney,
     formatTonnes,
+    timeAgo,
 } from '@/lib/format';
+import { login } from '@/routes';
 import { show as showCompany } from '@/routes/companies';
 import { update } from '@/routes/jobs';
-import type { CompanySummary, JobSummary } from '@/types/hub';
+import {
+    destroy as destroyComment,
+    store as storeComment,
+} from '@/routes/jobs/comments';
+import type { CompanySummary, JobComment, JobSummary } from '@/types/hub';
 
 const props = defineProps<{
     job: JobSummary & {
@@ -34,9 +43,21 @@ const props = defineProps<{
         company: CompanySummary | null;
     };
     isOwner: boolean;
+    comments: JobComment[];
+    commentMaxLength: number;
 }>();
 
 const signedIn = usePage().props.auth.user !== null;
+
+// Comments (#4646).
+const draft = ref('');
+
+function deleteComment(comment: JobComment) {
+    router.delete(
+        destroyComment({ delivery: props.job.id, comment: comment.id }).url,
+        { preserveScroll: true },
+    );
+}
 
 // Same prefix as App\Admin\Moderation::STAFF_FLAG_PREFIX (#4651).
 const STAFF_FLAG = 'Flagged by staff: ';
@@ -67,11 +88,19 @@ function toggleHidden() {
                     {{ job.source_company }} → {{ job.dest_company }} ·
                     {{ formatDateTime(job.completed_at) }}
                 </p>
-                <JobStatusBadge
-                    :status="job.status"
-                    :flagged="job.flagged"
-                    :hidden="job.hidden"
-                />
+                <div class="flex flex-wrap items-center gap-2">
+                    <JobStatusBadge
+                        :status="job.status"
+                        :flagged="job.flagged"
+                        :hidden="job.hidden"
+                    />
+                    <KudosButton
+                        :job-id="job.id"
+                        :driver-id="job.driver_id"
+                        :count="job.kudos"
+                        :given="job.kudos_given"
+                    />
+                </div>
             </div>
             <Button
                 v-if="isOwner"
@@ -219,5 +248,99 @@ function toggleHidden() {
                 </div>
             </Panel>
         </div>
+
+        <Panel
+            id="comments"
+            :title="
+                comments.length > 0
+                    ? `Comments (${comments.length})`
+                    : 'Comments'
+            "
+            class="scroll-mt-4"
+        >
+            <p
+                v-if="comments.length === 0"
+                class="pb-3 text-sm text-muted-foreground"
+            >
+                No comments yet.
+            </p>
+            <ul v-else class="mb-3 divide-y" data-test="comments">
+                <li
+                    v-for="comment in comments"
+                    :key="comment.id"
+                    class="flex gap-3 py-3"
+                    data-test="comment"
+                >
+                    <div class="min-w-0 flex-1 space-y-1">
+                        <div class="flex flex-wrap items-center gap-x-2">
+                            <DriverLink :driver="comment.author" />
+                            <time
+                                :datetime="comment.created_at"
+                                class="text-xs text-muted-foreground"
+                                >{{ timeAgo(comment.created_at) }}</time
+                            >
+                        </div>
+                        <p
+                            class="text-sm break-words whitespace-pre-line"
+                            data-test="comment-body"
+                        >
+                            {{ comment.body }}
+                        </p>
+                    </div>
+                    <Button
+                        v-if="comment.can_delete"
+                        variant="ghost"
+                        size="icon"
+                        class="shrink-0 text-muted-foreground"
+                        aria-label="Delete comment"
+                        title="Delete comment"
+                        data-test="delete-comment"
+                        @click="deleteComment(comment)"
+                    >
+                        <Trash2 class="size-4" />
+                    </Button>
+                </li>
+            </ul>
+
+            <Form
+                v-if="signedIn"
+                v-bind="storeComment.form(job.id)"
+                :options="{ preserveScroll: true }"
+                reset-on-success
+                class="flex flex-col gap-2"
+                v-slot="{ errors, processing }"
+                @success="draft = ''"
+            >
+                <textarea
+                    v-model="draft"
+                    name="body"
+                    rows="3"
+                    :maxlength="commentMaxLength"
+                    aria-label="Write a comment"
+                    placeholder="Say something nice about the run…"
+                    class="rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                    data-test="comment-input"
+                />
+                <InputError :message="errors.body" />
+                <div class="flex items-center gap-3">
+                    <Button
+                        :disabled="processing || draft.trim() === ''"
+                        data-test="post-comment"
+                        >Post comment</Button
+                    >
+                    <span class="text-xs text-muted-foreground tabular-nums"
+                        >{{ draft.length }} / {{ commentMaxLength }}</span
+                    >
+                </div>
+            </Form>
+            <p v-else class="text-sm text-muted-foreground">
+                <Link
+                    :href="login()"
+                    class="font-medium text-foreground underline"
+                    >Log in</Link
+                >
+                to give kudos or comment.
+            </p>
+        </Panel>
     </div>
 </template>

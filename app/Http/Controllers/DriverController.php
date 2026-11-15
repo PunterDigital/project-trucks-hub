@@ -78,6 +78,7 @@ class DriverController extends Controller
 
         $jobs = $driver->deliveries()
             ->when(! $isOwner, fn (Builder $q) => $q->where('hidden', false))
+            ->withReactions($viewer)
             ->latest('completed_at')
             ->paginate(20)
             ->withQueryString()

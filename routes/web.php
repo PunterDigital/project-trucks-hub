@@ -6,6 +6,7 @@ use App\Http\Controllers\CompanyImageController;
 use App\Http\Controllers\CompanyMembershipController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryController;
+use App\Http\Controllers\DeliveryReactionController;
 use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\HomeController;
@@ -69,6 +70,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('notifications/{notification}', [NotificationController::class, 'open'])->whereUuid('notification')->name('notifications.open');
 
     Route::patch('jobs/{delivery}', [DeliveryController::class, 'update'])->whereNumber('delivery')->name('jobs.update');
+
+    // Kudos and comments (#4646).
+    Route::post('jobs/{delivery}/kudos', [DeliveryReactionController::class, 'giveKudos'])
+        ->whereNumber('delivery')->middleware('throttle:60,1')->name('jobs.kudos.give');
+    Route::delete('jobs/{delivery}/kudos', [DeliveryReactionController::class, 'takeKudos'])
+        ->whereNumber('delivery')->middleware('throttle:60,1')->name('jobs.kudos.take');
+    Route::post('jobs/{delivery}/comments', [DeliveryReactionController::class, 'comment'])
+        ->whereNumber('delivery')->middleware('throttle:10,1')->name('jobs.comments.store');
+    Route::delete('jobs/{delivery}/comments/{comment}', [DeliveryReactionController::class, 'deleteComment'])
+        ->whereNumber(['delivery', 'comment'])->middleware('throttle:30,1')->name('jobs.comments.destroy');
 
     Route::get('companies/create', [CompanyController::class, 'create'])->name('companies.create');
     Route::post('companies', [CompanyController::class, 'store'])->name('companies.store');

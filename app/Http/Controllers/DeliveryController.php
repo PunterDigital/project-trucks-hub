@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Delivery;
+use App\Models\DeliveryComment;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,6 +18,24 @@ class DeliveryController extends Controller
         abort_unless(Delivery::query()->visibleTo($viewer)->whereKey($delivery->id)->exists(), 404);
 
         $delivery->loadMissing('user.membership.company', 'company');
+        $delivery = Delivery::query()->withReactions($viewer)->findOrFail($delivery->id)->setRelations($delivery->getRelations());
+
+        // Comments (#4646), oldest first; suspended drivers' comments are left out.
+        $comments = $delivery->comments()
+            ->whereHas('user', fn (Builder $u) => $u->whereNull('suspended_at'))
+            ->with('user.membership.company')
+            ->oldest()
+            ->oldest('id')
+            ->get()
+            ->map(fn (DeliveryComment $c) => [
+                'id' => $c->id,
+                'body' => $c->body,
+                'created_at' => $c->created_at?->toIso8601String(),
+                'author' => $c->user->publicSummary(),
+                'can_delete' => $c->setRelation('delivery', $delivery)->canBeDeletedBy($viewer),
+            ])
+            ->values()
+            ->all();
 
         return Inertia::render('jobs/Show', [
             'job' => [
@@ -35,6 +55,8 @@ class DeliveryController extends Controller
                 'company' => $delivery->company?->summary(),
             ],
             'isOwner' => $viewer?->is($delivery->user) ?? false,
+            'comments' => $comments,
+            'commentMaxLength' => DeliveryComment::MAX_LENGTH,
         ]);
     }
 

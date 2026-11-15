@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -96,6 +97,39 @@ class Delivery extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /** @return HasMany<DeliveryKudos, $this> */
+    public function kudos(): HasMany
+    {
+        return $this->hasMany(DeliveryKudos::class);
+    }
+
+    /** @return HasMany<DeliveryComment, $this> */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(DeliveryComment::class);
+    }
+
+    /**
+     * Kudos and comment counts for job lists (#4646), plus whether `$viewer` gave kudos.
+     * Suspended drivers' kudos and comments are left out, like the rest of what they did.
+     *
+     * @param  Builder<Delivery>  $query
+     * @return Builder<Delivery>
+     */
+    public function scopeWithReactions(Builder $query, ?User $viewer): Builder
+    {
+        $query->withCount([
+            'kudos' => fn (Builder $q) => $q->whereHas('user', fn (Builder $u) => $u->whereNull('suspended_at')),
+            'comments' => fn (Builder $q) => $q->whereHas('user', fn (Builder $u) => $u->whereNull('suspended_at')),
+        ]);
+
+        if ($viewer !== null) {
+            $query->withExists(['kudos as kudos_given' => fn (Builder $q) => $q->where('user_id', $viewer->id)]);
+        }
+
+        return $query;
     }
 
     /**
@@ -203,7 +237,12 @@ class Delivery extends Model
             'hidden' => (bool) $this->getAttribute('hidden'),
             'staff_hidden' => $this->staff_hidden,
             'completed_at' => $this->completed_at->toIso8601String(),
+            'driver_id' => $this->user_id,
             'driver' => $this->relationLoaded('user') ? $this->user->publicSummary() : null,
+            // Filled by scopeWithReactions() (#4646).
+            'kudos' => (int) ($this->getAttribute('kudos_count') ?? 0),
+            'kudos_given' => (bool) ($this->getAttribute('kudos_given') ?? false),
+            'comments' => (int) ($this->getAttribute('comments_count') ?? 0),
         ];
     }
 

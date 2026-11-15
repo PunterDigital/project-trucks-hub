@@ -22,6 +22,7 @@ final class Feed
             ->where('deliveries.hidden', false)
             ->whereIn('deliveries.status', DeliveryStatus::counted())
             ->with('user.membership.company')
+            ->withReactions($viewer)
             ->latest('completed_at')
             ->limit($limit);
 

@@ -46,7 +46,19 @@ export type JobSummary = {
     hidden: boolean;
     staff_hidden?: boolean;
     completed_at: string;
+    driver_id: number;
     driver: DriverSummary | null;
+    kudos: number;
+    kudos_given: boolean;
+    comments: number;
+};
+
+export type JobComment = {
+    id: number;
+    body: string;
+    created_at: string;
+    author: DriverSummary;
+    can_delete: boolean;
 };
 
 export type LiveSummary = {
