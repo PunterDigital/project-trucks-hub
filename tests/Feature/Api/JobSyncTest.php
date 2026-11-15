@@ -180,6 +180,50 @@ class JobSyncTest extends TestCase
         $this->assertModelExists($other);
     }
 
+    public function test_the_app_can_hide_and_show_a_synced_job(): void
+    {
+        [$user, $token] = $this->driver();
+        $this->withToken($token)->postJson(route('api.jobs.store'), ['jobs' => [self::job()]])
+            ->assertOk()
+            ->assertJsonPath('jobs.0.hidden', false);
+        $delivery = $user->deliveries()->sole();
+
+        $this->withToken($token)->patchJson(route('api.jobs.update', self::job()['id']), ['hidden' => true])
+            ->assertOk()
+            ->assertJsonPath('id', self::job()['id'])
+            ->assertJsonPath('hidden', true)
+            ->assertJsonPath('url', route('jobs.show', $delivery));
+        $this->assertTrue($delivery->refresh()->getAttribute('hidden'));
+
+        // A re-sync keeps it hidden and says so.
+        $this->withToken($token)->postJson(route('api.jobs.store'), ['jobs' => [self::job()]])
+            ->assertJsonPath('jobs.0.hidden', true);
+
+        $this->withToken($token)->patchJson(route('api.jobs.update', self::job()['id']), ['hidden' => false])
+            ->assertOk()
+            ->assertJsonPath('hidden', false);
+        $this->assertFalse($delivery->refresh()->getAttribute('hidden'));
+    }
+
+    public function test_hiding_needs_the_drivers_own_synced_job(): void
+    {
+        [, $token] = $this->driver();
+        $other = Delivery::factory()->create(['client_id' => self::job()['id'], 'hidden' => false]);
+
+        $this->withToken($token)->patchJson(route('api.jobs.update', self::job()['id']), ['hidden' => true])
+            ->assertNotFound();
+        $this->assertFalse($other->refresh()->getAttribute('hidden'));
+
+        $this->withToken($token)->postJson(route('api.jobs.store'), ['jobs' => [self::job()]]);
+        $this->withToken($token)->patchJson(route('api.jobs.update', self::job()['id']), [])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('hidden');
+
+        $this->app['auth']->forgetGuards();
+        $this->withoutToken()->patchJson(route('api.jobs.update', self::job()['id']), ['hidden' => true])
+            ->assertUnauthorized();
+    }
+
     public function test_the_api_needs_a_sync_token(): void
     {
         $this->postJson(route('api.jobs.store'), ['jobs' => [self::job()]])->assertUnauthorized();

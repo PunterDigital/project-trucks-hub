@@ -142,7 +142,15 @@ Hub stored before is deleted. ProjectTrucks 0.10+ doesn't send them; older versi
 missing entry as synced without a link. `skipped` is `[]` when nothing was skipped.
 
 `hub_flag_reason` is set when the Hub's own checks flagged the job (see **What counts**); the
-app may ignore it.
+app may ignore it. `hidden` (added for #4654) is whether the driver hid the job on the Hub,
+from the app or on the job page; a re-sync never changes it.
+
+### `PATCH /jobs/{id}`
+
+"Hide on Hub" from the app (#4654). Body `{"hidden": true|false}`. Hidden jobs are seen only by
+the driver and don't count anywhere (same as the job page's own switch). Response
+`{"id": "…", "url": "https://hub.example/jobs/42", "hidden": true}`; 404 when the Hub doesn't
+have that job (never synced, or a manual job), 422 without a boolean `hidden`.
 
 ### `DELETE /jobs/{id}`
 

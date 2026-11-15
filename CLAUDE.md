@@ -26,6 +26,8 @@ without a full build.
 - `deliveries` = synced jobs (Laravel's queue owns `jobs`; the UI says "jobs", routes are
   `/jobs/{id}`). Upsert key `(user_id, client_id)`, `client_id` = the app's local UUID.
   `company_id` is set when first synced and never changed by a re-sync, nor is `hidden`.
+  `hidden` changes only from the job page's switch or the app's `PATCH /api/v1/jobs/{id}`
+  (#4654); sync responses carry it so the app can show the state.
 - **Never `$this->hidden` inside `Delivery`**: that's Eloquent's `$hidden` array, not the
   column (a job page once said every job was hidden). Use `getAttribute('hidden')`.
 - "Counted" (stats + leaderboards) = `DELIVERED|LATE`, not flagged, not hidden:
