@@ -3,10 +3,14 @@
 namespace App\Providers;
 
 use App\Auth\SteamProvider;
+use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Authenticated;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -35,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureRateLimiting();
+        $this->configureAuthMail();
 
         // Our subclass of the Steam provider: OpenID sign-in that works without a Web API key.
         Event::listen(SocialiteWasCalled::class, fn (SocialiteWasCalled $event) => $event->extendSocialite('steam', SteamProvider::class));
@@ -43,6 +48,42 @@ class AppServiceProvider extends ServiceProvider
         // no name, email, IP or cookies). Inert while SENTRY_LARAVEL_DSN is empty.
         Event::listen(Authenticated::class, function (Authenticated $event): void {
             configureScope(fn (Scope $scope) => $scope->setUser(['id' => $event->user->getAuthIdentifier()]));
+        });
+    }
+
+    /**
+     * Our own wording for Fortify's verify-email and reset-password mails (#4661). Both render
+     * with the Hub mail theme (config/mail.php `markdown`); the links are Laravel's own.
+     */
+    protected function configureAuthMail(): void
+    {
+        VerifyEmail::toMailUsing(function (object $notifiable, string $url): MailMessage {
+            $app = (string) config('app.name');
+
+            return (new MailMessage)
+                ->subject(__('Confirm your email for :app', ['app' => $app]))
+                ->greeting(__('Welcome to :app!', ['app' => $app]))
+                ->line(__('Confirm your email address to finish setting up your account. Then link the ProjectTrucks app and your jobs will show up on your profile.'))
+                ->action(__('Confirm email address'), $url)
+                ->line(__('If you didn\'t create an account, you can ignore this email.'));
+        });
+
+        ResetPassword::toMailUsing(function (object $notifiable, string $token): MailMessage {
+            /** @var User $notifiable */
+            $url = url(route('password.reset', [
+                'token' => $token,
+                'email' => $notifiable->getEmailForPasswordReset(),
+            ], false));
+            $broker = (string) config('auth.defaults.passwords');
+            $minutes = (int) config("auth.passwords.{$broker}.expire");
+
+            return (new MailMessage)
+                ->subject(__('Set a new password for :app', ['app' => config('app.name')]))
+                ->greeting(__('Hello!'))
+                ->line(__('Someone asked to set a new password for your account. If it was you, choose one here:'))
+                ->action(__('Choose a new password'), $url)
+                ->line(__('This link works for :count minutes.', ['count' => $minutes]))
+                ->line(__('If you didn\'t ask for this, you can ignore this email: your password stays as it is.'));
         });
     }
 

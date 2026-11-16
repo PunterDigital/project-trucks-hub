@@ -344,6 +344,21 @@ without a full build.
 - Production DSN: Forge `.env` (Shay's step on #4653); `php artisan sentry:test` on the server
   sends a test event.
 
+## Mail theme (#4661)
+
+- Every email (Fortify's verify / reset, every `HubNotice`) renders with the `hub` Markdown theme:
+  `config/mail.php` `markdown`, files in `resources/views/vendor/mail` (only the ones we change:
+  `html/header`, `html/message`, `text/message`, `html/themes/hub.css`; the rest fall back to
+  Laravel's) and `vendor/notifications/email.blade.php` (salutation "Drive safe,").
+- Slate header band with the app icon (`/apple-touch-icon.png`, a PNG: Gmail and Outlook drop
+  SVG) and `app.name` as a text wordmark (production's is "Project Trucks"); amber primary
+  button with slate text; footer = name + site link. Icon and footer links use `app.url`, so a
+  queued mail and one sent during a request look the same.
+- Verify / reset wording: `AppServiceProvider::configureAuthMail()` (`toMailUsing`; the reset
+  link is built the same way as Laravel's own).
+- `MailThemeTest` sends each kind through the array mailer and checks the HTML and plain-text
+  parts (inlined colours, icon, footer, no "Laravel").
+
 ## E2E
 
 Playwright (`tests/e2e`), headless Chromium, never takes focus. `serve.mjs` resets a throwaway
