@@ -150,7 +150,7 @@ function asCompany(row: LeaderboardRow) {
                             :class="[
                                 'px-4 py-2 text-right font-semibold tabular-nums',
                                 row.rank <= 3
-                                    ? 'text-amber-600'
+                                    ? 'text-amber-600 dark:text-amber-400'
                                     : 'text-muted-foreground',
                             ]"
                         >

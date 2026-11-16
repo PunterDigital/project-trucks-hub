@@ -51,7 +51,7 @@ defineProps<{
             class="flex flex-col gap-4 rounded-xl border border-amber-500/40 bg-amber-500/5 p-5 sm:flex-row sm:items-center"
             data-test="link-app-callout"
         >
-            <Link2 class="size-8 shrink-0 text-amber-600" />
+            <Link2 class="size-8 shrink-0 text-amber-600 dark:text-amber-400" />
             <div class="flex-1">
                 <h2 class="font-semibold">
                     Link ProjectTrucks to start syncing

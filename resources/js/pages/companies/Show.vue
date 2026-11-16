@@ -404,7 +404,8 @@ function leaveCompany() {
                                     {{ member.role }}
                                     <template v-if="member.on_the_road">
                                         ·
-                                        <span class="text-green-600"
+                                        <span
+                                            class="text-green-600 dark:text-green-400"
                                             >driving</span
                                         ></template
                                     >
@@ -444,7 +445,7 @@ function leaveCompany() {
                             <button
                                 v-if="canRemove(member)"
                                 type="button"
-                                class="text-xs text-red-600 hover:underline"
+                                class="text-xs text-red-600 hover:underline dark:text-red-400"
                                 @click="remove(member)"
                             >
                                 Remove
