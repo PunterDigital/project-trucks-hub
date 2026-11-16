@@ -13,9 +13,13 @@ class StorageItems extends TableWidget
 {
     public function table(Table $table): Table
     {
-        $files = config('cache.default') === 'file' && config('session.driver') === 'file'
+        $elsewhere = array_keys(array_filter(
+            ['cache' => config('cache.default'), 'sessions' => config('session.driver')],
+            fn ($store): bool => $store !== 'file',
+        ));
+        $files = $elsewhere === []
             ? ''
-            : ' The cache and sessions use the '.config('cache.default').' / '.config('session.driver').' store here, so their file folders stay small.';
+            : ' The '.implode(' and ', $elsewhere).' aren\'t kept in files here, so '.(count($elsewhere) === 1 ? 'that folder stays' : 'those folders stay').' small.';
 
         return $table
             ->heading('What takes the space')
