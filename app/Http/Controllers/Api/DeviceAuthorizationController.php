@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Admin\DailyStats;
 use App\Http\Controllers\Controller;
 use App\Models\DeviceAuthorization;
 use App\Notifications\HubNotice;
@@ -33,7 +34,9 @@ class DeviceAuthorizationController extends Controller
             'expires_at' => now()->addSeconds(DeviceAuthorization::LIFETIME_SECONDS),
         ]);
 
-        // Old attempts are no use to anyone.
+        // Old attempts are no use to anyone. Store the last two closed days first, so the admin
+        // dashboard keeps their link-request counts (#4665).
+        DailyStats::fill(now()->toImmutable()->subDays(2));
         DeviceAuthorization::query()->where('expires_at', '<', now()->subDay())->delete();
 
         $formatted = DeviceAuthorization::formatUserCode($userCode);

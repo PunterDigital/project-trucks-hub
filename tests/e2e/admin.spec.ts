@@ -46,6 +46,45 @@ test('staff open the panel from the user menu and every resource', async ({
         page.getByRole('heading', { name: 'Dashboard' }),
     ).toBeVisible();
 
+    // #4665: platform stats. Widgets load lazily, so wait on what they show.
+    await expect(page.getByText('Email sign-ups')).toBeVisible();
+    await expect(page.getByText('On the road now')).toBeVisible();
+    await expect(
+        page.getByText('Last 7 days, compared with the 7 days before'),
+    ).toBeVisible();
+    for (const chart of [
+        'Sign-ups per day',
+        'Jobs synced per day',
+        'Active drivers per day',
+        'ProjectTrucks link requests per day',
+    ]) {
+        await expect(page.getByRole('heading', { name: chart })).toBeVisible();
+    }
+    // The tables load once scrolled into view.
+    const flaggedHeading = page.getByRole('heading', {
+        name: 'Recently flagged jobs',
+    });
+    await expect(async () => {
+        await page.mouse.wheel(0, 2000);
+        await expect(flaggedHeading).toBeVisible({ timeout: 1000 });
+    }).toPass();
+    await expect(
+        page.getByRole('heading', { name: 'Most active drivers this week' }),
+    ).toBeVisible();
+    // Recent sign-ups lists seeded accounts (some are backdated, so no fixed name).
+    await expect(
+        page
+            .getByRole('heading', { name: 'Recent sign-ups' })
+            .locator('xpath=ancestor::*[.//table][1]')
+            .locator('tbody tr')
+            .first(),
+    ).toBeVisible();
+    await page.getByLabel('Period').selectOption('30');
+    await expect(
+        page.getByText('Last 30 days, compared with the 30 days before'),
+    ).toBeVisible();
+    await page.getByLabel('Period').selectOption('7');
+
     // Users: search by name, open the driver, revoke (none linked, still audited).
     await page.getByRole('link', { name: 'Users' }).first().click();
     await expect(page).toHaveURL(/\/admin\/users$/);

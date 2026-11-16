@@ -138,6 +138,28 @@ without a full build.
 - Resources live in `app/Filament/Resources/<Name>/`; `deliveries` is the "Jobs" resource
   (slug `jobs`). Hidden: use `getAttribute('hidden')`, as in the model.
 
+## Admin stats dashboard (#4665)
+
+- `App\Filament\Pages\Dashboard` (found by `discoverPages`, replaces Filament's own) with a
+  Period picker (7/30/90 days, `HasFiltersForm`); widgets in `app/Filament/Widgets` read it via
+  `InteractsWithPageFilters` → `Dashboard::days()`. Stat cards say "Up 12%" against the window
+  before; charts are `DailyChart` subclasses (Chart.js line, grid colour set for dark mode);
+  tables: most active drivers / companies this week (counted km since Monday 00:00 UTC),
+  recent sign-ups, recently flagged jobs (app flag or Hub flag). No polling on any widget.
+- Numbers come from `App\Admin\DailyStats`: one `daily_stats` row per closed UTC day and
+  metric (`METRICS`; add new ones at the end), today always live. Closed days are final.
+  `fill()` stores missing closed days (zeros before the first account without querying);
+  the dashboard calls it for its window on load, `hub:daily-stats` runs it at 00:05 (needs
+  the scheduler, #4762), and the migration ran it as the backfill. `--force` recomputes.
+- Link requests are pruned a day after they expire, so `DeviceAuthorizationController::code`
+  fills the last two days before pruning, or those counts would be lost without the scheduler.
+- Active drivers over a window are counted distinct live (`deliveries` index on
+  `created_at, user_id`), not summed from the daily rows. "Steam sign-up" = `steam_id` set when
+  the day was rolled up. "Drivers with a linked app" = distinct users with a Sanctum token, now.
+- E2E: `admin.spec.ts` checks the cards, chart headings and tables. The tables load lazily
+  when scrolled into view (`mouse.wheel` in `toPass`). Seeded accounts are partly backdated
+  (Tina a year), so don't assert a "newest sign-up" name.
+
 ## Moderation (#4651)
 
 - Reports: "Report" button (`components/hub/ReportButton.vue`) on driver, company and job
