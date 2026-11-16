@@ -211,6 +211,20 @@ without a full build.
   `daily` channel's rotated files go). Page buttons write `housekeeping.*` audit rows;
   `hub:prune` (00:25) runs all three without auditing.
 - Tests: `StoragePageTest` (fake public disk, temp folders for log and folder-size checks).
+- System → Data usage (`DataUsage`, slug `data-usage`): `App\Http\Middleware\RecordApiUsage`
+  wraps the whole `/api/v1` group and adds each request to the hour's `api_usage_stats` row
+  per endpoint (route name without `api.`): requests, bytes received, 429s, other errors, and
+  for `jobs.store` jobs synced / skipped (manual) / Hub-flagged / refused (every job in an
+  error batch), read from the JSON answer. No per-request rows, nothing about who sent it.
+  It is in the middleware **priority list** before `AuthenticatesRequests`
+  (`bootstrap/app.php`): Laravel sorts priority middleware (auth, throttle) ahead of a route
+  group's own, so without that 401s and 429s never reached it. A failing write is reported,
+  never thrown into the API answer (`App\Admin\ApiUsage`, same insertOrIgnore +
+  incrementEach as `queue_job_stats`).
+- Per-driver data: the top 20 by stored jobs; the size estimate is their share of the
+  `deliveries` table where its size is known (MySQL), "—" otherwise.
+- Test-client quirk: once a request with a Sanctum token has worked, later requests in the
+  same test stay signed in; send unauthenticated requests first (`DataUsagePageTest`).
 
 ## Moderation (#4651)
 

@@ -219,6 +219,27 @@ test('staff open the panel from the user menu and every resource', async ({
         .click();
     await expect(page.getByText(/Link requests pruned: \d+/)).toBeVisible();
 
+    // #4667: System → Data usage (API counters; sync.spec's traffic may come later).
+    await page.getByRole('link', { name: 'Data usage' }).first().click();
+    await expect(page).toHaveURL(/\/admin\/data-usage$/);
+    await expect(page.getByText('API requests', { exact: true })).toBeVisible();
+    await expect(page.getByText('Rate limited (429)')).toBeVisible();
+    await expect(
+        page.getByRole('heading', {
+            name: 'API requests per day, last 30 days (UTC)',
+        }),
+    ).toBeVisible();
+    const drivers = page.getByRole('heading', {
+        name: 'Data held per driver (top 20)',
+    });
+    await expect(async () => {
+        await page.mouse.wheel(0, 2000);
+        await expect(drivers).toBeVisible({ timeout: 1000 });
+    }).toPass();
+    await expect(
+        page.getByRole('heading', { name: 'Endpoints, last 7 days' }),
+    ).toBeVisible();
+
     await page.getByRole('link', { name: 'Scheduler' }).first().click();
     await expect(page).toHaveURL(/\/admin\/scheduler$/);
     await expect(page.getByText('Never run here')).toBeVisible();

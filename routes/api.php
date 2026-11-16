@@ -4,10 +4,12 @@ use App\Http\Controllers\Api\DeviceAuthorizationController;
 use App\Http\Controllers\Api\JobSyncController;
 use App\Http\Controllers\Api\LiveStatusController;
 use App\Http\Controllers\Api\MeController;
+use App\Http\Middleware\RecordApiUsage;
 use Illuminate\Support\Facades\Route;
 
-// The API ProjectTrucks uses. Documented in docs/api.md.
-Route::prefix('v1')->name('api.')->group(function () {
+// The API ProjectTrucks uses. Documented in docs/api.md. `RecordApiUsage` is outermost so
+// throttled and unauthenticated answers are counted too (admin Data usage page, #4667).
+Route::prefix('v1')->name('api.')->middleware(RecordApiUsage::class)->group(function () {
     Route::post('device/code', [DeviceAuthorizationController::class, 'code'])
         ->middleware('throttle:device-code')
         ->name('device.code');
