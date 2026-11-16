@@ -37,6 +37,11 @@ class RecentlyFlaggedJobs extends TableWidget
                     ->state(fn (Delivery $record): string => $record->hub_flag_reason !== null ? 'Hub' : 'App')
                     ->color(fn (string $state): string => $state === 'Hub' ? 'danger' : 'warning')
                     ->description(fn (Delivery $record): ?string => $record->hub_flag_reason ?? $record->flag_reason),
+                TextColumn::make('review_state')
+                    ->label('Review')
+                    ->badge()
+                    ->state(fn (Delivery $record): string => DeliveryResource::reviewLabel($record->reviewState()))
+                    ->color(fn (Delivery $record): string => DeliveryResource::reviewColor($record->reviewState())),
                 TextColumn::make('created_at')->label('Synced')->since()->dateTimeTooltip(),
             ]);
     }

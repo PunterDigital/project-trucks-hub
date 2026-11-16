@@ -130,7 +130,8 @@ A batch with any invalid job is refused whole (422, Laravel validation errors ke
         {
             "id": "7f1c…",
             "url": "https://hub.example/jobs/42",
-            "hub_flag_reason": null
+            "hub_flag_reason": null,
+            "review": null
         }
     ]
 }
@@ -142,7 +143,9 @@ Hub stored before is deleted. ProjectTrucks 0.10+ doesn't send them; older versi
 missing entry as synced without a link. `skipped` is `[]` when nothing was skipped.
 
 `hub_flag_reason` is set when the Hub's own checks flagged the job (see **What counts**); the
-app may ignore it. `hidden` (added for #4654) is whether the driver hid the job on the Hub,
+app may ignore it. `review` (added for #4743) is `"pending"` while a flagged job (by the app or
+the Hub) waits for staff, then `"approved"` or `"rejected"`; `null` for a job nothing flagged.
+`hidden` (added for #4654) is whether the driver hid the job on the Hub,
 from the app or on the job page; a re-sync never changes it.
 
 ### `PATCH /jobs/{id}`
@@ -203,7 +206,10 @@ All authenticated calls share 120 requests/min per account. A 429 carries `Retry
 ## What counts
 
 Stats and leaderboards count jobs with status `DELIVERED` or `LATE` that ProjectTrucks did not
-flag, the Hub's own checks did not flag, and the driver did not hide.
+flag, the Hub's own checks did not flag, and the driver did not hide. A flagged job is **pending
+review** (#4743): only its driver sees it until staff approve it (then it shows and counts like
+any other) or reject it (then it stays hidden and counts nowhere). Re-syncs never change the
+decision.
 
 The Hub re-checks every delivered or late job it receives (`config/anticheat.php`): average
 speed over 150 km/h per in-game hour (#4771: the game's odometer counts game kilometres, ~19 per

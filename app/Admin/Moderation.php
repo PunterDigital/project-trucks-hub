@@ -20,7 +20,10 @@ use RuntimeException;
  */
 class Moderation
 {
-    /** Prefix of a Hub flag set by staff rather than by {@see JobChecks}. */
+    /**
+     * Prefix of a Hub flag set by staff rather than by {@see JobChecks}, before staff flags
+     * became rejections (#4743, the migration converted them). Nothing writes it any more.
+     */
     public const STAFF_FLAG_PREFIX = 'Flagged by staff: ';
 
     public static function suspend(User $user, string $reason, ?User $staff = null): void
@@ -85,38 +88,48 @@ class Moderation
         self::refreshProgress($job);
     }
 
-    /** Marks the job as cheated: off stats and leaderboards, whatever the checks said. */
-    public static function flagJob(Delivery $job, string $reason, ?User $staff = null): void
+    /**
+     * Approves a flagged (or earlier rejected) job (#4743): it shows publicly and counts, the
+     * app's flag included. Re-syncs keep the decision and no longer run the Hub's checks on it.
+     */
+    public static function approveJob(Delivery $job, string $note, ?User $staff = null): void
     {
-        if ($job->hub_flag_reason !== null && str_starts_with($job->hub_flag_reason, self::STAFF_FLAG_PREFIX)) {
-            throw new RuntimeException('This job is already flagged by staff.');
+        $state = $job->reviewState();
+        if ($state === Delivery::REVIEW_APPROVED) {
+            throw new RuntimeException('This job is already approved.');
+        }
+        if ($state === null) {
+            throw new RuntimeException('This job isn’t waiting for a review.');
         }
 
-        $before = ['hub_flag_reason' => $job->hub_flag_reason, 'hub_held' => $job->hub_held];
+        self::review($job, Delivery::REVIEW_APPROVED, $note, $staff, 'job.approved');
+    }
+
+    /**
+     * Rejects a job (#4743; was "Flag as cheated"): only its driver sees it, with "Rejected by
+     * staff" and the reason, and it counts nowhere. Works on any job, flagged or not.
+     */
+    public static function rejectJob(Delivery $job, string $reason, ?User $staff = null): void
+    {
+        if ($job->review === Delivery::REVIEW_REJECTED) {
+            throw new RuntimeException('This job is already rejected.');
+        }
+
+        self::review($job, Delivery::REVIEW_REJECTED, $reason, $staff, 'job.rejected');
+    }
+
+    private static function review(Delivery $job, string $decision, string $note, ?User $staff, string $action): void
+    {
+        $before = ['review' => $job->reviewState(), 'review_note' => $job->review_note];
         $job->forceFill([
-            'hub_flag_reason' => self::STAFF_FLAG_PREFIX.$reason,
+            'review' => $decision,
+            'review_note' => $note,
+            'reviewed_at' => now(),
             'hub_held' => false,
             'staff_reviewed' => true,
         ])->save();
 
-        Audit::record('job.flagged', $job, $before, ['hub_flag_reason' => $job->hub_flag_reason], $staff);
-        self::refreshProgress($job);
-    }
-
-    /**
-     * Clears the Hub's flag (a staff flag, or a check the job was wrongly caught by). The job
-     * counts again, and re-syncs no longer run the checks on it. The app's own flag stays.
-     */
-    public static function clearJobFlag(Delivery $job, string $reason, ?User $staff = null): void
-    {
-        if ($job->hub_flag_reason === null) {
-            throw new RuntimeException('The Hub hasn’t flagged this job.');
-        }
-
-        $before = ['hub_flag_reason' => $job->hub_flag_reason, 'hub_held' => $job->hub_held];
-        $job->forceFill(['hub_flag_reason' => null, 'hub_held' => false, 'staff_reviewed' => true])->save();
-
-        Audit::record('job.flag_cleared', $job, $before, ['hub_flag_reason' => null, 'reason' => $reason], $staff);
+        Audit::record($action, $job, $before, ['review' => $decision, 'review_note' => $note], $staff);
         self::refreshProgress($job);
     }
 

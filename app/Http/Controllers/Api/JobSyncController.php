@@ -139,6 +139,8 @@ class JobSyncController extends Controller
                     'id' => $job['id'],
                     'url' => route('jobs.show', $delivery),
                     'hub_flag_reason' => $delivery->hub_flag_reason,
+                    // #4743: 'pending' until staff review a flagged job, then 'approved' / 'rejected'.
+                    'review' => $delivery->reviewState(),
                     // Not `$delivery->hidden`: that is Eloquent's own $hidden property.
                     'hidden' => (bool) $delivery->getAttribute('hidden'),
                 ];

@@ -79,7 +79,8 @@ class DriverController extends Controller
             ]);
 
         $jobs = $driver->deliveries()
-            ->when(! $isOwner, fn (Builder $q) => $q->where('hidden', false))
+            // Others see what the job page would show them: not hidden, not waiting for a review (#4743).
+            ->when(! $isOwner, fn (Builder $q) => $q->visibleTo($viewer))
             ->withReactions($viewer)
             ->latest('completed_at')
             ->paginate(20)

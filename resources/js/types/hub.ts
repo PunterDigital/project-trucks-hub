@@ -32,6 +32,8 @@ export type DriverProgress = {
 
 export type JobStatus = 'DELIVERED' | 'LATE' | 'CANCELLED';
 
+export type JobReview = 'pending' | 'approved' | 'rejected' | null;
+
 export type JobSummary = {
     id: number;
     source_city: string;
@@ -42,7 +44,8 @@ export type JobSummary = {
     distance_km: number;
     truck: string | null;
     status: JobStatus;
-    flagged: boolean;
+    // #4743: 'pending' / 'rejected' only ever reach the job's own driver.
+    review: JobReview;
     hidden: boolean;
     staff_hidden?: boolean;
     completed_at: string;

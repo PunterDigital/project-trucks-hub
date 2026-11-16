@@ -168,6 +168,12 @@ class ReportResource extends Resource
                     $item->flagged ? 'App: '.$item->flag_reason : null,
                     $item->hub_flag_reason !== null ? 'Hub: '.$item->hub_flag_reason : null,
                     $item->staff_hidden ? 'Hidden by staff' : null,
+                    match ($item->reviewState()) {
+                        Delivery::REVIEW_PENDING => 'Pending review',
+                        Delivery::REVIEW_APPROVED => 'Approved by staff',
+                        Delivery::REVIEW_REJECTED => 'Rejected by staff: '.$item->review_note,
+                        default => null,
+                    },
                 ])))->placeholder('None'),
             ],
             default => [

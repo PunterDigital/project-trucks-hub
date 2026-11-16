@@ -42,7 +42,7 @@ class DiscordWebhook
 
         if ($company === null || ! $company->discordActive()
             || ! in_array($job->status->value, DeliveryStatus::counted(), true)
-            || $job->isFlagged() || $job->getAttribute('hidden') || $job->staff_hidden
+            || ! $job->isCleared() || $job->getAttribute('hidden') || $job->staff_hidden
             || $job->user->isSuspended()
             || $job->completed_at->lt(now()->subHours(self::JOB_MAX_AGE_HOURS))) {
             return false;

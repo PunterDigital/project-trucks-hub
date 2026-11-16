@@ -214,7 +214,6 @@ class LinkPreview
         }
 
         $status = match (true) {
-            $job->isFlagged() => __('Flagged'),
             $job->status === DeliveryStatus::Late => __('Late'),
             $job->status === DeliveryStatus::Cancelled => __('Cancelled'),
             default => __('Delivered'),

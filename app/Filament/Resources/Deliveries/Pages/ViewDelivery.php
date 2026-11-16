@@ -41,27 +41,28 @@ class ViewDelivery extends ViewRecord
             )->icon(Heroicon::OutlinedEye)
                 ->visible(fn (Delivery $record): bool => $record->staff_hidden),
             ModerationAction::make(
-                name: 'flagJob',
+                name: 'approveJob',
                 model: Delivery::class,
-                label: 'Flag as cheated',
-                heading: 'Flag this job as cheated?',
-                description: 'It stays on the driver’s profile with a Flagged badge and your reason, but no longer counts towards stats or leaderboards. Re-syncs from the app don’t change it.',
-                done: 'Job flagged',
-                run: fn (Delivery $record, string $reason, ?User $staff) => Moderation::flagJob($record, $reason, $staff),
-                reasonLabel: 'Reason (shown on the job page)',
-            )->icon(Heroicon::OutlinedFlag)
-                ->visible(fn (Delivery $record): bool => ! str_starts_with((string) $record->hub_flag_reason, Moderation::STAFF_FLAG_PREFIX)),
-            ModerationAction::make(
-                name: 'clearFlag',
-                model: Delivery::class,
-                label: 'Clear Hub flag',
-                heading: 'Clear the Hub’s flag?',
-                description: 'The job counts again (unless the app flagged it too), and re-syncs no longer run the Hub’s checks on it.',
-                done: 'Flag cleared',
-                run: fn (Delivery $record, string $reason, ?User $staff) => Moderation::clearJobFlag($record, $reason, $staff),
-                color: 'gray',
+                label: 'Approve',
+                heading: 'Approve this job?',
+                description: 'It shows on the Hub and counts towards stats and leaderboards, even though it was flagged. Re-syncs from the app don’t change it, and the Hub’s checks don’t run on it again.',
+                done: 'Job approved',
+                run: fn (Delivery $record, string $reason, ?User $staff) => Moderation::approveJob($record, $reason, $staff),
+                color: 'success',
+                reasonLabel: 'Note (goes in the audit log)',
             )->icon(Heroicon::OutlinedCheckBadge)
-                ->visible(fn (Delivery $record): bool => $record->hub_flag_reason !== null),
+                ->visible(fn (Delivery $record): bool => in_array($record->reviewState(), [Delivery::REVIEW_PENDING, Delivery::REVIEW_REJECTED], true)),
+            ModerationAction::make(
+                name: 'rejectJob',
+                model: Delivery::class,
+                label: 'Reject',
+                heading: 'Reject this job?',
+                description: 'Only the driver still sees it, marked “Rejected by staff” with your reason. It counts nowhere, and re-syncs from the app don’t change it.',
+                done: 'Job rejected',
+                run: fn (Delivery $record, string $reason, ?User $staff) => Moderation::rejectJob($record, $reason, $staff),
+                reasonLabel: 'Reason (shown to the driver)',
+            )->icon(Heroicon::OutlinedNoSymbol)
+                ->visible(fn (Delivery $record): bool => $record->review !== Delivery::REVIEW_REJECTED),
         ];
     }
 }

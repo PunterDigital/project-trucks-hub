@@ -107,12 +107,14 @@ test('linking ProjectTrucks and syncing a job', async ({ page, request }) => {
         'Average speed over 150 km/h',
     );
 
-    // The flagged job says why and stays off the stats.
+    // The flagged job waits for a review (#4743): the driver sees why, nobody else sees it.
+    expect(syncedJobs[0].review).toBeNull();
+    expect(syncedJobs[1].review).toBe('pending');
     await page.goto(new URL(syncedJobs[1].url).pathname);
-    await expect(page.locator('[data-test="hub-flag"]')).toContainText(
-        "The Hub's checks flagged this job",
-    );
-    await expect(page.getByText('Flagged', { exact: true })).toBeVisible();
+    await expect(
+        page.locator('[data-test="review-pending-note"]'),
+    ).toContainText('Average speed over 150 km/h');
+    await expect(page.locator('[data-test="review-pending"]')).toBeVisible();
 
     const status = await request.put('/api/v1/status', {
         headers: auth,

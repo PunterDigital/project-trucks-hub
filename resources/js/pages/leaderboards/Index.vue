@@ -209,9 +209,9 @@ function asCompany(row: LeaderboardRow) {
         </div>
         <p class="text-xs text-muted-foreground">
             Counts delivered jobs only (on time or late). Cancelled jobs, jobs
-            flagged as implausible (by ProjectTrucks or the Hub's own checks),
-            hidden jobs and drivers with a private profile are left out. Weeks
-            start on Monday (UTC).
+            flagged as implausible (by ProjectTrucks or the Hub's own checks)
+            until staff have approved them, hidden jobs and drivers with a
+            private profile are left out. Weeks start on Monday (UTC).
         </p>
     </div>
 </template>
