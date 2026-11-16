@@ -343,6 +343,15 @@ class E2ESeeder extends Seeder
             'recruitment' => Recruitment::Apply,
         ])->members()->create(['user_id' => $dina->id, 'role' => CompanyRole::Owner]);
 
+        // Dark theme (#4658): Tina switches themes; her own account keeps the login throttle clear.
+        $tina = User::query()->create([
+            'name' => 'Tina Theme',
+            'email' => 'tina-theme@example.com',
+            'username' => 'tina-theme',
+            'password' => $password,
+        ]);
+        $tina->forceFill(['email_verified_at' => now(), 'password_set_at' => now(), 'created_at' => now()->subYear()])->save();
+
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');
     }

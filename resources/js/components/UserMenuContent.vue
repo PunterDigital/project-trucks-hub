@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { LogOut, Settings, ShieldCheck } from '@lucide/vue';
+import { LogOut, Moon, Settings, ShieldCheck, Sun } from '@lucide/vue';
+import { computed } from 'vue';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -8,6 +9,7 @@ import {
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import UserInfo from '@/components/UserInfo.vue';
+import { useAppearance } from '@/composables/useAppearance';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
@@ -21,6 +23,11 @@ const handleLogout = () => {
 };
 
 defineProps<Props>();
+
+// Light / Dark from the menu (#4658): one click away from every page. Settings → Appearance
+// has the third choice (System). The menu stays open so the change is seen at once.
+const { resolvedAppearance, updateAppearance } = useAppearance();
+const dark = computed(() => resolvedAppearance.value === 'dark');
 </script>
 
 <template>
@@ -47,6 +54,15 @@ defineProps<Props>();
                 <ShieldCheck class="mr-2 h-4 w-4" />
                 Admin
             </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+            class="cursor-pointer"
+            data-test="theme-toggle"
+            :data-theme="dark ? 'dark' : 'light'"
+            @select.prevent="updateAppearance(dark ? 'light' : 'dark')"
+        >
+            <component :is="dark ? Sun : Moon" class="mr-2 h-4 w-4" />
+            {{ dark ? 'Light mode' : 'Dark mode' }}
         </DropdownMenuItem>
     </DropdownMenuGroup>
     <DropdownMenuSeparator />

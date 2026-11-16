@@ -329,6 +329,41 @@ function focus(d: LiveDriver): void {
 }
 
 .hub-popup__muted {
-    color: #6b7280;
+    color: var(--muted-foreground);
+}
+
+/* Leaflet's own controls and popups are white whatever the theme (#4658). */
+.dark .hub-map .leaflet-bar a {
+    background: var(--card);
+    color: var(--foreground);
+    border-bottom-color: var(--border);
+}
+
+.dark .hub-map .leaflet-bar a:hover {
+    background: var(--accent);
+}
+
+.dark .hub-map .leaflet-bar a.leaflet-disabled {
+    background: var(--card);
+    color: var(--muted-foreground);
+}
+
+.dark .hub-map .leaflet-popup-content-wrapper,
+.dark .hub-map .leaflet-popup-tip {
+    background: var(--popover);
+    color: var(--popover-foreground);
+}
+
+.dark .hub-map a.leaflet-popup-close-button {
+    color: var(--muted-foreground);
+}
+
+.dark .hub-map .leaflet-control-attribution {
+    background: rgb(0 0 0 / 0.6);
+    color: var(--muted-foreground);
+}
+
+.dark .hub-map .leaflet-control-attribution a {
+    color: var(--foreground);
 }
 </style>

@@ -181,6 +181,10 @@ class AchievementsTest extends TestCase
 
     public function test_syncing_unlocks_and_rings_the_bell_once(): void
     {
+        // JobSyncTest::job() finished on Sat 14 Nov 2026. Stay inside that week: once it is a
+        // finished week, the only driver on the board also gets "Top ten" (failed from Nov 16).
+        $this->travelTo(CarbonImmutable::parse('2026-11-14 15:00', 'UTC'));
+
         $user = User::factory()->create();
         $token = $user->createToken('PT', ['sync'])->plainTextToken;
 
