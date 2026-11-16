@@ -268,16 +268,18 @@ class JobChecksTest extends TestCase
         $this->assertSame('Average speed over 60 km/h', $this->stored()->hub_flag_reason);
     }
 
-    public function test_the_job_page_shows_the_hub_flag(): void
+    public function test_the_job_page_shows_the_driver_why_it_waits_for_a_review(): void
     {
-        $this->sync([JobSyncTest::job(['declared_income' => 1_000_000])])->assertOk();
+        $this->sync([JobSyncTest::job(['declared_income' => 1_000_000])])
+            ->assertOk()
+            ->assertJsonPath('jobs.0.review', 'pending');
         $job = $this->stored();
 
         $this->get(route('jobs.show', $job))->assertOk()->assertInertia(fn ($page) => $page
             ->component('jobs/Show')
-            ->where('job.flagged', true)
-            ->where('job.flag_reason', null)
-            ->where('job.hub_flag_reason', 'Income too high for the distance')
-            ->where('job.hub_held', false));
+            ->where('job.review', 'pending')
+            ->where('job.review_reasons', ['Income too high for the distance'])
+            ->where('job.review_time', 'Reviews usually take no more than 12 hours.')
+            ->where('job.review_note', null));
     }
 }

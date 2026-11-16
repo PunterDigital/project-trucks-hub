@@ -49,6 +49,9 @@ use Illuminate\Support\Carbon;
  * @property bool $hidden
  * @property bool $staff_hidden
  * @property bool $staff_reviewed
+ * @property string|null $review null until staff review a flagged job (#4743): 'approved' or 'rejected'
+ * @property string|null $review_note
+ * @property Carbon|null $reviewed_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $user
@@ -64,6 +67,17 @@ class Delivery extends Model
 {
     /** @use HasFactory<DeliveryFactory> */
     use HasFactory;
+
+    /** Staff review of a flagged job (#4743), stored in `review`. */
+    public const REVIEW_APPROVED = 'approved';
+
+    public const REVIEW_REJECTED = 'rejected';
+
+    /** {@see self::reviewState()} for a flagged job nobody has reviewed yet. */
+    public const REVIEW_PENDING = 'pending';
+
+    /** Shown to the driver next to a pending job. */
+    public const REVIEW_TIME = 'Reviews usually take no more than 12 hours.';
 
     protected function casts(): array
     {
@@ -84,6 +98,7 @@ class Delivery extends Model
             'hidden' => 'boolean',
             'staff_hidden' => 'boolean',
             'staff_reviewed' => 'boolean',
+            'reviewed_at' => 'datetime',
         ];
     }
 
@@ -133,8 +148,9 @@ class Delivery extends Model
     }
 
     /**
-     * Jobs `$viewer` may see: their own, plus everyone else's that aren't hidden and whose
-     * driver is public or in the viewer's company.
+     * Jobs `$viewer` may see: their own, plus everyone else's that aren't hidden, aren't
+     * waiting for (or failed) a staff review (#4743), and whose driver is public or in the
+     * viewer's company.
      *
      * @param  Builder<Delivery>  $query
      * @return Builder<Delivery>
@@ -151,6 +167,7 @@ class Delivery extends Model
             $q->orWhere(function (Builder $q) use ($companyId) {
                 $q->where('deliveries.hidden', false)
                     ->where('deliveries.staff_hidden', false)
+                    ->where(self::clearedConstraint())
                     ->whereHas('user', function (Builder $u) use ($companyId) {
                         $u->whereNull('suspended_at')->where(function (Builder $u) use ($companyId) {
                             $u->where('profile_private', false);
@@ -165,9 +182,35 @@ class Delivery extends Model
     }
 
     /**
-     * Jobs that count towards stats and leaderboards: delivered (on time or late), not flagged
-     * by ProjectTrucks' sanity check, the Hub's own checks ({@see JobChecks}) or staff, not
-     * hidden (by the driver or by staff), and not from a suspended driver (#4651).
+     * Flagged jobs nobody on staff has looked at yet (#4743): the admin's "Pending review" tab.
+     *
+     * @param  Builder<Delivery>  $query
+     * @return Builder<Delivery>
+     */
+    public function scopePendingReview(Builder $query): Builder
+    {
+        return $query->whereNull('deliveries.review')
+            ->where(fn (Builder $q) => $q->where('deliveries.flagged', true)->orWhereNotNull('deliveries.hub_flag_reason'));
+    }
+
+    /**
+     * Not held back by a review (#4743): approved by staff, or never flagged (by ProjectTrucks'
+     * sanity check or the Hub's own checks, {@see JobChecks}) and not rejected.
+     *
+     * @return Closure(Builder<Delivery>): Builder<Delivery>
+     */
+    private static function clearedConstraint(): Closure
+    {
+        return fn (Builder $q) => $q->where('deliveries.review', self::REVIEW_APPROVED)
+            ->orWhere(fn (Builder $q) => $q->whereNull('deliveries.review')
+                ->where('deliveries.flagged', false)
+                ->whereNull('deliveries.hub_flag_reason'));
+    }
+
+    /**
+     * Jobs that count towards stats and leaderboards: delivered (on time or late), not held
+     * back by a review (flagged and not approved, or rejected by staff, #4743), not hidden (by
+     * the driver or by staff), and not from a suspended driver (#4651).
      *
      * @param  Builder<Delivery>  $query
      * @return Builder<Delivery>
@@ -196,8 +239,7 @@ class Delivery extends Model
     private static function applyCounted(Builder $query, bool $skipSuspended = true): Builder
     {
         $query->whereIn('deliveries.status', DeliveryStatus::counted())
-            ->where('deliveries.flagged', false)
-            ->whereNull('deliveries.hub_flag_reason')
+            ->where(self::clearedConstraint())
             ->where('deliveries.hidden', false)
             ->where('deliveries.staff_hidden', false);
 
@@ -231,8 +273,8 @@ class Delivery extends Model
             'distance_km' => $this->distance_km,
             'truck' => $this->truckName(),
             'status' => $this->status->value,
-            // Flagged by the app or by the Hub: either way it doesn't count.
-            'flagged' => $this->isFlagged(),
+            // Pending / rejected only ever reach the driver: everyone else can't see such a job.
+            'review' => $this->reviewState(),
             // Not `$this->hidden`: inside the model that is Eloquent's own $hidden property.
             'hidden' => (bool) $this->getAttribute('hidden'),
             'staff_hidden' => $this->staff_hidden,
@@ -246,9 +288,48 @@ class Delivery extends Model
         ];
     }
 
+    /** Flagged by the app or by the Hub's checks, whatever staff decided since. */
     public function isFlagged(): bool
     {
         return $this->flagged || $this->hub_flag_reason !== null;
+    }
+
+    /**
+     * Where the job stands with staff (#4743): 'pending' (flagged, not reviewed yet),
+     * 'approved', 'rejected', or null when it was never flagged nor rejected.
+     */
+    public function reviewState(): ?string
+    {
+        return match (true) {
+            $this->review === self::REVIEW_APPROVED, $this->review === self::REVIEW_REJECTED => $this->review,
+            $this->isFlagged() => self::REVIEW_PENDING,
+            default => null,
+        };
+    }
+
+    /** Not held back by a review: the same rule as the visibility and counted scopes. */
+    public function isCleared(): bool
+    {
+        return in_array($this->reviewState(), [null, self::REVIEW_APPROVED], true);
+    }
+
+    /**
+     * Why the job is waiting for a review, in the driver's words: the app's and the Hub's
+     * reasons. Empty when nothing flagged it.
+     *
+     * @return list<string>
+     */
+    public function flagReasons(): array
+    {
+        $reasons = [];
+        if ($this->flagged) {
+            $reasons[] = $this->flag_reason ?? __('ProjectTrucks flagged it');
+        }
+        if ($this->hub_flag_reason !== null) {
+            array_push($reasons, ...explode('; ', $this->hub_flag_reason));
+        }
+
+        return array_values(array_unique($reasons));
     }
 
     public function truckName(): ?string

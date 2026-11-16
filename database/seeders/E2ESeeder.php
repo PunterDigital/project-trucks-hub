@@ -363,6 +363,36 @@ class E2ESeeder extends Seeder
             'failed_at' => now()->subHour(),
         ]);
 
+        // Pending review (#4743): Rhea's job was flagged by the Hub's checks; Ray (staff, own 2FA
+        // secret) approves it. Short and five days old, so it tops no feed or board once approved.
+        foreach ([['Rhea Review', 'rhea-review'], ['Ray Reviewer', 'ray-reviewer']] as [$name, $username]) {
+            $user = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+            ]);
+            $user->forceFill(['email_verified_at' => now(), 'password_set_at' => now(), 'created_at' => now()->subYear()])->save();
+        }
+        User::query()->where('username', 'ray-reviewer')->firstOrFail()->forceFill([
+            'is_staff' => true,
+            'two_factor_secret' => encrypt('KRSXG5CTMVRXEZLUKRSXG5CTMVRXEZLU'),
+            'two_factor_recovery_codes' => encrypt((string) json_encode(['e2e-recovery-code-ray'])),
+            'two_factor_confirmed_at' => now(),
+        ])->save();
+        $reviewDone = now('UTC')->subDays(5)->setTime(14, 0);
+        Delivery::factory()->for(User::query()->where('username', 'rhea-review')->firstOrFail())->create([
+            'source_city' => 'Groningen',
+            'dest_city' => 'Bremen',
+            'cargo_name' => 'Potatoes',
+            'distance_km' => 40,
+            'income' => 1200,
+            'duration_sec' => 3600,
+            'avg_speed_kmh' => 40,
+            'started_at' => $reviewDone->copy()->subHour(),
+            'completed_at' => $reviewDone,
+        ])->forceFill(['hub_flag_reason' => 'Average speed over 150 km/h'])->save();
+
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');
     }

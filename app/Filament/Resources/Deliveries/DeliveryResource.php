@@ -26,7 +26,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Synced jobs (`deliveries`) in the admin panel (#4664): read-only, with the filters staff
- * need to find one. "Flagged" means flagged by the app or by the Hub's own checks.
+ * need to find one. "Flagged" means flagged by the app or by the Hub's own checks; such a job
+ * waits under "Pending review" until staff approve or reject it (#4743).
  */
 class DeliveryResource extends Resource
 {
@@ -45,6 +46,44 @@ class DeliveryResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->with(['user', 'company']);
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $pending = Delivery::query()->pendingReview()->count();
+
+        return $pending > 0 ? (string) $pending : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Jobs waiting for a review';
+    }
+
+    /** Badge text for {@see Delivery::reviewState()}. */
+    public static function reviewLabel(?string $state): string
+    {
+        return match ($state) {
+            Delivery::REVIEW_PENDING => 'Pending review',
+            Delivery::REVIEW_APPROVED => 'Approved',
+            Delivery::REVIEW_REJECTED => 'Rejected',
+            default => '—',
+        };
+    }
+
+    public static function reviewColor(?string $state): string
+    {
+        return match ($state) {
+            Delivery::REVIEW_PENDING => 'warning',
+            Delivery::REVIEW_APPROVED => 'success',
+            Delivery::REVIEW_REJECTED => 'danger',
+            default => 'gray',
+        };
     }
 
     public static function canCreate(): bool
@@ -91,12 +130,11 @@ class DeliveryResource extends Resource
                         DeliveryStatus::Late => 'warning',
                         DeliveryStatus::Cancelled => 'gray',
                     }),
-                IconColumn::make('is_flagged')
-                    ->label('Flagged')
-                    ->state(fn (Delivery $record): bool => $record->isFlagged())
-                    ->boolean()
-                    ->trueColor('danger')
-                    ->falseColor('gray'),
+                TextColumn::make('review_state')
+                    ->label('Review')
+                    ->state(fn (Delivery $record): string => self::reviewLabel($record->reviewState()))
+                    ->badge()
+                    ->color(fn (Delivery $record): string => self::reviewColor($record->reviewState())),
                 IconColumn::make('is_hidden')
                     ->label('Hidden')
                     // Not `$record->hidden` inside the model: that is Eloquent's $hidden array.
@@ -190,6 +228,12 @@ class DeliveryResource extends Resource
                 ->schema([
                     TextEntry::make('flag_reason')->label('App flag')->placeholder('—'),
                     TextEntry::make('hub_flag_reason')->label('Hub flag')->placeholder('—'),
+                    TextEntry::make('review_state')->label('Review')
+                        ->state(fn (Delivery $record): string => self::reviewLabel($record->reviewState()))
+                        ->badge()
+                        ->color(fn (Delivery $record): string => self::reviewColor($record->reviewState())),
+                    TextEntry::make('review_note')->label('Review note')->placeholder('—'),
+                    TextEntry::make('reviewed_at')->label('Reviewed')->dateTime()->placeholder('—'),
                     IconEntry::make('hub_held')->label('Held by the rate check')->boolean(),
                     IconEntry::make('is_hidden')->label('Hidden by the driver')
                         ->state(fn (Delivery $record): bool => (bool) $record->getAttribute('hidden'))

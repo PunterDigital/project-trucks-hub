@@ -246,9 +246,9 @@ without a full build.
       the map, the driver board, company member lists, and `counted` (their jobs don't count
       anywhere until lifted). Their profile is a 404, not the "private profile" page.
     - Jobs: Hide / Unhide (`deliveries.staff_hidden`: the driver still sees it with a note and
-      can't show it again), Flag as cheated (`hub_flag_reason` = the reason after
-      `Moderation::STAFF_FLAG_PREFIX`; the job page says staff flagged it), Clear Hub flag. Both
-      flag actions set `staff_reviewed`, and `JobSyncController` skips `JobChecks` on them.
+      can't show it again), Approve / Reject (see **Pending review** below; they replaced
+      "Flag as cheated" and "Clear Hub flag"). Both set `staff_reviewed`, and
+      `JobSyncController` skips `JobChecks` on them.
     - Companies: Reset name and description (name/tag/slug → "Company 12"/"C12"/"company-12",
       description, logo and banner removed), Remove member (never the owner).
 - E2E (`moderation.spec.ts`): rex-report reports troll-tom; mo-mod (staff, its own TOTP
@@ -256,6 +256,29 @@ without a full build.
   `logInWithTotp` (`tests/e2e/totp.ts`) waits for the next 30 s window before a second
   sign-in with the same secret. Filament's form modal labels end in "*": find fields with
   `getByRole('textbox', { name: /^Reason/ })`, `getByLabel(/^Reason/)` never matched.
+
+## Pending review (#4743)
+
+- A job flagged by the app (`flagged`) or the Hub's checks (`hub_flag_reason`) is **pending
+  review** until staff decide: `deliveries.review` null → `approved` / `rejected`, with
+  `review_note` and `reviewed_at`. `Delivery::reviewState()` gives pending / approved / rejected
+  / null; `isCleared()` = null or approved. The flag columns stay as the record of what fired.
+- "Cleared" is part of both `scopeVisibleTo` (other viewers) and `counted`: a pending or rejected
+  job shows only to its driver (job page, profile list, feeds, company page, link previews) and
+  counts nowhere. Approved jobs show and count even with the app's flag. Discord posts only
+  cleared jobs; one approved later isn't posted.
+- Driver's view: `JobStatusBadge` "Pending review" / "Rejected"; the job page says why
+  (`review_reasons`, `Delivery::REVIEW_TIME` "Reviews usually take no more than 12 hours.") or
+  shows the rejection note. Summaries carry `review` instead of the old `flagged`.
+- Admin → Jobs: "Pending review" tab + amber nav badge (count), "Rejected" tab, Review column.
+  `Moderation::approveJob` (only pending or rejected jobs) / `rejectJob` (any job not already
+  rejected) write `job.approved` / `job.rejected` to the audit log and refresh levels.
+- The sync API answers `review` per job (additive, `docs/api.md`).
+- The migration turned old staff flags (`Moderation::STAFF_FLAG_PREFIX`) into rejections;
+  nothing writes the prefix any more. No notification goes to the driver on a decision.
+- E2E (`review.spec.ts`): Rhea Review's seeded Hub-flagged job; Ray Reviewer (staff, own TOTP
+  secret) approves it. The admin Jobs nav link is now "Jobs 1" while anything is pending: match
+  it by prefix.
 
 ## Notifications (#4643)
 

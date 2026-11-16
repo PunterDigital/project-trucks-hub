@@ -124,7 +124,7 @@ class AchievementsTest extends TestCase
         Progress::refresh($user->refresh(), notify: false);
         $this->assertContains('long_haul_1500', $this->keys($user));
 
-        Moderation::flagJob($job, 'Teleported');
+        Moderation::rejectJob($job, 'Teleported');
 
         $this->assertSame([], $this->keys($user));
         $this->assertSame(1, $user->refresh()->level);

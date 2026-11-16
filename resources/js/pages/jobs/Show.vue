@@ -36,9 +36,9 @@ const props = defineProps<{
         damage: number | null;
         started_at: string;
         source: 'TELEMETRY' | 'MANUAL';
-        flag_reason: string | null;
-        hub_flag_reason: string | null;
-        hub_held: boolean;
+        review_reasons: string[];
+        review_note: string | null;
+        review_time: string;
         game: string;
         company: CompanySummary | null;
     };
@@ -58,9 +58,6 @@ function deleteComment(comment: JobComment) {
         { preserveScroll: true },
     );
 }
-
-// Same prefix as App\Admin\Moderation::STAFF_FLAG_PREFIX (#4651).
-const STAFF_FLAG = 'Flagged by staff: ';
 
 function toggleHidden() {
     router.patch(
@@ -91,7 +88,7 @@ function toggleHidden() {
                 <div class="flex flex-wrap items-center gap-2">
                     <JobStatusBadge
                         :status="job.status"
-                        :flagged="job.flagged"
+                        :review="job.review"
                         :hidden="job.hidden"
                     />
                     <KudosButton
@@ -128,34 +125,33 @@ function toggleHidden() {
             Hub staff hid this job. Only you can see it, and it doesn't count
             towards stats or leaderboards.
         </p>
-        <p
-            v-if="job.flag_reason"
-            class="rounded-lg border border-red-500/40 bg-red-500/5 p-3 text-sm"
-            data-test="app-flag"
+        <div
+            v-if="job.review === 'pending'"
+            class="space-y-1 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm"
+            data-test="review-pending-note"
         >
-            ProjectTrucks flagged this job ({{ job.flag_reason }}), so it
-            doesn't count towards stats or leaderboards.
-        </p>
-        <p
-            v-if="job.hub_flag_reason"
-            class="rounded-lg border border-red-500/40 bg-red-500/5 p-3 text-sm"
-            data-test="hub-flag"
+            <p class="font-medium">Pending review</p>
+            <p>
+                This job was flagged ({{ job.review_reasons.join('; ') }}), so
+                Hub staff will check it. Until then only you can see it, and it
+                doesn't count towards stats or leaderboards.
+            </p>
+            <p class="text-muted-foreground">{{ job.review_time }}</p>
+        </div>
+        <div
+            v-else-if="job.review === 'rejected'"
+            class="space-y-1 rounded-lg border border-red-500/40 bg-red-500/5 p-3 text-sm"
+            data-test="review-rejected-note"
         >
-            <template v-if="job.hub_flag_reason.startsWith(STAFF_FLAG)">
-                Hub staff flagged this job ({{
-                    job.hub_flag_reason.slice(STAFF_FLAG.length)
-                }}), so it doesn't count towards stats or leaderboards.
-            </template>
-            <template v-else-if="job.hub_held">
-                The Hub is holding this job for review ({{
-                    job.hub_flag_reason
-                }}). Until then it doesn't count towards stats or leaderboards.
-            </template>
-            <template v-else>
-                The Hub's checks flagged this job ({{ job.hub_flag_reason }}),
-                so it doesn't count towards stats or leaderboards.
-            </template>
-        </p>
+            <p class="font-medium">Rejected by staff</p>
+            <p>
+                <template v-if="job.review_note"
+                    >{{ job.review_note }}.
+                </template>
+                Only you can see this job, and it doesn't count towards stats or
+                leaderboards.
+            </p>
+        </div>
 
         <div class="grid gap-4 lg:grid-cols-3">
             <Panel title="Delivery" class="lg:col-span-2">

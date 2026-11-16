@@ -297,35 +297,48 @@ class ModerationTest extends TestCase
         $this->assertSame(1, Delivery::query()->counted()->count());
     }
 
-    public function test_staff_flag_a_job_as_cheated_and_clear_it(): void
+    public function test_staff_reject_a_job_and_approve_it_again(): void
     {
         $staff = $this->staff();
         $job = Delivery::factory()->create();
 
         $this->actingAs($staff);
         Livewire::test(ViewDelivery::class, ['record' => $job->getKey()])
-            ->callAction('flagJob', data: ['reason' => 'Teleported'])
-            ->assertNotified('Job flagged');
+            ->assertActionHidden('approveJob')
+            ->callAction('rejectJob', data: ['reason' => 'Teleported'])
+            ->assertNotified('Job rejected');
 
         $job->refresh();
-        $this->assertSame(Moderation::STAFF_FLAG_PREFIX.'Teleported', $job->hub_flag_reason);
+        $this->assertSame(Delivery::REVIEW_REJECTED, $job->review);
+        $this->assertSame('Teleported', $job->review_note);
         $this->assertTrue($job->staff_reviewed);
         $this->assertSame(0, Delivery::query()->counted()->count());
-        $this->get(route('jobs.show', $job))->assertInertia(fn ($page) => $page
-            ->where('job.hub_flag_reason', 'Flagged by staff: Teleported')
-            ->where('job.flagged', true));
+        // Staff aren't the driver: a rejected job is a 404 to them on the site too.
+        $this->get(route('jobs.show', $job))->assertNotFound();
+        $this->actingAs($job->user)->get(route('jobs.show', $job))->assertInertia(fn ($page) => $page
+            ->where('job.review', 'rejected')
+            ->where('job.review_note', 'Teleported'));
 
+        $this->actingAs($staff);
         Livewire::test(ViewDelivery::class, ['record' => $job->getKey()])
-            ->assertActionHidden('flagJob')
-            ->callAction('clearFlag', data: ['reason' => 'Checked the replay'])
-            ->assertNotified('Flag cleared');
+            ->assertActionHidden('rejectJob')
+            ->callAction('approveJob', data: ['reason' => 'Checked the replay'])
+            ->assertNotified('Job approved');
 
-        $this->assertNull($job->refresh()->hub_flag_reason);
+        $this->assertSame(Delivery::REVIEW_APPROVED, $job->refresh()->review);
         $this->assertSame(1, Delivery::query()->counted()->count());
         $this->assertSame(2, AdminAuditLog::query()->where('target_id', $job->id)->where('target_type', 'Delivery')->count());
     }
 
-    public function test_a_cleared_check_flag_stays_cleared_on_re_sync(): void
+    public function test_a_job_nothing_flagged_cant_be_approved(): void
+    {
+        $job = Delivery::factory()->create();
+
+        $this->expectExceptionMessage('This job isn’t waiting for a review.');
+        Moderation::approveJob($job, 'Fine', $this->staff());
+    }
+
+    public function test_an_approved_check_flag_stays_approved_on_re_sync(): void
     {
         $driver = User::factory()->create();
         $token = $driver->createToken('ProjectTrucks', ['sync'])->plainTextToken;
@@ -338,11 +351,15 @@ class ModerationTest extends TestCase
         $job = Delivery::query()->where('user_id', $driver->id)->firstOrFail();
         $this->assertNotNull($job->hub_flag_reason, 'the checks should flag this job');
 
-        Moderation::clearJobFlag($job, 'Checked, fine', $this->staff());
+        $this->assertSame(0, Delivery::query()->counted()->count());
+
+        Moderation::approveJob($job, 'Checked, fine', $this->staff());
 
         // The app sends it again: staff's decision stands.
-        $this->withToken($token)->postJson(route('api.jobs.store'), ['jobs' => [$implausible]])->assertOk();
-        $this->assertNull($job->refresh()->hub_flag_reason);
+        $this->withToken($token)->postJson(route('api.jobs.store'), ['jobs' => [$implausible]])
+            ->assertOk()
+            ->assertJsonPath('jobs.0.review', 'approved');
+        $this->assertSame(Delivery::REVIEW_APPROVED, $job->refresh()->review);
         $this->assertSame(1, Delivery::query()->counted()->count());
     }
 

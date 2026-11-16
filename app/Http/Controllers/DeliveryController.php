@@ -49,9 +49,10 @@ class DeliveryController extends Controller
                 'damage' => $delivery->damage,
                 'started_at' => $delivery->started_at->toIso8601String(),
                 'source' => $delivery->source,
-                'flag_reason' => $delivery->flagged ? $delivery->flag_reason : null,
-                'hub_flag_reason' => $delivery->hub_flag_reason,
-                'hub_held' => $delivery->hub_held,
+                // #4743: only the driver ever sees a pending or rejected job, with why.
+                'review_reasons' => $delivery->reviewState() === Delivery::REVIEW_PENDING ? $delivery->flagReasons() : [],
+                'review_note' => $delivery->reviewState() === Delivery::REVIEW_REJECTED ? $delivery->review_note : null,
+                'review_time' => Delivery::REVIEW_TIME,
                 'game' => $delivery->game,
                 'company' => $delivery->company?->summary(),
             ],

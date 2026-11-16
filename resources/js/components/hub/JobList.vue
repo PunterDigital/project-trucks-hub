@@ -75,7 +75,7 @@ withDefaults(
                 </div>
                 <JobStatusBadge
                     :status="job.status"
-                    :flagged="job.flagged"
+                    :review="job.review"
                     :hidden="job.hidden"
                 />
                 <div class="text-right tabular-nums">
