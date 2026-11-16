@@ -186,6 +186,39 @@ test('staff open the panel from the user menu and every resource', async ({
     await expect(page.getByText('Failed job forgotten')).toBeVisible();
     await expect(page.getByText('No failed jobs')).toBeVisible();
 
+    // #4667: System → Storage, and one housekeeping button through its confirmation.
+    await page.getByRole('link', { name: 'Storage' }).first().click();
+    await expect(page).toHaveURL(/\/admin\/storage$/);
+    await expect(page.getByText('Free space')).toBeVisible();
+    await expect(page.getByText('Disk used')).toBeVisible();
+    await expect(
+        page.getByRole('heading', { name: 'Storage, last 30 days (MB)' }),
+    ).toBeVisible();
+    const items = page.getByRole('heading', { name: 'What takes the space' });
+    await expect(async () => {
+        await page.mouse.wheel(0, 2000);
+        await expect(items).toBeVisible({ timeout: 1000 });
+    }).toPass();
+    await expect(
+        page.locator('tbody tr').filter({ hasText: 'Profile pictures' }),
+    ).toBeVisible();
+    await expect(
+        page.locator('tbody tr').filter({ hasText: 'Compiled views' }),
+    ).toBeVisible();
+    await page.mouse.wheel(0, -4000);
+    const pruneHeading = page.getByRole('heading', {
+        name: 'Prune expired link requests?',
+    });
+    await expect(async () => {
+        await page.getByRole('button', { name: 'Prune link requests' }).click();
+        await expect(pruneHeading).toBeVisible({ timeout: 2000 });
+    }).toPass();
+    await page
+        .getByRole('alertdialog')
+        .getByRole('button', { name: 'Confirm' })
+        .click();
+    await expect(page.getByText(/Link requests pruned: \d+/)).toBeVisible();
+
     await page.getByRole('link', { name: 'Scheduler' }).first().click();
     await expect(page).toHaveURL(/\/admin\/scheduler$/);
     await expect(page.getByText('Never run here')).toBeVisible();
