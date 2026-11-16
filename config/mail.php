@@ -115,4 +115,22 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Markdown Mail Settings
+    |--------------------------------------------------------------------------
+    |
+    | Every Hub email (Fortify's verify / reset and HubNotice) renders with the
+    | Hub theme in resources/views/vendor/mail (#4661).
+    |
+    */
+
+    'markdown' => [
+        'theme' => 'hub',
+
+        'paths' => [
+            resource_path('views/vendor/mail'),
+        ],
+    ],
+
 ];
