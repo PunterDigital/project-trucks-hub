@@ -2,7 +2,9 @@
 
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RecordApiUsage;
 use App\Http\Middleware\SignOutSuspended;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -22,6 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'ability' => CheckForAnyAbility::class,
         ]);
+
+        // API usage counters (#4667) must wrap auth and throttling to count 401s and 429s.
+        // Laravel sorts every middleware in its priority list ahead of the route group's
+        // others, so it has to be in that list itself.
+        $middleware->prependToPriorityList(before: AuthenticatesRequests::class, prepend: RecordApiUsage::class);
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
