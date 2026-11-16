@@ -43,6 +43,8 @@ class AdminPanelTest extends TestCase
             'jobs' => ['/admin/jobs'],
             'audit log' => ['/admin/audit-log'],
             'reports' => ['/admin/reports'],
+            'database' => ['/admin/database'],
+            'scheduler' => ['/admin/scheduler'],
         ];
     }
 

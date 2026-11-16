@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Admin\SchedulerStatus;
 use App\Auth\SteamProvider;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -9,6 +10,9 @@ use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Console\Events\ScheduledTaskFailed;
+use Illuminate\Console\Events\ScheduledTaskFinished;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Date;
@@ -49,6 +53,16 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(Authenticated::class, function (Authenticated $event): void {
             configureScope(fn (Scope $scope) => $scope->setUser(['id' => $event->user->getAuthIdentifier()]));
         });
+
+        // Scheduler status for the admin panel (#4666): a heartbeat each time cron starts
+        // `schedule:run`, and each scheduled task's last run.
+        Event::listen(CommandStarting::class, function (CommandStarting $event): void {
+            if ($event->command === 'schedule:run') {
+                SchedulerStatus::beat();
+            }
+        });
+        Event::listen(ScheduledTaskFinished::class, fn (ScheduledTaskFinished $event) => SchedulerStatus::record($event->task, $event->task->exitCode === 0 || $event->task->exitCode === null, $event->runtime));
+        Event::listen(ScheduledTaskFailed::class, fn (ScheduledTaskFailed $event) => SchedulerStatus::record($event->task, false, $event->runtime));
     }
 
     /**
