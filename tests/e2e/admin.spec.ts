@@ -133,5 +133,29 @@ test('staff open the panel from the user menu and every resource', async ({
     await expect(row.first()).toContainText('Sam Staff');
     await expect(row.first()).toContainText('Olga');
 
+    // #4666: System → Database and Scheduler. E2E runs no scheduler, so it says so.
+    await page.getByRole('link', { name: 'Database' }).first().click();
+    await expect(page).toHaveURL(/\/admin\/database$/);
+    await expect(page.getByText('Total size')).toBeVisible();
+    await expect(page.getByText('SQLite', { exact: true })).toBeVisible();
+    await expect(
+        page.getByRole('heading', { name: 'Database size, last 30 days (MB)' }),
+    ).toBeVisible();
+    const tables = page.getByRole('heading', { name: 'Tables', exact: true });
+    await expect(async () => {
+        await page.mouse.wheel(0, 2000);
+        await expect(tables).toBeVisible({ timeout: 1000 });
+    }).toPass();
+    await expect(
+        page.locator('tbody tr').filter({ hasText: 'deliveries' }).first(),
+    ).toBeVisible();
+
+    await page.getByRole('link', { name: 'Scheduler' }).first().click();
+    await expect(page).toHaveURL(/\/admin\/scheduler$/);
+    await expect(page.getByText('Never run here')).toBeVisible();
+    await expect(
+        page.getByText('No scheduled task has run on this server yet'),
+    ).toBeVisible();
+
     expect(consoleErrors).toEqual([]);
 });

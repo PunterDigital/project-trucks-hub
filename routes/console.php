@@ -15,3 +15,6 @@ Schedule::command('hub:progress --notify')->weeklyOn(1, '00:15')->withoutOverlap
 // The admin dashboard's daily rollups for the day that just closed (#4665). Without the
 // scheduler the dashboard fills missing days itself when it loads.
 Schedule::command('hub:daily-stats')->dailyAt('00:05')->withoutOverlapping();
+
+// The admin Database page's per-table sizes (#4666). The page also takes one when it opens.
+Schedule::command('hub:db-snapshot')->dailyAt('00:10')->withoutOverlapping();

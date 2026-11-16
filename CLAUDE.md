@@ -160,6 +160,26 @@ without a full build.
   when scrolled into view (`mouse.wheel` in `toPass`). Seeded accounts are partly backdated
   (Tina a year), so don't assert a "newest sign-up" name.
 
+## System pages (#4666)
+
+- Admin nav group "System": `App\Filament\Pages\Database` and `Scheduler` (widgets in
+  `app/Filament/Widgets`, custom-data tables via `->records()`). The Queue page is part 2.
+- `App\Admin\DatabaseStats`: MySQL/MariaDB read `information_schema.TABLES` (rows are InnoDB's
+  estimate; uptime and `Threads_connected` from `SHOW GLOBAL STATUS`). Other drivers use
+  `Schema::getTables()` (size only where SQLite has `dbstat`: Windows PHP's doesn't, so
+  locally sizes are "—" and growth is in rows) plus `COUNT(*)`. Never a host or credentials.
+- `db_table_snapshots`: one row per day and table, `table_name` '*' = whole database.
+  `hub:db-snapshot` (00:10) or opening the Database page stores today's once. Growth = now vs
+  the latest snapshot on or before 7 / 30 days ago ("—" until there is one).
+- Checked against MySQL 8.4 in Docker (`php:8.4-cli` + `docker-php-ext-install pdo_mysql` on a
+  private network; migrations, sizes, uptime, snapshots, growth all worked).
+- `App\Admin\SchedulerStatus`: a heartbeat in the cache each time `schedule:run` starts
+  (`CommandStarting` listener in `AppServiceProvider`), and each task's last run from
+  `ScheduledTaskFinished` / `ScheduledTaskFailed`. Red after 10 minutes without a heartbeat.
+  Laravel doesn't turn Symfony's command events into `CommandStarting` under unit tests, so
+  `$this->artisan('schedule:run')` never beats: the test dispatches the event itself.
+- E2E has no scheduler: the page says "Never run here".
+
 ## Moderation (#4651)
 
 - Reports: "Report" button (`components/hub/ReportButton.vue`) on driver, company and job
