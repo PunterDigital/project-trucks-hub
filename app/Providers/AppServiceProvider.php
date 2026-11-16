@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Admin\QueueStats;
 use App\Admin\SchedulerStatus;
 use App\Auth\SteamProvider;
 use App\Models\User;
@@ -15,6 +16,9 @@ use Illuminate\Console\Events\ScheduledTaskFailed;
 use Illuminate\Console\Events\ScheduledTaskFinished;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -63,6 +67,11 @@ class AppServiceProvider extends ServiceProvider
         });
         Event::listen(ScheduledTaskFinished::class, fn (ScheduledTaskFinished $event) => SchedulerStatus::record($event->task, $event->task->exitCode === 0 || $event->task->exitCode === null, $event->runtime));
         Event::listen(ScheduledTaskFailed::class, fn (ScheduledTaskFailed $event) => SchedulerStatus::record($event->task, false, $event->runtime));
+
+        // Queue throughput and run times for the admin Queue page (#4666).
+        Event::listen(JobProcessing::class, fn (JobProcessing $event) => QueueStats::started($event->connectionName, $event->job));
+        Event::listen(JobProcessed::class, fn (JobProcessed $event) => QueueStats::finished($event->connectionName, $event->job, failed: false));
+        Event::listen(JobFailed::class, fn (JobFailed $event) => QueueStats::finished($event->connectionName, $event->job, failed: true));
     }
 
     /**
