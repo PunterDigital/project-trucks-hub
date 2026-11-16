@@ -192,6 +192,26 @@ without a full build.
   `$this->artisan('schedule:run')` never beats: the test dispatches the event itself.
 - E2E has no scheduler: the page says "Never run here".
 
+## Storage and housekeeping (#4667)
+
+- System → Storage (`App\Filament\Pages\Storage`, slug `storage`): `App\Admin\StorageStats`
+  measures the disk holding `storage/` (`disk_total_space` / `disk_free_space`; "low" = under
+  10% or 5 GB free, also a red "Low" nav badge), each upload folder on the public disk
+  (avatars, logos, banners, `og` cards), `storage/logs`, the framework's cache / sessions /
+  views folders and the database (`DatabaseStats::totalBytes()`). `.gitignore` placeholders
+  aren't counted. Cache and sessions use the database store here, so those folders stay tiny.
+- `storage_snapshots`: one row per day and item (`ITEMS` keys + `disk_total` / `disk_free`).
+  `hub:storage-snapshot` (00:20) or opening the page stores today's once. The chart shows
+  uploads / database / logs in MB with disk used on a right-hand axis; growth = now vs the
+  latest snapshot on or before 30 days ago.
+- `App\Admin\Housekeeping`: prune link requests expired over a day (rolls up the last two
+  days' stats first; `DeviceAuthorizationController::code` calls the same method), prune live
+  statuses not updated for 24 h (only fresh ones are ever shown), delete `*.log` files last
+  written over 14 days ago (the `single` channel's `laravel.log` is never that old: only the
+  `daily` channel's rotated files go). Page buttons write `housekeeping.*` audit rows;
+  `hub:prune` (00:25) runs all three without auditing.
+- Tests: `StoragePageTest` (fake public disk, temp folders for log and folder-size checks).
+
 ## Moderation (#4651)
 
 - Reports: "Report" button (`components/hub/ReportButton.vue`) on driver, company and job
