@@ -368,6 +368,18 @@ that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec`
 - `auto-refresh.spec.ts` drives the minute with `page.clock` and fakes `document.visibilityState`;
   `rita-refresh@example.com` renames herself in a second context.
 
+## Dark theme (#4658)
+
+- The starter kit's `useAppearance` (cookie + localStorage, class on `<html>`, rendered by the
+  server from the cookie) drives it: Settings → Appearance has Light / Dark / System, the user
+  menu has a Light/Dark toggle (`data-test="theme-toggle"`, the menu stays open).
+- `color-scheme` is set with the tokens in `app.css`, so native controls (checkbox, file
+  button, date picker, scrollbars) follow. New status colours need a `dark:` partner
+  (`text-green-600 dark:text-green-400`); `-500` accents and the slate hero panels work in both.
+- Leaflet's controls and popups are styled under `.dark .hub-map` in `map/Index.vue`.
+- The Filament admin panel has its own theme switch and isn't touched by this.
+- E2E (`appearance.spec.ts`): Tina Theme; checks the painted background, not only the class.
+
 ## Quirks
 
 - The starter kit's `bunny()` font build step was removed (a font download during a Forge
