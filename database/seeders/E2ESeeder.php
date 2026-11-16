@@ -12,6 +12,7 @@ use App\Support\LatestRelease;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -351,6 +352,16 @@ class E2ESeeder extends Seeder
             'password' => $password,
         ]);
         $tina->forceFill(['email_verified_at' => now(), 'password_set_at' => now(), 'created_at' => now()->subYear()])->save();
+
+        // Admin Queue page (#4666): one failed job for staff to forget.
+        DB::table('failed_jobs')->insert([
+            'uuid' => '6f1c0d5e-4666-4e2e-9a77-000000004666',
+            'connection' => 'database',
+            'queue' => 'default',
+            'payload' => json_encode(['uuid' => '6f1c0d5e-4666-4e2e-9a77-000000004666', 'displayName' => 'App\Jobs\PostToDiscord', 'job' => 'Illuminate\Queue\CallQueuedHandler@call', 'data' => []]),
+            'exception' => "Illuminate\\Http\\Client\\ConnectionException: Discord took too long to answer\nStack trace:\n#0 {main}",
+            'failed_at' => now()->subHour(),
+        ]);
 
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');

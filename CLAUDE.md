@@ -162,8 +162,20 @@ without a full build.
 
 ## System pages (#4666)
 
-- Admin nav group "System": `App\Filament\Pages\Database` and `Scheduler` (widgets in
-  `app/Filament/Widgets`, custom-data tables via `->records()`). The Queue page is part 2.
+- Admin nav group "System": `App\Filament\Pages\Database`, `Queue` and `Scheduler` (widgets
+  in `app/Filament/Widgets`, custom-data tables via `->records()`).
+- `App\Admin\QueueStats`: waiting / running jobs per queue from the database queue's `jobs`
+  table ("worker looks down" once a due job has waited over 5 minutes). Throughput and run
+  times are written by the worker: `JobProcessing` / `JobProcessed` / `JobFailed` listeners
+  (`AppServiceProvider`) add to the hour's row in `queue_job_stats` (job class + queue). Jobs
+  on the `sync` connection (bell rows, E2E's whole queue) aren't counted. A failing stats
+  write is reported, never thrown into the job.
+- Failed jobs: `App\Models\FailedJob` (read-only model over `failed_jobs`; `name` = payload
+  `displayName`, also the audit label). Retry / Forget call `queue:retry` / `queue:forget`
+  and write `queue.job_retried` / `queue.job_forgotten` to the audit log first.
+- Tests: `Tests\Support\QueueProbeJob` on the `database` connection + `queue:work --once`
+  fires the real worker events. E2ESeeder adds one failed `PostToDiscord` that
+  `admin.spec.ts` forgets; that spec walks every admin page, so it has a 90 s timeout.
 - `App\Admin\DatabaseStats`: MySQL/MariaDB read `information_schema.TABLES` (rows are InnoDB's
   estimate; uptime and `Threads_connected` from `SHOW GLOBAL STATUS`). Other drivers use
   `Schema::getTables()` (size only where SQLite has `dbstat`: Windows PHP's doesn't, so

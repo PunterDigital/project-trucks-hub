@@ -37,6 +37,8 @@ test('staff open the panel from the user menu and every resource', async ({
     page,
     consoleErrors,
 }) => {
+    // Walks every admin page (#4664–#4666): more than the default 30 s on a slow machine.
+    test.setTimeout(90_000);
     await logInAsStaff(page);
 
     await page.locator('[data-test="sidebar-menu-button"]').click();
@@ -46,8 +48,11 @@ test('staff open the panel from the user menu and every resource', async ({
         page.getByRole('heading', { name: 'Dashboard' }),
     ).toBeVisible();
 
-    // #4665: platform stats. Widgets load lazily, so wait on what they show.
-    await expect(page.getByText('Email sign-ups')).toBeVisible();
+    // #4665: platform stats. Widgets load lazily, so wait on what they show. The first
+    // load also stores the missing daily rollups, which can take a while on a slow machine.
+    await expect(page.getByText('Email sign-ups')).toBeVisible({
+        timeout: 15_000,
+    });
     await expect(page.getByText('On the road now')).toBeVisible();
     await expect(
         page.getByText('Last 7 days, compared with the 7 days before'),
@@ -149,6 +154,37 @@ test('staff open the panel from the user menu and every resource', async ({
     await expect(
         page.locator('tbody tr').filter({ hasText: 'deliveries' }).first(),
     ).toBeVisible();
+
+    // Queue: the seeded failed Discord post, forgotten through the confirmation.
+    await page.getByRole('link', { name: 'Queue' }).first().click();
+    await expect(page).toHaveURL(/\/admin\/queue$/);
+    await expect(page.getByText('Worker', { exact: true })).toBeVisible();
+    await expect(
+        page.getByRole('heading', {
+            name: 'Jobs per hour, last 48 hours (UTC)',
+        }),
+    ).toBeVisible();
+    const failedRow = page
+        .locator('tbody tr')
+        .filter({ hasText: 'Discord took too long to answer' });
+    await expect(async () => {
+        await page.mouse.wheel(0, 2000);
+        await expect(failedRow).toBeVisible({ timeout: 1000 });
+    }).toPass();
+    await expect(failedRow).toContainText('PostToDiscord');
+    const forgetHeading = page.getByRole('heading', {
+        name: 'Forget this failed job?',
+    });
+    await expect(async () => {
+        await failedRow.getByRole('button', { name: 'Forget' }).click();
+        await expect(forgetHeading).toBeVisible({ timeout: 2000 });
+    }).toPass();
+    await page
+        .getByRole('alertdialog')
+        .getByRole('button', { name: 'Confirm' })
+        .click();
+    await expect(page.getByText('Failed job forgotten')).toBeVisible();
+    await expect(page.getByText('No failed jobs')).toBeVisible();
 
     await page.getByRole('link', { name: 'Scheduler' }).first().click();
     await expect(page).toHaveURL(/\/admin\/scheduler$/);
