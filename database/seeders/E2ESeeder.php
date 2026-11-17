@@ -416,6 +416,52 @@ class E2ESeeder extends Seeder
             'completed_at' => $fredDone,
         ]);
 
+        // Company goals (#4649): Gina owns Goal Getters and sets this month's targets; Gus drives
+        // for it. Both profiles are private so their jobs stay off the public feed and boards
+        // (other specs expect other rows first); Gina sees them as company mates.
+        foreach ([['Gina Goals', 'gina-goals'], ['Gus Goals', 'gus-goals']] as [$name, $username]) {
+            $user = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+                'profile_private' => true,
+            ]);
+            $user->forceFill(['email_verified_at' => now(), 'password_set_at' => now(), 'created_at' => now()->subYear()])->save();
+        }
+        $gina = User::query()->where('username', 'gina-goals')->firstOrFail();
+        $gus = User::query()->where('username', 'gus-goals')->firstOrFail();
+        $goalGetters = Company::query()->create([
+            'name' => 'Goal Getters',
+            'slug' => 'goal-getters',
+            'tag' => 'GOAL',
+            'description' => 'Hitting targets since November.',
+            'recruitment' => Recruitment::Closed,
+        ]);
+        $goalGetters->members()->create(['user_id' => $gina->id, 'role' => CompanyRole::Owner]);
+        $goalGetters->members()->create(['user_id' => $gus->id, 'role' => CompanyRole::Driver]);
+        $monthStart = now('UTC')->startOfMonth();
+        // This month (an hour ago, or just after the month began on its first hour).
+        $thisMonth = now('UTC')->subHour()->max($monthStart->copy()->addMinutes(2));
+        $lastMonth = $monthStart->copy()->subDays(3)->setTime(12, 0);
+        foreach ([[$gina, 40, $thisMonth, 'Lille'], [$gus, 20, $thisMonth->copy()->subMinute(), 'Gent'], [$gina, 40, $lastMonth, 'Brugge']] as [$driver, $km, $done, $city]) {
+            Delivery::factory()->for($driver)->create([
+                'company_id' => $goalGetters->id,
+                'source_city' => 'Calais',
+                'dest_city' => $city,
+                'cargo_name' => 'Goal posts',
+                'distance_km' => $km,
+                'income' => $km * 30,
+                'duration_sec' => (int) ($km / 40 * 3600),
+                'avg_speed_kmh' => 40,
+                'started_at' => $done->copy()->subSeconds((int) ($km / 40 * 3600)),
+                'completed_at' => $done,
+            ]);
+        }
+        $lastKey = $monthStart->copy()->subMonth()->format('Y-m');
+        $goalGetters->goals()->create(['month' => $lastKey, 'metric' => 'distance_km', 'target' => 30]);
+        $goalGetters->goals()->create(['month' => $lastKey, 'metric' => 'deliveries', 'target' => 5]);
+
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');
     }

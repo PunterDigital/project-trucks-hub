@@ -42,9 +42,11 @@ test('a guest browses the feed, drivers, companies and leaderboards', async ({
     ).toBeVisible();
     await page.getByRole('link', { name: 'Companies' }).last().click();
     await expect(page).toHaveURL(/board=companies/);
-    await expect(page.locator('[data-test="leaderboard-row"]')).toContainText(
-        'Nordic Haulage',
-    );
+    await expect(
+        page.locator('[data-test="leaderboard-row"]', {
+            hasText: 'Nordic Haulage',
+        }),
+    ).toBeVisible();
 });
 
 test('registration asks for a username and lower-cases it', async ({

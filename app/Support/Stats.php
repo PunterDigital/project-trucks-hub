@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Delivery;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -17,10 +18,25 @@ final class Stats
      */
     public static function totals(Builder $deliveries, Period $period = Period::All): array
     {
+        return self::totalsBetween($deliveries, $period->start());
+    }
+
+    /**
+     * Totals for jobs completed in [$from, $until) (either end open when null).
+     *
+     * @param  Builder<Delivery>  $deliveries
+     * @return array{distance_km: float, deliveries: int, income: int}
+     */
+    public static function totalsBetween(Builder $deliveries, ?CarbonImmutable $from, ?CarbonImmutable $until = null): array
+    {
         $query = $deliveries->clone()->counted();
 
-        if ($start = $period->start()) {
-            $query->where('deliveries.completed_at', '>=', $start);
+        if ($from) {
+            $query->where('deliveries.completed_at', '>=', $from);
+        }
+
+        if ($until) {
+            $query->where('deliveries.completed_at', '<', $until);
         }
 
         $row = $query->toBase()

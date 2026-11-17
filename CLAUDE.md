@@ -523,6 +523,22 @@ that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec`
 - `PendingReviewTest` rolls back its migration by `--path`: a `--step 1` rollback broke as
   soon as a newer migration existed.
 
+## Company goals (#4649)
+
+- `company_goals` (company, `month` = UTC "YYYY-MM" string, `metric` = `distance_km` |
+  `deliveries` | `income` (`CompanyGoal::METRICS`, the `Stats::totals` keys), `target`), unique
+  per company + month + metric, cascades with the company. Progress is never stored.
+- `App\Support\CompanyGoals`: `setTargets()` replaces the **current** month's targets (a blank
+  box deletes that goal); `forPage()` gives the company page `goals` = this month's goals with
+  progress from `Stats::totalsBetween()` (counted jobs in the UTC month), each member's share
+  (private drivers "Private driver" as on the members list, jobs by drivers who left summed as
+  "Former members"), and up to 12 past months with goals as hit / missed.
+- `PUT companies/{slug}/goals` (`CompanyGoalController`, owners/managers, 20/min). Every company
+  is public, so goals and shares are too. The panel ("Monthly goals", `components/hub/
+  CompanyGoals.vue`) hides for outsiders when there's nothing to show.
+- Tests freeze the clock mid-month (`CompanyGoalTest`). E2E (`goals.spec.ts`): Gina Goals owns
+  Goal Getters; both members are private so their this-month jobs stay off the public feed.
+
 ## Quirks
 
 - The starter kit's `bunny()` font build step was removed (a font download during a Forge
