@@ -6,6 +6,7 @@ import CargoChart from '@/components/hub/CargoChart.vue';
 import CompanyLogo from '@/components/hub/CompanyLogo.vue';
 import DistanceChart from '@/components/hub/DistanceChart.vue';
 import DriverAvatar from '@/components/hub/DriverAvatar.vue';
+import FollowButton from '@/components/hub/FollowButton.vue';
 import JobList from '@/components/hub/JobList.vue';
 import OnTheRoad from '@/components/hub/OnTheRoad.vue';
 import Pagination from '@/components/hub/Pagination.vue';
@@ -36,6 +37,7 @@ const props = defineProps<{
         private: boolean;
     };
     isOwner: boolean;
+    follow: { followers: number; following: number; is_following: boolean };
     stats: PeriodTotals;
     onTime: number | null;
     trucks: { name: string; deliveries: number; distance_km: number }[];
@@ -119,6 +121,16 @@ const unlockedCount = computed(
                         >{{ formatKm(progress.next_level_km) }}</span
                     >
                 </div>
+                <p class="text-sm" data-test="follow-counts">
+                    <span class="font-semibold tabular-nums">{{
+                        follow.followers
+                    }}</span>
+                    {{ follow.followers === 1 ? 'follower' : 'followers' }} ·
+                    <span class="font-semibold tabular-nums">{{
+                        follow.following
+                    }}</span>
+                    following
+                </p>
                 <p
                     v-if="driver.company"
                     class="flex flex-wrap items-center gap-1.5 text-sm"
@@ -145,6 +157,11 @@ const unlockedCount = computed(
                 class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:underline"
                 >Steam profile <ExternalLink class="size-3.5"
             /></a>
+            <FollowButton
+                v-if="signedIn && !isOwner"
+                :username="driver.username!"
+                :following="follow.is_following"
+            />
             <ReportButton
                 v-if="signedIn && !isOwner"
                 type="driver"

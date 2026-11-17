@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -47,6 +48,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property string|null $home_feed
  * @property-read CompanyMember|null $membership
  * @property-read LiveStatus|null $liveStatus
  */
@@ -149,6 +151,48 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
     public function liveStatus(): HasOne
     {
         return $this->hasOne(LiveStatus::class);
+    }
+
+    /**
+     * Drivers this one follows (#4647). A follow of someone they can no longer see (a private
+     * driver who left their company) stays stored but counts nowhere: use {@see followingCount()}
+     * and `visibleTo()` on the followed side.
+     *
+     * @return BelongsToMany<User, $this>
+     */
+    public function following(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'followed_id')->withTimestamps();
+    }
+
+    /** @return BelongsToMany<User, $this> */
+    public function followers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'follows', 'followed_id', 'follower_id')->withTimestamps();
+    }
+
+    public function isFollowing(User $driver): bool
+    {
+        return $this->following()->whereKey($driver->id)->exists();
+    }
+
+    /** Follows that are live: drivers this one can still see. */
+    public function followingCount(): int
+    {
+        return $this->following()->visibleTo($this)->count();
+    }
+
+    /** Followers who can still see this driver (all of them, unless the profile is private). */
+    public function followerCount(): int
+    {
+        $companyId = $this->companyId();
+
+        return $this->followers()
+            ->whereNull('users.suspended_at')
+            ->when($this->profile_private, fn (Builder $q) => $companyId === null
+                ? $q->whereRaw('1 = 0')
+                : $q->whereHas('membership', fn (Builder $m) => $m->where('company_id', $companyId)))
+            ->count();
     }
 
     /**

@@ -11,6 +11,7 @@ use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\DeliveryReactionController;
 use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\DriverController;
+use App\Http\Controllers\FollowController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LegalController;
@@ -95,6 +96,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->whereNumber('delivery')->middleware('throttle:10,1')->name('jobs.comments.store');
     Route::delete('jobs/{delivery}/comments/{comment}', [DeliveryReactionController::class, 'deleteComment'])
         ->whereNumber(['delivery', 'comment'])->middleware('throttle:30,1')->name('jobs.comments.destroy');
+
+    // Following drivers (#4647).
+    Route::post('drivers/{driver:username}/follow', [FollowController::class, 'store'])
+        ->middleware('throttle:60,1')->name('drivers.follow');
+    Route::delete('drivers/{driver:username}/follow', [FollowController::class, 'destroy'])
+        ->middleware('throttle:60,1')->name('drivers.unfollow');
 
     Route::get('companies/create', [CompanyController::class, 'create'])->name('companies.create');
     Route::post('companies', [CompanyController::class, 'store'])->name('companies.store');

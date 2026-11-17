@@ -98,6 +98,12 @@ class DriverController extends Controller
                 'private' => $driver->profile_private,
             ],
             'isOwner' => $isOwner,
+            // Follows (#4647): counts for everyone, the toggle's state for a signed-in viewer.
+            'follow' => [
+                'followers' => $driver->followerCount(),
+                'following' => $driver->followingCount(),
+                'is_following' => $viewer !== null && ! $isOwner && $viewer->isFollowing($driver),
+            ],
             'stats' => [
                 'week' => Stats::totals($deliveries, Period::Week),
                 'month' => Stats::totals($deliveries, Period::Month),
