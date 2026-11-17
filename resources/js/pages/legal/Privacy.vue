@@ -72,6 +72,12 @@ defineOptions({
                 comments you write on jobs, with when you wrote them.
             </li>
             <li>
+                <strong>Follows:</strong> the drivers you follow and when you
+                started, and which home feed tab you last picked. Profiles show
+                only how many followers a driver has and how many drivers they
+                follow, not who.
+            </li>
+            <li>
                 <strong>Events:</strong> events you create for your company and
                 your answers (going, maybe, not going). Anyone can see who is
                 going to an event, except drivers with a private profile, who
@@ -195,8 +201,9 @@ defineOptions({
             download everything we hold about you as a file, or delete all your
             synced jobs and keep your account. Deleting your account (Settings →
             Profile) removes your profile, jobs, live status, linked apps,
-            company memberships, applications, kudos and comments straight away.
-            Deleting a job also removes the kudos and comments on it.
+            company memberships, applications, kudos, comments and follows
+            straight away. Deleting a job also removes the kudos and comments on
+            it.
         </p>
 
         <h2>Questions</h2>

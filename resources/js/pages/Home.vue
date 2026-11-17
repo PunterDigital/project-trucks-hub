@@ -8,7 +8,7 @@ import OnTheRoad from '@/components/hub/OnTheRoad.vue';
 import Panel from '@/components/hub/Panel.vue';
 import { Button } from '@/components/ui/button';
 import { formatCount, formatKm } from '@/lib/format';
-import { dashboard, leaderboards, register } from '@/routes';
+import { dashboard, home, leaderboards, register } from '@/routes';
 import type {
     DriverSummary,
     JobSummary,
@@ -22,6 +22,8 @@ defineProps<{
     steamEnabled: boolean;
     totals: Totals & { drivers: number; companies: number };
     onTheRoad: LiveSummary[];
+    feed: Feed;
+    feeds: Feed[];
     latest: JobSummary[];
     topDrivers: LeaderboardRow[];
     downloadUrl: string;
@@ -29,6 +31,20 @@ defineProps<{
 
 const page = usePage();
 const signedIn = computed(() => page.props.auth.user !== null);
+
+// Latest deliveries tabs (#4647): Everyone / Following / My company, remembered per driver.
+type Feed = 'everyone' | 'following' | 'company';
+const FEED_LABELS: Record<Feed, string> = {
+    everyone: 'Everyone',
+    following: 'Following',
+    company: 'My company',
+};
+const FEED_EMPTY: Record<Feed, string> = {
+    everyone: 'No deliveries yet. Link ProjectTrucks and yours could be first.',
+    following:
+        'No deliveries from drivers you follow yet. Follow drivers from their profile.',
+    company: 'No deliveries from your company yet.',
+};
 </script>
 
 <template>
@@ -118,10 +134,31 @@ const signedIn = computed(() => page.props.auth.user !== null);
                 description="Jobs drivers have just finished"
                 class="lg:col-span-2"
             >
-                <JobList
-                    :jobs="latest"
-                    empty="No deliveries yet. Link ProjectTrucks and yours could be first."
-                />
+                <template v-if="feeds.length > 1" #actions>
+                    <div
+                        role="tablist"
+                        aria-label="Whose deliveries"
+                        class="flex shrink-0 gap-1 rounded-lg bg-muted p-1"
+                        data-test="home-feed-tabs"
+                    >
+                        <Link
+                            v-for="f in feeds"
+                            :key="f"
+                            :href="home({ query: { feed: f } })"
+                            role="tab"
+                            :aria-selected="feed === f"
+                            preserve-scroll
+                            :class="[
+                                'rounded-md px-3 py-1 text-sm whitespace-nowrap',
+                                feed === f
+                                    ? 'bg-background font-medium shadow-sm'
+                                    : 'text-muted-foreground',
+                            ]"
+                            >{{ FEED_LABELS[f] }}</Link
+                        >
+                    </div>
+                </template>
+                <JobList :jobs="latest" :empty="FEED_EMPTY[feed]" />
             </Panel>
 
             <div class="flex flex-col gap-4">

@@ -393,6 +393,29 @@ class E2ESeeder extends Seeder
             'completed_at' => $reviewDone,
         ])->forceFill(['hub_flag_reason' => 'Average speed over 150 km/h'])->save();
 
+        // Follows (#4647): Fay follows Fred from his profile and reads the Following tab.
+        foreach ([['Fay Follower', 'fay-follower'], ['Fred Followed', 'fred-followed']] as [$name, $username]) {
+            $user = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+            ]);
+            $user->forceFill(['email_verified_at' => now(), 'password_set_at' => now(), 'created_at' => now()->subYear()])->save();
+        }
+        $fredDone = now('UTC')->subDays(6)->setTime(10, 0);
+        Delivery::factory()->for(User::query()->where('username', 'fred-followed')->firstOrFail())->create([
+            'source_city' => 'Bergen',
+            'dest_city' => 'Trondheim',
+            'cargo_name' => 'Salmon',
+            'distance_km' => 40,
+            'income' => 1500,
+            'duration_sec' => 3600,
+            'avg_speed_kmh' => 40,
+            'started_at' => $fredDone->copy()->subHour(),
+            'completed_at' => $fredDone,
+        ]);
+
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');
     }
