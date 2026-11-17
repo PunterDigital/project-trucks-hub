@@ -109,6 +109,37 @@ export type PeriodTotals = {
     all: Totals;
 };
 
+/** Company goals (#4649). */
+export type GoalMetric = keyof Totals;
+
+export type CompanyGoals = {
+    month: string;
+    current: {
+        metric: GoalMetric;
+        target: number;
+        progress: number;
+        percent: number;
+        contributors: {
+            driver: {
+                name: string;
+                username: string | null;
+                avatar: string | null;
+            };
+            value: number;
+            percent: number;
+        }[];
+    }[];
+    history: {
+        month: string;
+        goals: {
+            metric: GoalMetric;
+            target: number;
+            achieved: number;
+            hit: boolean;
+        }[];
+    }[];
+};
+
 export type PaginationLink = {
     url: string | null;
     label: string;

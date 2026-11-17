@@ -2,6 +2,7 @@
 import { Form, Head, Link, router } from '@inertiajs/vue3';
 import { CalendarPlus, Settings } from '@lucide/vue';
 import { computed } from 'vue';
+import CompanyGoals from '@/components/hub/CompanyGoals.vue';
 import CompanyLogo from '@/components/hub/CompanyLogo.vue';
 import DistanceChart from '@/components/hub/DistanceChart.vue';
 import DriverAvatar from '@/components/hub/DriverAvatar.vue';
@@ -25,6 +26,7 @@ import { show as showDriver } from '@/routes/drivers';
 import { create as createEvent } from '@/routes/companies/events';
 import type {
     ChartSeries,
+    CompanyGoals as Goals,
     CompanyRole,
     CompanySummary,
     EventSummary,
@@ -62,6 +64,7 @@ const props = defineProps<{
     onTheRoad: LiveSummary[];
     latest: JobSummary[];
     events: EventSummary[];
+    goals: Goals;
     applications: {
         id: number;
         message: string | null;
@@ -351,6 +354,11 @@ function leaveCompany() {
                         empty="No upcoming events."
                     />
                 </Panel>
+                <CompanyGoals
+                    :goals="goals"
+                    :slug="company.slug"
+                    :can-manage="canManage"
+                />
                 <Panel title="Company stats">
                     <StatGrid :stats="stats" />
                 </Panel>

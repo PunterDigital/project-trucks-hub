@@ -14,6 +14,7 @@ use App\Models\CompanyMember;
 use App\Models\Delivery;
 use App\Models\User;
 use App\Support\Charts;
+use App\Support\CompanyGoals;
 use App\Support\Feed;
 use App\Support\ImageStore;
 use App\Support\LinkPreview;
@@ -176,6 +177,8 @@ class CompanyController extends Controller
                 ->map(fn (CompanyEvent $e) => $e->summary())
                 ->values()
                 ->all(),
+            // Company goals (#4649): this month's targets, contributions and past months.
+            'goals' => CompanyGoals::forPage($company, $viewer, $role),
             'applications' => $role?->canManage()
                 ? $company->pendingApplications()->with('user')->oldest()->get()->map(fn (CompanyApplication $a) => [
                     'id' => $a->id,

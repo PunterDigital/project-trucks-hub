@@ -111,6 +111,12 @@ class Company extends Model
         return $this->hasMany(CompanyEvent::class);
     }
 
+    /** @return HasMany<CompanyGoal, $this> */
+    public function goals(): HasMany
+    {
+        return $this->hasMany(CompanyGoal::class);
+    }
+
     /** @return HasMany<CompanyApplication, $this> */
     public function pendingApplications(): HasMany
     {
