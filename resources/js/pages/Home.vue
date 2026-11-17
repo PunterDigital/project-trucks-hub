@@ -40,8 +40,7 @@ const FEED_LABELS: Record<Feed, string> = {
     company: 'My company',
 };
 const FEED_EMPTY: Record<Feed, string> = {
-    everyone:
-        'No deliveries yet. Link ProjectTrucks and yours could be first.',
+    everyone: 'No deliveries yet. Link ProjectTrucks and yours could be first.',
     following:
         'No deliveries from drivers you follow yet. Follow drivers from their profile.',
     company: 'No deliveries from your company yet.',

@@ -134,7 +134,10 @@ class PendingReviewTest extends TestCase
 
     public function test_the_migration_turns_staff_flags_into_rejections(): void
     {
-        $this->artisan('migrate:rollback', ['--step' => 1])->assertSuccessful();
+        // Just this migration, not "the last one": later migrations are added after it.
+        $this->artisan('migrate:rollback', [
+            '--path' => 'database/migrations/2026_11_16_200000_add_review_to_deliveries_table.php',
+        ])->assertSuccessful();
         $staffFlagged = Delivery::factory()->create();
         $checkFlagged = Delivery::factory()->create();
         DB::table('deliveries')->where('id', $staffFlagged->id)->update(['hub_flag_reason' => Moderation::STAFF_FLAG_PREFIX.'Teleported', 'staff_reviewed' => true]);

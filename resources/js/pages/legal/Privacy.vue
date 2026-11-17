@@ -202,8 +202,8 @@ defineOptions({
             synced jobs and keep your account. Deleting your account (Settings →
             Profile) removes your profile, jobs, live status, linked apps,
             company memberships, applications, kudos, comments and follows
-            straight away.
-            Deleting a job also removes the kudos and comments on it.
+            straight away. Deleting a job also removes the kudos and comments on
+            it.
         </p>
 
         <h2>Questions</h2>

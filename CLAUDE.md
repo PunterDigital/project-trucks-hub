@@ -506,6 +506,23 @@ that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec`
 - The Filament admin panel has its own theme switch and isn't touched by this.
 - E2E (`appearance.spec.ts`): Tina Theme; checks the painted background, not only the class.
 
+## Follows (#4647)
+
+- `follows` pivot (`follower_id`, `followed_id`, unique pair, cascades with either user);
+  `User::following()` / `followers()`. Follow / Unfollow (`FollowController`,
+  `POST|DELETE /drivers/{username}/follow`) on other drivers' profiles: following needs
+  `isVisibleTo` (a private driver outside your company 404s, as their page would);
+  unfollowing always works.
+- A follow of someone you can no longer see stays stored but shows nowhere: the Following
+  feed goes through `Feed::latestDeliveries` (visibility built in), and the profile counts
+  (`followerCount()` / `followingCount()`) only count live follows. Counts only, no lists.
+- Home's Latest deliveries has Everyone / Following / My company tabs for signed-in
+  drivers (`?feed=`, saved in `users.home_feed`; My company only with a company; junk
+  ignored). Guests get Everyone, no tabs. The privacy export lists who you follow.
+- E2E: `follows.spec.ts` (Fay Follower follows Fred Followed).
+- `PendingReviewTest` rolls back its migration by `--path`: a `--step 1` rollback broke as
+  soon as a newer migration existed.
+
 ## Quirks
 
 - The starter kit's `bunny()` font build step was removed (a font download during a Forge

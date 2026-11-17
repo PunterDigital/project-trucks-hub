@@ -37,10 +37,12 @@ class HomeController extends Controller
             ],
             'onTheRoad' => Feed::onTheRoad($viewer, 8),
             'feed' => $feed,
-            'feeds' => $viewer === null ? [] : array_values(array_filter(
-                self::FEEDS,
-                fn (string $f) => $f !== 'company' || $viewer->companyId() !== null,
-            )),
+            // Tabs only for a signed-in driver; My company only with a company.
+            'feeds' => match (true) {
+                $viewer === null => [],
+                $viewer->companyId() === null => ['everyone', 'following'],
+                default => self::FEEDS,
+            },
             'latest' => Feed::latestDeliveries($viewer, 12, $this->scope($feed, $viewer)),
             'topDrivers' => Leaderboard::drivers(Period::Week, 'distance', 5),
             'downloadUrl' => route('download'),

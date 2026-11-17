@@ -2,7 +2,9 @@ import { expect, logIn, test } from './fixtures';
 
 // Follows (#4647): Fay follows Fred from his profile; Home's Following tab shows his
 // Bergen → Trondheim job and stays picked on her next visit.
-test('a driver follows another and reads the Following feed', async ({ page }) => {
+test('a driver follows another and reads the Following feed', async ({
+    page,
+}) => {
     await logIn(page, 'fay-follower@example.com');
 
     await page.goto('/');
