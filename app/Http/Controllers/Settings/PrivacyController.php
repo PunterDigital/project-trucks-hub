@@ -122,6 +122,18 @@ class PrivacyController extends Controller
                     'created_at' => $c->created_at?->toIso8601String(),
                 ])
                 ->all(),
+            // Follows (#4647): who the driver follows, and how many follow them.
+            'following' => $user->following()
+                ->orderBy('follows.id')
+                ->get()
+                ->map(fn (User $u) => [
+                    'username' => $u->username,
+                    'name' => $u->name,
+                    'since' => $u->getRelationValue('pivot')?->getAttribute('created_at')?->toIso8601String(),
+                ])
+                ->all(),
+            'followers' => $user->followers()->count(),
+            'home_feed' => $user->home_feed,
             // Company events (#4648): answers given and events created.
             'event_answers' => EventRsvp::query()
                 ->with('event')
