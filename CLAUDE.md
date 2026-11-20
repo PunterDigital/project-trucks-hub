@@ -440,7 +440,9 @@ without a full build.
 
 ## Server-side rendering (#5157)
 
-- `npm run build:ssr` builds `bootstrap/ssr/app.js` (Inertia's Vite plugin wraps `app.ts`; no
+- `npm run build` (and its alias `npm run build:ssr`) builds the client assets **and**
+  `bootstrap/ssr/app.js` (#5165: Forge's deploy script still ran plain `npm run build`, so the
+  daemon found no bundle; now either script name produces it). Inertia's Vite plugin wraps `app.ts`; no
   separate `ssr.ts`). The bundle is its own server: `node bootstrap/ssr/app.js`, listening on
   **127.0.0.1:13722**, baked in at build time in `vite.config.ts` (`INERTIA_SSR_PORT` overrides
   at build time). Not Inertia's default 13714, which another app's SSR daemon may hold on the
@@ -449,7 +451,7 @@ without a full build.
   `http://127.0.0.1:13722`). Off, nothing calls the daemon, so PHPUnit and the main E2E server
   are unaffected. A leftover local `bootstrap/ssr` doesn't matter while it's off. With it on and
   the daemon down, Inertia falls back to client rendering.
-- Production: Forge deploy script runs `npm run build:ssr`, and a daemon runs
+- Production: Forge deploy script runs `npm run build` (or `build:ssr`), and a daemon runs
   `node bootstrap/ssr/app.js` (or `php8.4 artisan inertia:start-ssr`), restarted after each
   deploy (`php8.4 artisan inertia:stop-ssr` after `$ACTIVATE_RELEASE()`; the daemon brings it
   back). `.env` gets `INERTIA_SSR_ENABLED=true`. Shay's steps, card from #5157.
