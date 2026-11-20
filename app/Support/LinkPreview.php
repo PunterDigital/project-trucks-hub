@@ -8,6 +8,7 @@ use App\Enums\RsvpStatus;
 use App\Models\Company;
 use App\Models\CompanyEvent;
 use App\Models\Delivery;
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
@@ -34,7 +35,7 @@ class LinkPreview
 
     public const HEIGHT = 630;
 
-    public const TYPES = ['driver', 'job', 'company', 'event'];
+    public const TYPES = ['driver', 'job', 'company', 'event', 'post'];
 
     private const DIR = 'og';
 
@@ -89,6 +90,7 @@ class LinkPreview
             'job' => self::jobCard($id),
             'company' => self::companyCard($id),
             'event' => self::eventCard($id),
+            'post' => self::postCard($id),
             default => null,
         };
     }
@@ -154,7 +156,12 @@ class LinkPreview
 
         // Two lines at most: 58 px DejaVu Bold fits ~28 characters a line.
         $text(self::cut($card['title'], 44), 60, 110, $bold, 58, self::TEXT, self::WIDTH - 120);
-        $text(self::cut($card['subtitle'], 64), 60, 290, $regular, 28, self::SOFT);
+        if ($card['stats'] === []) {
+            // No stat panels (a blog post): the subtitle gets their space, up to four lines.
+            $text(self::cut($card['subtitle'], 200), 60, 290, $regular, 30, self::SOFT, self::WIDTH - 120);
+        } else {
+            $text(self::cut($card['subtitle'], 64), 60, 290, $regular, 28, self::SOFT);
+        }
 
         foreach (array_slice($card['stats'], 0, 3) as $i => [$label, $value]) {
             $x = 60 + $i * 370;
@@ -282,6 +289,27 @@ class LinkPreview
             ],
             'url' => route('events.show', $event),
             'note' => $event->cancelled_at !== null ? __('Cancelled') : __('Event'),
+        ];
+    }
+
+    /**
+     * A published blog post (#5150). Drafts and future-dated posts have no card.
+     *
+     * @return array{title: string, subtitle: string, stats: list<array{0: string, 1: string}>, url: string, note: string|null}|null
+     */
+    private static function postCard(int $id): ?array
+    {
+        $post = Post::query()->published()->find($id);
+        if ($post === null) {
+            return null;
+        }
+
+        return [
+            'title' => $post->title,
+            'subtitle' => (string) preg_replace('/\s+/', ' ', trim($post->excerpt)),
+            'stats' => [],
+            'url' => route('blog.show', $post->slug),
+            'note' => __('Blog'),
         ];
     }
 

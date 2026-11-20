@@ -461,6 +461,36 @@ without a full build.
 - New components: browser-only APIs (`window`, `document`, `localStorage`, Leaflet) only in
   `onMounted` or event handlers, never in `setup` or the template, or SSR breaks that page.
 
+## Blog (#5150)
+
+- `posts` (title, `slug` unique, `excerpt` ≤ 300, Markdown `body`, `cover_path`, `status`
+  `PostStatus` draft|published, `published_at`). Public = `Post::scopePublished()` /
+  `isPublic()`: published **and** `published_at` ≤ now. Everything else is a 404 on
+  `/blog/{slug}`, staff included; staff use `/blog/preview/{id}` (`canAccessPanel`, else 404;
+  noindex). A future `published_at` = Scheduled: it goes live by itself, nothing runs.
+- `BlogController`: `/blog` (newest first, `Post::PER_PAGE`), `/blog/{post:slug}` (slug must
+  match `Post::SLUG_PATTERN`, so `feed`/`preview` never reach it; `PostResource::RESERVED_SLUGS`
+  refuses them as slugs), `/blog/feed` (RSS 2.0, last 20, excerpt only, outside the web group).
+  `app.blade.php` links the feed on every page.
+- Body: `Post::bodyHtml()` = `Str::markdown` with `html_input => strip` and
+  `allow_unsafe_links => false`, sent as `post.html` and printed with `v-html` (safe because
+  of that, nowhere else). No image uploads in the body (`fileAttachments(false)`).
+- Admin: `PostResource` (List / Create / Edit; "Blog posts" in the nav). Title fills an empty
+  slug on blur. Status is a native select; publishing with no time sets now
+  (`withPublishTime`). Edit page: Preview (new tab), View on the blog, Delete. Audit actions
+  `post.created`, `post.updated`, `post.published`, `post.unpublished`, `post.deleted`.
+- Cover: `ImageKind::Cover` (`covers/`, 1200×630 WebP via `ImageStore`, through
+  `saveUploadedFileUsing`), served by `MediaController`. The model deletes a replaced or
+  removed cover and a deleted post's cover. Counted on the Storage page (`uploads_covers`).
+- Search: `Seo::PAGES` `blog.index` / `blog.show` (an item page: indexable only with a link
+  preview, i.e. public), `BlogPosting` JSON-LD (`Seo::article`, author = the site), sitemap
+  lists published posts, link preview type `post` (card without stat panels: the excerpt gets
+  their space).
+- E2E (`blog.spec.ts`): the seeded `welcome` post; Bea Blogger (staff, own TOTP secret) creates a
+  draft, checks a guest gets 404, previews it (script stripped), publishes. The Markdown editor
+  is EasyMDE/CodeMirror: click `.CodeMirror` and type. `seo.spec` and `ssr.spec` include `/blog`
+  and `/blog/welcome`.
+
 ## Company Discord webhook (#4652)
 
 - `companies.discord_webhook` (`encrypted` cast, in `$hidden`), `discord_webhook_disabled_at`,

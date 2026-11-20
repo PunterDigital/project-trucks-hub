@@ -3,6 +3,7 @@
 namespace App\Admin;
 
 use App\Models\AdminAuditLog;
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
@@ -42,6 +43,7 @@ class Audit
     {
         return match (true) {
             $target instanceof User => $target->name.' ('.$target->email.')',
+            $target instanceof Post => $target->title,
             default => (string) ($target->getAttribute('name') ?? '#'.$target->getKey()),
         };
     }

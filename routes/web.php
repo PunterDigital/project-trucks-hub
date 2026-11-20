@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\SteamController;
+use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyDiscordController;
 use App\Http\Controllers\CompanyEventController;
@@ -24,6 +25,7 @@ use App\Http\Controllers\PreviewImageController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\VersionController;
+use App\Models\Post;
 use App\Support\ImageStore;
 use App\Support\LinkPreview;
 use Illuminate\Support\Facades\Route;
@@ -37,7 +39,7 @@ Route::get('sitemap.xml', SitemapController::class)->withoutMiddleware('web')->n
 
 // Uploaded pictures (#4644), straight from the public disk. No session or cookies either.
 Route::get('media/{kind}/{file}', MediaController::class)
-    ->whereIn('kind', ['avatars', 'logos', 'banners'])
+    ->whereIn('kind', ['avatars', 'logos', 'banners', 'covers'])
     ->where('file', ImageStore::FILE_PATTERN)
     ->withoutMiddleware('web')
     ->name('media');
@@ -66,6 +68,11 @@ Route::get('companies', [CompanyController::class, 'index'])->name('companies.in
 Route::get('events', [CompanyEventController::class, 'index'])->name('events.index');
 Route::get('events/{event}', [CompanyEventController::class, 'show'])->whereNumber('event')->name('events.show');
 Route::get('events/{event}.ics', [CompanyEventController::class, 'calendar'])->whereNumber('event')->name('events.calendar');
+// Blog (#5150). The feed sets no cookies; the preview is for staff (404 for anyone else).
+Route::get('blog', [BlogController::class, 'index'])->name('blog.index');
+Route::get('blog/feed', [BlogController::class, 'feed'])->withoutMiddleware('web')->name('blog.feed');
+Route::get('blog/preview/{post}', [BlogController::class, 'preview'])->whereNumber('post')->middleware('auth')->name('blog.preview');
+Route::get('blog/{post:slug}', [BlogController::class, 'show'])->where('post', Post::SLUG_PATTERN)->name('blog.show');
 Route::get('privacy', [LegalController::class, 'privacy'])->name('privacy');
 Route::get('terms', [LegalController::class, 'terms'])->name('terms');
 

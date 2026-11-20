@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Post;
 use Illuminate\Http\Request;
 
 /**
@@ -67,6 +68,14 @@ class Seo
             'Event',
             'A Euro Truck Simulator 2 convoy or company event on ProjectTrucks Hub.',
         ],
+        'blog.index' => [
+            'Blog',
+            'News, guides and release notes from ProjectTrucks, the free Euro Truck Simulator 2 job tracker, and the Hub.',
+        ],
+        'blog.show' => [
+            'Blog post',
+            'A post on the ProjectTrucks blog.',
+        ],
         'privacy' => [
             'Privacy',
             'What ProjectTrucks Hub stores about you, why, and how to export or delete it.',
@@ -78,10 +87,10 @@ class Seo
     ];
 
     /** Pages about one item: indexable only when a guest can see it (it has a link preview). */
-    public const ITEM_PAGES = ['drivers.show', 'jobs.show', 'companies.show', 'events.show'];
+    public const ITEM_PAGES = ['drivers.show', 'jobs.show', 'companies.show', 'events.show', 'blog.show'];
 
     /** Static pages in the sitemap, in this order. */
-    public const SITEMAP_PAGES = ['home', 'download', 'leaderboards', 'map', 'drivers.index', 'companies.index', 'events.index', 'privacy', 'terms'];
+    public const SITEMAP_PAGES = ['home', 'download', 'leaderboards', 'map', 'drivers.index', 'companies.index', 'events.index', 'blog.index', 'privacy', 'terms'];
 
     /**
      * @param  array{title: string, description: string, url: string, image: string, image_alt: string}|null  $preview
@@ -107,7 +116,7 @@ class Seo
             'description' => $description,
             'canonical' => self::canonical($request),
             'index' => true,
-            'json_ld' => self::jsonLd((string) $name),
+            'json_ld' => self::jsonLd((string) $name, $request),
         ];
     }
 
@@ -144,9 +153,12 @@ class Seo
     }
 
     /** @return list<array<string, mixed>> */
-    private static function jsonLd(string $name): array
+    private static function jsonLd(string $name, Request $request): array
     {
+        $post = $request->route('post');
+
         return match ($name) {
+            'blog.show' => $post instanceof Post ? [self::article($post)] : [],
             'home' => [[
                 '@context' => 'https://schema.org',
                 '@type' => 'WebSite',
@@ -157,6 +169,37 @@ class Seo
             'download' => [self::softwareApplication()],
             default => [],
         };
+    }
+
+    /**
+     * A blog post as a schema.org BlogPosting. The author is the site, not the staff member who
+     * wrote it.
+     *
+     * @return array<string, mixed>
+     */
+    public static function article(Post $post): array
+    {
+        $site = ['@type' => 'Organization', 'name' => (string) config('app.name'), 'url' => self::url('')];
+        $url = self::url('blog/'.$post->slug);
+
+        $article = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BlogPosting',
+            'headline' => $post->title,
+            'description' => $post->excerpt,
+            'url' => $url,
+            'mainEntityOfPage' => $url,
+            'datePublished' => $post->published_at?->copy()->utc()->toIso8601String(),
+            'dateModified' => ($post->updated_at ?? $post->published_at)?->copy()->utc()->toIso8601String(),
+            'author' => $site,
+            'publisher' => $site,
+        ];
+
+        if ($post->cover_path !== null) {
+            $article['image'] = self::url((string) ImageStore::url($post->cover_path));
+        }
+
+        return $article;
     }
 
     /** @return array<string, mixed> */

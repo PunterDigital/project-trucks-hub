@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\CompanyEvent;
+use App\Models\Post;
 use App\Models\User;
 use App\Support\Seo;
 use Illuminate\Http\Response;
@@ -55,6 +56,16 @@ class SitemapController extends Controller
             ->get()
             ->each(function (CompanyEvent $event) use (&$urls): void {
                 $urls[] = ['loc' => Seo::url('events/'.$event->id), 'lastmod' => $event->updated_at];
+            });
+
+        // Blog posts (#5150): published ones only.
+        Post::query()->published()
+            ->select(['id', 'slug', 'updated_at'])
+            ->orderByDesc('published_at')
+            ->limit(self::PER_TYPE)
+            ->get()
+            ->each(function (Post $post) use (&$urls): void {
+                $urls[] = ['loc' => Seo::url('blog/'.$post->slug), 'lastmod' => $post->updated_at];
             });
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n"

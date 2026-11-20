@@ -195,3 +195,20 @@ export type CargoRow = {
     deliveries: number;
     distance_km: number;
 };
+
+/** A blog post in a list (#5150). */
+export type PostSummary = {
+    id: number;
+    title: string;
+    slug: string;
+    excerpt: string;
+    cover: string | null;
+    published_at: string | null;
+};
+
+/** A blog post's page: the summary plus the body, rendered (and sanitised) on the server. */
+export type PostPage = PostSummary & {
+    html: string;
+    status: 'draft' | 'published';
+    is_public: boolean;
+};
