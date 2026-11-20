@@ -11,7 +11,15 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.ts'],
             refresh: true,
         }),
-        inertia(),
+        // SSR (#5157): the built server listens on 127.0.0.1 only, on its own port (other apps'
+        // SSR daemons may already use Inertia's default 13714 on the same server). The port is
+        // baked in at build time; config/inertia.php's default URL must match it.
+        inertia({
+            ssr: {
+                host: '127.0.0.1',
+                port: Number(process.env.INERTIA_SSR_PORT ?? 13722),
+            },
+        }),
         tailwindcss(),
         vue({
             template: {

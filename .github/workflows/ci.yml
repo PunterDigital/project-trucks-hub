@@ -103,7 +103,8 @@ jobs:
           php artisan key:generate
 
       - name: Build frontend
-        run: npm run build
+        # SSR bundle too, for the ssr project (#5157).
+        run: npm run build:ssr
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium

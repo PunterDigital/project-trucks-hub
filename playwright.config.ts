@@ -27,6 +27,23 @@ const appEnv = {
     STEAM_API_KEY: '',
     // Sentry (#4653) stays off whatever the local .env says.
     SENTRY_LARAVEL_DSN: '',
+    INERTIA_SSR_ENABLED: 'false',
+};
+
+// A second server with Inertia SSR on (#5157), talking to the built bootstrap/ssr/app.js,
+// for ssr.spec.ts only. Needs `npm run build:ssr` first. The bundle listens on the port
+// baked in at build time (INERTIA_SSR_PORT, default 13722).
+const ssrPort = port + 2;
+const ssrURL = `http://127.0.0.1:${ssrPort}`;
+const ssrNodePort = Number(process.env.INERTIA_SSR_PORT ?? 13722);
+const ssrEnv = {
+    ...appEnv,
+    E2E_PORT: String(ssrPort),
+    APP_URL: ssrURL,
+    DB_DATABASE: join(tmpdir(), 'pt-hub-e2e', 'e2e-ssr.sqlite'),
+    PUBLIC_DISK_ROOT: join(tmpdir(), 'pt-hub-e2e', 'public-ssr'),
+    INERTIA_SSR_ENABLED: 'true',
+    INERTIA_SSR_URL: `http://127.0.0.1:${ssrNodePort}`,
 };
 
 export default defineConfig({
@@ -40,12 +57,38 @@ export default defineConfig({
         trace: 'retain-on-failure',
         screenshot: 'only-on-failure',
     },
-    projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-    webServer: {
-        command: 'node tests/e2e/serve.mjs',
-        url: `${baseURL}/up`,
-        timeout: 120_000,
-        reuseExistingServer: false,
-        env: appEnv,
-    },
+    projects: [
+        {
+            name: 'chromium',
+            use: { ...devices['Desktop Chrome'] },
+            testIgnore: /ssr.spec.ts/,
+        },
+        {
+            name: 'ssr',
+            use: { ...devices['Desktop Chrome'], baseURL: ssrURL },
+            testMatch: /ssr.spec.ts/,
+        },
+    ],
+    webServer: [
+        {
+            command: 'node tests/e2e/serve.mjs',
+            url: `${baseURL}/up`,
+            timeout: 120_000,
+            reuseExistingServer: false,
+            env: appEnv,
+        },
+        {
+            command: 'node bootstrap/ssr/app.js',
+            url: `http://127.0.0.1:${ssrNodePort}/health`,
+            timeout: 30_000,
+            reuseExistingServer: false,
+        },
+        {
+            command: 'node tests/e2e/serve.mjs',
+            url: `${ssrURL}/up`,
+            timeout: 120_000,
+            reuseExistingServer: false,
+            env: ssrEnv,
+        },
+    ],
 });
