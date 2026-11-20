@@ -499,7 +499,7 @@ without a full build.
   `updated`, `order`), loaded by `App\Support\Guides`. Not in `posts`: they describe what
   ProjectTrucks and the Hub do, so **a change to a feature or UI label they name changes the
   guide in the same PR** (and bumps `updated`). Each file says what it was checked against.
-- Every claim was checked against both codebases (ProjectTrucks v0.11). Things that are *not*
+- Every claim was checked against both codebases (ProjectTrucks v0.11). Things that are _not_
   there, so guides must not claim them: ATS support in the app, a profit figure, JSON export
   from the app, a plugin uninstall button, company invites, convoy tracking.
 - Body Markdown goes through the blog's rules (`html_input => strip`). Links are site paths
