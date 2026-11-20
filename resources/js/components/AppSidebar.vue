@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import {
+    BookOpen,
     Building2,
     CalendarDays,
     Download,
@@ -37,6 +38,7 @@ import { index as blog } from '@/routes/blog';
 import { index as companies } from '@/routes/companies';
 import { index as drivers } from '@/routes/drivers';
 import { index as events } from '@/routes/events';
+import { index as guides } from '@/routes/guides';
 import type { NavItem } from '@/types';
 
 const page = usePage();
@@ -52,6 +54,7 @@ const mainNavItems = computed<NavItem[]>(() => [
     { title: 'Leaderboards', href: leaderboards(), icon: Trophy },
     { title: 'Live map', href: map(), icon: MapIcon },
     { title: 'Blog', href: blog(), icon: Newspaper },
+    { title: 'Guides', href: guides(), icon: BookOpen },
     { title: 'Get ProjectTrucks', href: download(), icon: Download },
 ]);
 </script>
@@ -77,9 +80,10 @@ const mainNavItems = computed<NavItem[]>(() => [
         <SidebarFooter>
             <nav
                 class="flex gap-3 px-2 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden"
-                aria-label="Legal"
+                aria-label="Site"
                 data-test="legal-links"
             >
+                <Link :href="guides()" class="hover:underline">Guides</Link>
                 <Link :href="privacy()" class="hover:underline">Privacy</Link>
                 <Link :href="terms()" class="hover:underline">Terms</Link>
             </nav>

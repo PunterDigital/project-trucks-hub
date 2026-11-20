@@ -14,6 +14,7 @@ use App\Http\Controllers\DeliveryReactionController;
 use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\FollowController;
+use App\Http\Controllers\GuideController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LegalController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\VersionController;
 use App\Models\Post;
+use App\Support\Guides;
 use App\Support\ImageStore;
 use App\Support\LinkPreview;
 use Illuminate\Support\Facades\Route;
@@ -73,6 +75,9 @@ Route::get('blog', [BlogController::class, 'index'])->name('blog.index');
 Route::get('blog/feed', [BlogController::class, 'feed'])->withoutMiddleware('web')->name('blog.feed');
 Route::get('blog/preview/{post}', [BlogController::class, 'preview'])->whereNumber('post')->middleware('auth')->name('blog.preview');
 Route::get('blog/{post:slug}', [BlogController::class, 'show'])->where('post', Post::SLUG_PATTERN)->name('blog.show');
+// Help guides (#5151), from resources/guides.
+Route::get('guides', [GuideController::class, 'index'])->name('guides.index');
+Route::get('guides/{guide}', [GuideController::class, 'show'])->where('guide', Guides::SLUG_PATTERN)->name('guides.show');
 Route::get('privacy', [LegalController::class, 'privacy'])->name('privacy');
 Route::get('terms', [LegalController::class, 'terms'])->name('terms');
 

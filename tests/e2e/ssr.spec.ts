@@ -16,6 +16,8 @@ const pages = [
     { path: '/events', text: 'Upcoming events' },
     { path: '/blog', text: 'Welcome to the ProjectTrucks blog' },
     { path: '/blog/welcome', text: 'convoy news' },
+    { path: '/guides', text: 'How the ETS2 leaderboards work' },
+    { path: '/guides/ets2-telemetry-plugin', text: 'Remove it' },
     { path: '/privacy', text: 'Privacy' },
     { path: '/terms', text: 'Terms of use' },
     { path: '/login', text: 'Log in' },
