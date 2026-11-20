@@ -14,6 +14,8 @@ const pages = [
     { path: '/companies', text: 'Companies' },
     { path: '/companies/nordic-haulage', text: 'Nordic Haulage' },
     { path: '/events', text: 'Upcoming events' },
+    { path: '/blog', text: 'Welcome to the ProjectTrucks blog' },
+    { path: '/blog/welcome', text: 'convoy news' },
     { path: '/privacy', text: 'Privacy' },
     { path: '/terms', text: 'Terms of use' },
     { path: '/login', text: 'Log in' },

@@ -3,10 +3,12 @@
 namespace Database\Seeders;
 
 use App\Enums\CompanyRole;
+use App\Enums\PostStatus;
 use App\Enums\Recruitment;
 use App\Models\Company;
 use App\Models\Delivery;
 use App\Models\LiveStatus;
+use App\Models\Post;
 use App\Models\User;
 use App\Support\LatestRelease;
 use Illuminate\Database\Seeder;
@@ -461,6 +463,32 @@ class E2ESeeder extends Seeder
         $lastKey = $monthStart->copy()->subMonth()->format('Y-m');
         $goalGetters->goals()->create(['month' => $lastKey, 'metric' => 'distance_km', 'target' => 30]);
         $goalGetters->goals()->create(['month' => $lastKey, 'metric' => 'deliveries', 'target' => 5]);
+
+        // Blog (#5150): one published post for the public and SSR specs; Bea (staff, own 2FA
+        // secret) writes and publishes another in blog.spec.ts.
+        Post::query()->create([
+            'title' => 'Welcome to the ProjectTrucks blog',
+            'slug' => 'welcome',
+            'excerpt' => 'News, guides and release notes for ProjectTrucks drivers.',
+            'body' => "The blog is open. Expect **release notes**, guides and convoy news.\n\n## What's next\n\n- Guides for new drivers\n- Monthly roundups",
+            'status' => PostStatus::Published,
+            'published_at' => now()->subDays(2),
+        ]);
+        $bea = User::query()->create([
+            'name' => 'Bea Blogger',
+            'email' => 'bea-blogger@example.com',
+            'username' => 'bea-blogger',
+            'password' => $password,
+        ]);
+        $bea->forceFill([
+            'email_verified_at' => now(),
+            'password_set_at' => now(),
+            'created_at' => now()->subYear(),
+            'is_staff' => true,
+            'two_factor_secret' => encrypt('GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ'),
+            'two_factor_recovery_codes' => encrypt((string) json_encode(['e2e-recovery-code-bea'])),
+            'two_factor_confirmed_at' => now(),
+        ])->save();
 
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');

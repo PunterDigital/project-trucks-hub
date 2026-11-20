@@ -7,6 +7,7 @@ import {
     Home,
     LayoutGrid,
     Map as MapIcon,
+    Newspaper,
     Trophy,
     Users,
 } from '@lucide/vue';
@@ -32,6 +33,7 @@ import {
     privacy,
     terms,
 } from '@/routes';
+import { index as blog } from '@/routes/blog';
 import { index as companies } from '@/routes/companies';
 import { index as drivers } from '@/routes/drivers';
 import { index as events } from '@/routes/events';
@@ -49,6 +51,7 @@ const mainNavItems = computed<NavItem[]>(() => [
     { title: 'Events', href: events(), icon: CalendarDays },
     { title: 'Leaderboards', href: leaderboards(), icon: Trophy },
     { title: 'Live map', href: map(), icon: MapIcon },
+    { title: 'Blog', href: blog(), icon: Newspaper },
     { title: 'Get ProjectTrucks', href: download(), icon: Download },
 ]);
 </script>

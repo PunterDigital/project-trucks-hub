@@ -40,6 +40,8 @@
 
         {{-- Link previews (#4652): printed by Blade, so crawlers get them without SSR. Built as a guest sees the item. --}}
         <meta property="og:site_name" content="{{ config('app.name') }}">
+        {{-- The blog's RSS feed (#5150), for feed readers on any page. --}}
+        <link rel="alternate" type="application/rss+xml" title="{{ config('app.name') }} blog" href="{{ route('blog.feed') }}">
         {{-- A closure, so Inertia's JSON reloads (which never render this view) skip its queries. --}}
         @php($preview = isset($preview) ? value($preview) : null)
         {{-- Search tags (#5149): title, description, canonical and robots per page (App\Support\Seo). --}}

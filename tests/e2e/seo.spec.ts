@@ -14,6 +14,8 @@ const pages = [
     '/terms',
     '/drivers/olga',
     '/companies/nordic-haulage',
+    '/blog',
+    '/blog/welcome',
 ];
 
 function tag(html: string, pattern: RegExp): string | null {

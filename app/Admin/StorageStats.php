@@ -33,7 +33,7 @@ final class StorageStats
     public const LOW_FREE_BYTES = 5 * 1024 * 1024 * 1024;
 
     /** Snapshot keys of the upload folders, for the "Uploads" total. */
-    public const UPLOADS = ['uploads_avatars', 'uploads_logos', 'uploads_banners', 'uploads_og'];
+    public const UPLOADS = ['uploads_avatars', 'uploads_logos', 'uploads_banners', 'uploads_og', 'uploads_covers'];
 
     /**
      * Every measured item: key => label. Add new ones at the end.
@@ -50,6 +50,7 @@ final class StorageStats
         'sessions' => 'Sessions (files)',
         'views' => 'Compiled views',
         'database' => 'Database',
+        'uploads_covers' => 'Blog covers',
     ];
 
     /**
@@ -101,6 +102,7 @@ final class StorageStats
                 'uploads_logos' => $public->path('logos'),
                 'uploads_banners' => $public->path('banners'),
                 'uploads_og' => $public->path('og'),
+                'uploads_covers' => $public->path('covers'),
                 'logs' => storage_path('logs'),
                 'cache' => storage_path('framework/cache'),
                 'sessions' => storage_path('framework/sessions'),
