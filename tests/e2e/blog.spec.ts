@@ -113,3 +113,31 @@ test('staff write a draft, preview it and publish it', async ({
     ).toHaveText('Notes from the road');
     await guestContext.close();
 });
+
+test('a post file in the repo arrives as a draft for staff to publish', async ({
+    page,
+    browser,
+}) => {
+    test.setTimeout(90_000);
+
+    // tests/fixtures/posts/2026-11-21-from-the-repo.php (BLOG_DRAFTS_PATH). Opening the list
+    // imports it, unless the scheduler or another spec's visit got there first.
+    await logInWithTotp(page, 'bea-blogger@example.com', BEA_SECRET);
+    await page.goto('/admin/posts');
+    const row = page
+        .getByRole('row')
+        .filter({ hasText: 'Written in the repo' });
+    await expect(row).toBeVisible();
+    await expect(row).toContainText('Draft');
+
+    const guestContext = await browser.newContext();
+    const guest = await guestContext.newPage();
+    expect((await guest.goto('/blog/from-the-repo'))?.status()).toBe(404);
+    await guestContext.close();
+
+    // Opening the list again doesn't import it twice.
+    await page.reload();
+    await expect(
+        page.getByRole('row').filter({ hasText: 'Written in the repo' }),
+    ).toHaveCount(1);
+});
