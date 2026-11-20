@@ -407,7 +407,7 @@ without a full build.
   profiles, jobs, companies and events. Controllers pass `->withViewData('preview', fn () =>
   LinkPreview::meta(type, id))`; `app.blade.php` prints the tags. A closure so Inertia's JSON
   reloads (auto-refresh) never run its queries; Blade, not `<Head>`, because production runs
-  without SSR and crawlers don't run JS.
+  without SSR (and crawlers don't run JS). With SSR (#5157) the tags still come from Blade.
 - Built **as a guest** sees the item, whoever views the page: a company mate looking at a
   private profile gets no preview tags, so a pasted link can't show it. Not guest-visible
   (private, hidden, suspended) = no tags and a 404 card.
@@ -437,6 +437,29 @@ without a full build.
   never reaches PHP. Its `Sitemap:` line names the live domain: change it with the domain.
 - JSON-LD comes from PHP arrays (`Seo::encode`, `JSON_HEX_TAG`), never written in Blade:
   Blade would compile an `@context` key as a directive (AniTrack #4456).
+
+## Server-side rendering (#5157)
+
+- `npm run build:ssr` builds `bootstrap/ssr/app.js` (Inertia's Vite plugin wraps `app.ts`; no
+  separate `ssr.ts`). The bundle is its own server: `node bootstrap/ssr/app.js`, listening on
+  **127.0.0.1:13722**, baked in at build time in `vite.config.ts` (`INERTIA_SSR_PORT` overrides
+  at build time). Not Inertia's default 13714, which another app's SSR daemon may hold on the
+  same server (AniTrack moved to 13721 for that).
+- `config/inertia.php`: `INERTIA_SSR_ENABLED` (default **false**), `INERTIA_SSR_URL` (default
+  `http://127.0.0.1:13722`). Off, nothing calls the daemon, so PHPUnit and the main E2E server
+  are unaffected. A leftover local `bootstrap/ssr` doesn't matter while it's off. With it on and
+  the daemon down, Inertia falls back to client rendering.
+- Production: Forge deploy script runs `npm run build:ssr`, and a daemon runs
+  `node bootstrap/ssr/app.js` (or `php8.4 artisan inertia:start-ssr`), restarted after each
+  deploy (`php8.4 artisan inertia:stop-ssr` after `$ACTIVATE_RELEASE()`; the daemon brings it
+  back). `.env` gets `INERTIA_SSR_ENABLED=true`. Shay's steps, card from #5157.
+- E2E project `ssr` (`ssr.spec.ts`): a second `serve.mjs` on `E2E_PORT`+2 (own SQLite and
+  upload folder) with SSR on, plus the bundle as a webServer (`/health`). Every public page
+  and three signed-in ones must have their text inside `<div data-server-rendered="true"
+  id="app">`, one `<title>`, and hydrate with no console error (Vue logs hydration
+  mismatches as errors). CI's E2E job runs `npm run build:ssr`.
+- New components: browser-only APIs (`window`, `document`, `localStorage`, Leaflet) only in
+  `onMounted` or event handlers, never in `setup` or the template, or SSR breaks that page.
 
 ## Company Discord webhook (#4652)
 

@@ -15,11 +15,12 @@ return [
     |
     */
 
+    // SSR (#5157): off unless INERTIA_SSR_ENABLED=true (production, once the Forge daemon
+    // runs; E2E's `ssr` project). The port is baked into the bundle by vite.config.ts.
     'ssr' => [
-        'enabled' => true,
-        'url' => 'http://127.0.0.1:13714',
-        // 'bundle' => base_path('bootstrap/ssr/ssr.mjs'),
-
+        'enabled' => (bool) env('INERTIA_SSR_ENABLED', false),
+        'url' => env('INERTIA_SSR_URL') ?: 'http://127.0.0.1:13722',
+        'bundle' => base_path('bootstrap/ssr/app.js'),
     ],
 
     /*
