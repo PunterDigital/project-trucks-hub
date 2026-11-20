@@ -70,7 +70,7 @@ function asCompany(row: LeaderboardRow) {
 </script>
 
 <template>
-    <Head title="Leaderboards" />
+    <Head title="ETS2 driver and company leaderboards" />
 
     <div class="flex flex-col gap-4 p-4">
         <h1 class="flex items-center gap-2 text-xl font-semibold">

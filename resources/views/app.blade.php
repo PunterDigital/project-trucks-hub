@@ -42,6 +42,24 @@
         <meta property="og:site_name" content="{{ config('app.name') }}">
         {{-- A closure, so Inertia's JSON reloads (which never render this view) skip its queries. --}}
         @php($preview = isset($preview) ? value($preview) : null)
+        {{-- Search tags (#5149): title, description, canonical and robots per page (App\Support\Seo). --}}
+        @php($seo = \App\Support\Seo::forRequest(request(), $preview))
+        @if ($seo['index'])
+            <link rel="canonical" href="{{ $seo['canonical'] }}">
+            @unless ($preview)
+                <meta name="description" content="{{ $seo['description'] }}">
+                <meta property="og:type" content="website">
+                <meta property="og:title" content="{{ $seo['title'] }}">
+                <meta property="og:description" content="{{ $seo['description'] }}">
+                <meta property="og:url" content="{{ $seo['canonical'] }}">
+                <meta name="twitter:card" content="summary">
+            @endunless
+            @foreach ($seo['json_ld'] as $data)
+                <script type="application/ld+json">{!! \App\Support\Seo::encode($data) !!}</script>
+            @endforeach
+        @else
+            <meta name="robots" content="noindex">
+        @endif
         @isset($preview)
             <meta property="og:type" content="website">
             <meta property="og:title" content="{{ $preview['title'] }}">
@@ -62,7 +80,7 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         <x-inertia::head>
-            <title>{{ config('app.name', 'Laravel') }}</title>
+            <title>{{ $seo['title'] !== null ? $seo['title'].' - '.config('app.name') : config('app.name', 'Laravel') }}</title>
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">

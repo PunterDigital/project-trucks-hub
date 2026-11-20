@@ -48,7 +48,7 @@ const FEED_EMPTY: Record<Feed, string> = {
 </script>
 
 <template>
-    <Head title="Home" />
+    <Head title="ETS2 job tracker, VTCs and leaderboards" />
 
     <div class="flex flex-col gap-4 p-4">
         <section

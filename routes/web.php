@@ -22,6 +22,7 @@ use App\Http\Controllers\MediaController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PreviewImageController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\VersionController;
 use App\Support\ImageStore;
 use App\Support\LinkPreview;
@@ -29,6 +30,10 @@ use Illuminate\Support\Facades\Route;
 
 // What's deployed (playbook #4445). Outside the web group: no session, no cookies.
 Route::get('version', VersionController::class)->withoutMiddleware('web')->name('version');
+
+// Search engines (#5149): public pages, drivers, companies and events. No session or cookies.
+// robots.txt is a static file in public/ (Forge's nginx serves /robots.txt itself).
+Route::get('sitemap.xml', SitemapController::class)->withoutMiddleware('web')->name('sitemap');
 
 // Uploaded pictures (#4644), straight from the public disk. No session or cookies either.
 Route::get('media/{kind}/{file}', MediaController::class)

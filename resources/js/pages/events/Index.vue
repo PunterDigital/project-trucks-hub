@@ -15,7 +15,7 @@ defineProps<{
 </script>
 
 <template>
-    <Head title="Events" />
+    <Head title="Convoys and events" />
 
     <div class="flex flex-col gap-4 p-4">
         <div>

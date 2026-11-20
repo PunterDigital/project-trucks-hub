@@ -419,6 +419,25 @@ without a full build.
   a changed card anew; the older file is deleted when the new one is drawn.
 - E2E: `link-preview.spec.ts` (Nordic Haulage's tags and card, Jack's job, Pia gets none).
 
+## Search tags, sitemap, robots (#5149)
+
+- `App\Support\Seo::forRequest()` (called in `app.blade.php`) gives each page its `<title>`,
+  meta description, canonical link and JSON-LD, by route name (`Seo::PAGES`). Blade prints
+  them, so crawlers get them without SSR (SSR is #5157). Any route not in `PAGES`, and an item
+  page (`ITEM_PAGES`) a guest can't see (no link preview), gets `noindex` and no canonical.
+- Titles must equal the page's `<Head title>` (the app's `title` callback adds " - <name>"),
+  or the tab changes after load: `SeoTest` and `seo.spec.ts` compare them. Item pages use the
+  link preview's title and description, so the company page's Head is `Name [TAG]`. A new
+  public page needs a `PAGES` entry (and `SITEMAP_PAGES` if it's static) plus the same title in its Head.
+- Canonical and sitemap URLs are built on `APP_URL` (query strings dropped, `?page=n>1`
+  kept), so a domain move (#5152) is the env change plus a 301 redirect.
+- `/sitemap.xml` (`SitemapController`, outside the web group): static pages, drivers
+  `visibleTo(null)` (no private or suspended), every company, events not cancelled. No jobs.
+- `public/robots.txt` is static on purpose: Forge's nginx has a `location = /robots.txt` that
+  never reaches PHP. Its `Sitemap:` line names the live domain: change it with the domain.
+- JSON-LD comes from PHP arrays (`Seo::encode`, `JSON_HEX_TAG`), never written in Blade:
+  Blade would compile an `@context` key as a directive (AniTrack #4456).
+
 ## Company Discord webhook (#4652)
 
 - `companies.discord_webhook` (`encrypted` cast, in `$hidden`), `discord_webhook_disabled_at`,

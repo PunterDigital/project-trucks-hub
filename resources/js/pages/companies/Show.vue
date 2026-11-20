@@ -129,7 +129,7 @@ function leaveCompany() {
 </script>
 
 <template>
-    <Head :title="company.name" />
+    <Head :title="`${company.name} [${company.tag}]`" />
 
     <div class="flex flex-col gap-4 p-4">
         <img
