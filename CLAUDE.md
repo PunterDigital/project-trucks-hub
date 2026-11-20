@@ -493,6 +493,15 @@ without a full build.
   is EasyMDE/CodeMirror: click `.CodeMirror` and type. `seo.spec` and `ssr.spec` include `/blog`
   and `/blog/welcome`.
 
+- Repo drafts (#5153): scheduled Claude runs write posts as `resources/posts/<Y-m-d>-<slug>.php`
+  (array: title, excerpt, body; format in that folder's README) in a PR. `App\Support\PostDrafts`
+  turns each new file into a **draft** (audit `post.imported`); Shay publishes in the admin.
+  Runs hourly (`hub:import-post-drafts`) and in `ListPosts::mount()` (the scheduler may be off).
+  `post_imports` records each handled file by name (`imported` / `slug_taken`), so an edited
+  file, an edited draft or a deleted draft is never touched again. Invalid files are reported
+  (command exits 1) and retried once fixed. `config('blog.drafts_path')` (`BLOG_DRAFTS_PATH`);
+  E2E points it at `tests/fixtures/posts`, so `blog.spec.ts` sees "Written in the repo".
+
 ## Guides (#5151)
 
 - `/guides` and `/guides/{slug}` (`GuideController`): help pages that answer one ETS2 question

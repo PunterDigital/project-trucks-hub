@@ -28,6 +28,8 @@ const appEnv = {
     // Sentry (#4653) stays off whatever the local .env says.
     SENTRY_LARAVEL_DSN: '',
     INERTIA_SSR_ENABLED: 'false',
+    // Repo post drafts (#5153) come from a fixture folder, never resources/posts.
+    BLOG_DRAFTS_PATH: join(process.cwd(), 'tests', 'fixtures', 'posts'),
 };
 
 // A second server with Inertia SSR on (#5157), talking to the built bootstrap/ssr/app.js,

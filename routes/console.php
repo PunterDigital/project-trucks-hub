@@ -22,5 +22,8 @@ Schedule::command('hub:db-snapshot')->dailyAt('00:10')->withoutOverlapping();
 // The admin Storage page's daily disk and folder sizes (#4667). The page also takes one when it opens.
 Schedule::command('hub:storage-snapshot')->dailyAt('00:20')->withoutOverlapping();
 
+// New post files in resources/posts become blog drafts (#5153). The Blog posts list also runs it.
+Schedule::command('hub:import-post-drafts')->hourly()->withoutOverlapping();
+
 // Expired link requests, stale live statuses, old log files (#4667). Also buttons on the Storage page.
 Schedule::command('hub:prune')->dailyAt('00:25')->withoutOverlapping();
