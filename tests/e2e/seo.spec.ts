@@ -16,6 +16,8 @@ const pages = [
     '/companies/nordic-haulage',
     '/blog',
     '/blog/welcome',
+    '/guides',
+    '/guides/ets2-telemetry-plugin',
 ];
 
 function tag(html: string, pattern: RegExp): string | null {

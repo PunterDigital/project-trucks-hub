@@ -212,3 +212,19 @@ export type PostPage = PostSummary & {
     status: 'draft' | 'published';
     is_public: boolean;
 };
+
+/** A help guide on /guides (#5151). */
+export type GuideSummary = {
+    slug: string;
+    title: string;
+    description: string;
+};
+
+/** A guide's page: the body rendered (and sanitised) on the server, plus its FAQ. */
+export type GuidePage = GuideSummary & {
+    answer: string;
+    html: string;
+    faq: { question: string; answer: string }[];
+    updated: string;
+    updated_label: string;
+};

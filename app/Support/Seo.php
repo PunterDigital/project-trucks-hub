@@ -76,6 +76,14 @@ class Seo
             'Blog post',
             'A post on the ProjectTrucks blog.',
         ],
+        'guides.index' => [
+            'ETS2 guides',
+            'How-to guides for Euro Truck Simulator 2 drivers: tracking jobs and earnings, the telemetry plugin, virtual trucking companies, leaderboards and convoys.',
+        ],
+        'guides.show' => [
+            'Guide',
+            'A ProjectTrucks guide for Euro Truck Simulator 2 drivers.',
+        ],
         'privacy' => [
             'Privacy',
             'What ProjectTrucks Hub stores about you, why, and how to export or delete it.',
@@ -90,7 +98,7 @@ class Seo
     public const ITEM_PAGES = ['drivers.show', 'jobs.show', 'companies.show', 'events.show', 'blog.show'];
 
     /** Static pages in the sitemap, in this order. */
-    public const SITEMAP_PAGES = ['home', 'download', 'leaderboards', 'map', 'drivers.index', 'companies.index', 'events.index', 'blog.index', 'privacy', 'terms'];
+    public const SITEMAP_PAGES = ['home', 'download', 'leaderboards', 'map', 'drivers.index', 'companies.index', 'events.index', 'blog.index', 'guides.index', 'privacy', 'terms'];
 
     /**
      * @param  array{title: string, description: string, url: string, image: string, image_alt: string}|null  $preview
@@ -106,6 +114,11 @@ class Seo
         }
 
         [$title, $description] = $page;
+        $guide = $name === 'guides.show' ? self::guide($request) : null;
+        if ($guide !== null) {
+            $title = $guide['title'];
+            $description = $guide['description'];
+        }
         if ($preview !== null) {
             $title = $preview['title'];
             $description = $preview['description'];
@@ -157,8 +170,11 @@ class Seo
     {
         $post = $request->route('post');
 
+        $guide = $name === 'guides.show' ? self::guide($request) : null;
+
         return match ($name) {
             'blog.show' => $post instanceof Post ? [self::article($post)] : [],
+            'guides.show' => $guide !== null ? self::guideData($guide) : [],
             'home' => [[
                 '@context' => 'https://schema.org',
                 '@type' => 'WebSite',
@@ -200,6 +216,50 @@ class Seo
         }
 
         return $article;
+    }
+
+    /** @return array{slug: string, title: string, description: string, answer: string, body: string, faq: list<array{0: string, 1: string}>, updated: string, order: int}|null */
+    private static function guide(Request $request): ?array
+    {
+        $slug = $request->route('guide');
+
+        return is_string($slug) ? Guides::find($slug) : null;
+    }
+
+    /**
+     * A guide (#5151) as a schema.org Article plus its FAQ as an FAQPage, the same questions
+     * and answers the page shows.
+     *
+     * @param  array{slug: string, title: string, description: string, answer: string, body: string, faq: list<array{0: string, 1: string}>, updated: string, order: int}  $guide
+     * @return list<array<string, mixed>>
+     */
+    public static function guideData(array $guide): array
+    {
+        $site = ['@type' => 'Organization', 'name' => (string) config('app.name'), 'url' => self::url('')];
+        $url = self::url('guides/'.$guide['slug']);
+
+        return [
+            [
+                '@context' => 'https://schema.org',
+                '@type' => 'Article',
+                'headline' => $guide['title'],
+                'description' => $guide['description'],
+                'url' => $url,
+                'mainEntityOfPage' => $url,
+                'dateModified' => $guide['updated'],
+                'author' => $site,
+                'publisher' => $site,
+            ],
+            [
+                '@context' => 'https://schema.org',
+                '@type' => 'FAQPage',
+                'mainEntity' => array_map(fn (array $qa) => [
+                    '@type' => 'Question',
+                    'name' => $qa[0],
+                    'acceptedAnswer' => ['@type' => 'Answer', 'text' => $qa[1]],
+                ], $guide['faq']),
+            ],
+        ];
     }
 
     /** @return array<string, mixed> */

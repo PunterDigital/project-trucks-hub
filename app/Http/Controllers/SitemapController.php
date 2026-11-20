@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\CompanyEvent;
 use App\Models\Post;
 use App\Models\User;
+use App\Support\Guides;
 use App\Support\Seo;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
@@ -67,6 +68,11 @@ class SitemapController extends Controller
             ->each(function (Post $post) use (&$urls): void {
                 $urls[] = ['loc' => Seo::url('blog/'.$post->slug), 'lastmod' => $post->updated_at];
             });
+
+        // Guides (#5151), from resources/guides.
+        foreach (Guides::all() as $guide) {
+            $urls[] = ['loc' => Seo::url('guides/'.$guide['slug']), 'lastmod' => Carbon::parse($guide['updated'])];
+        }
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n"
             .'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";

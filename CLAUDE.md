@@ -491,6 +491,25 @@ without a full build.
   is EasyMDE/CodeMirror: click `.CodeMirror` and type. `seo.spec` and `ssr.spec` include `/blog`
   and `/blog/welcome`.
 
+## Guides (#5151)
+
+- `/guides` and `/guides/{slug}` (`GuideController`): help pages that answer one ETS2 question
+  each. They live in the repo, one file per guide in `resources/guides/<slug>.php` (an array:
+  `title` = the page's Head title, `description` ≤ 160, `answer`, Markdown `body`, `faq` pairs,
+  `updated`, `order`), loaded by `App\Support\Guides`. Not in `posts`: they describe what
+  ProjectTrucks and the Hub do, so **a change to a feature or UI label they name changes the
+  guide in the same PR** (and bumps `updated`). Each file says what it was checked against.
+- Every claim was checked against both codebases (ProjectTrucks v0.11). Things that are _not_
+  there, so guides must not claim them: ATS support in the app, a profit figure, JSON export
+  from the app, a plugin uninstall button, company invites, convoy tracking.
+- Body Markdown goes through the blog's rules (`html_input => strip`). Links are site paths
+  (`/download`, `/guides/...`); `GuideTest` GETs every one and fails on a 404.
+- Search: `Seo::PAGES` `guides.index` / `guides.show` (the guide's own title/description),
+  Article + FAQPage JSON-LD (`Seo::guideData`, the same questions the page shows), sitemap with
+  `lastmod` = `updated`. Linked from the sidebar and its footer row (Guides · Privacy · Terms).
+- JSON-LD is printed by Blade on full loads only; after an Inertia visit the head keeps the
+  first page's. `guides.spec.ts` reads the FAQPage from the server HTML for that reason.
+
 ## Company Discord webhook (#4652)
 
 - `companies.discord_webhook` (`encrypted` cast, in `$hidden`), `discord_webhook_disabled_at`,
