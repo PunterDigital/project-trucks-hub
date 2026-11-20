@@ -230,7 +230,7 @@ function focus(d: LiveDriver): void {
 </script>
 
 <template>
-    <Head title="Live map" />
+    <Head title="Live ETS2 map" />
 
     <div class="flex flex-col gap-4 p-4">
         <div class="flex flex-wrap items-baseline justify-between gap-2">

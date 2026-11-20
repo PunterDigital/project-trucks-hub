@@ -29,7 +29,7 @@ defineProps<{
 </script>
 
 <template>
-    <Head title="Companies" />
+    <Head title="Virtual trucking companies (VTCs)" />
 
     <div class="flex flex-col gap-4 p-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">

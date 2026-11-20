@@ -1,2 +1,9 @@
 User-agent: *
-Disallow:
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /link
+Disallow: /admin
+Disallow: /notifications
+
+# Update this line if the Hub moves to another domain (#5152).
+Sitemap: https://project-trucks.shaypunter.co.uk/sitemap.xml
