@@ -97,3 +97,13 @@ test('sitemap.xml lists public drivers and companies, robots.txt points at it', 
     expect(robots).toMatch(/^Sitemap: https:\/\/.+\/sitemap\.xml$/m);
     expect(robots).toContain('Disallow: /settings');
 });
+
+test('Google Search Console can read its verification file', async ({
+    page,
+}) => {
+    const response = await page.request.get('/googlee9845bfde9df5b94.html');
+    expect(response.status()).toBe(200);
+    expect(await response.text()).toBe(
+        'google-site-verification: googlee9845bfde9df5b94.html',
+    );
+});
