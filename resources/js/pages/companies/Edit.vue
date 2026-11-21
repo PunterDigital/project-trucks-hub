@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
 import CompanyForm from '@/components/hub/CompanyForm.vue';
+import CompanyInvites from '@/components/hub/CompanyInvites.vue';
+import type { CompanyInvite } from '@/components/hub/CompanyInvites.vue';
 import ImageUpload from '@/components/hub/ImageUpload.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -31,6 +33,7 @@ defineProps<{
         disabled_at: string | null;
         error: string | null;
     };
+    invites: CompanyInvite[];
     isOwner: boolean;
 }>();
 
@@ -80,6 +83,8 @@ const webhookPlaceholder = 'https://discord.com/api/webhooks/…';
                 remove-label="Remove banner"
             />
         </section>
+
+        <CompanyInvites :slug="company.slug" :invites="invites" />
 
         <section id="discord" class="space-y-4">
             <div>

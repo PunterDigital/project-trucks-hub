@@ -1,9 +1,10 @@
 <?php
 
-// Facts checked against the Hub's companies pages and CompanyMembershipController (#5151).
+// Facts checked against the Hub's companies pages and CompanyMembershipController (#5151),
+// invite links against CompanyInviteController (#5221).
 return [
     'order' => 3,
-    'updated' => '2026-11-20',
+    'updated' => '2026-11-21',
     'title' => 'How to start or join a virtual trucking company (VTC) in ETS2',
     'description' => 'Start your own Euro Truck Simulator 2 virtual trucking company on ProjectTrucks Hub, or find one to join: recruitment, roles, goals and company stats.',
     'answer' => 'Sign in to ProjectTrucks Hub, open Companies and click "New company" to start one: pick a name, a 2 to 5 character tag and how drivers join. To join one instead, open its page and click "Join company", or "Apply to join" if it takes applications. Your synced jobs then count towards the company\'s stats.',
@@ -58,7 +59,7 @@ MD,
         ],
         [
             'Can I invite drivers to my company?',
-            'There are no invites. Share your company page: drivers join straight away if recruitment is Open, or apply if it is set to Applications.',
+            'Yes. On your company’s Edit page, under Invite links, an owner or manager can create a link that expires after a day, a week or never, and works once, 5 times, 25 times or any number of times. Anyone with the link joins straight away, even while recruitment is Applications or Closed. The link is shown once, and you can revoke it at any time. You can also share your company page: drivers join straight away if recruitment is Open, or apply if it is set to Applications.',
         ],
         [
             'How do I leave a company I own?',

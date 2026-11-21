@@ -54,7 +54,9 @@ without a full build.
   `auth.user` prop is a fixed field list (`HandleInertiaRequests`); `VisibilityTest` checks no
   email reaches public pages.
 - Companies: one per driver (`company_members.user_id` unique). Owner ⊃ manager ⊃ driver;
-  rules in `CompanyMembershipController`.
+  rules in `CompanyMembershipController`. Every way in (open join, accepted application,
+  invite link) goes through `App\Support\CompanyRoster::add()` (withdraws other applications,
+  "Team player") and `announceJoin()` (owner's bell + Discord), so they can't drift.
 - Live status: one row per driver, fresh for `LiveStatus::FRESH_SECONDS` (120 s).
 - Device linking: `DeviceAuthorization` (RFC 8628 style), device code stored as sha256, user
   code 8 chars without vowels. Tokens are Sanctum PATs with ability `sync`; the website lists
@@ -525,7 +527,8 @@ without a full build.
   guide in the same PR** (and bumps `updated`). Each file says what it was checked against.
 - Every claim was checked against both codebases (ProjectTrucks v0.11). Things that are _not_
   there, so guides must not claim them: ATS support in the app, a profit figure, JSON export
-  from the app, a plugin uninstall button, company invites, convoy tracking.
+  from the app, a plugin uninstall button, convoy tracking. (Company invites exist since #5221;
+  `start-or-join-a-vtc` says how they work.)
 - Body Markdown goes through the blog's rules (`html_input => strip`). Links are site paths
   (`/download`, `/guides/...`); `GuideTest` GETs every one and fails on a 404.
 - Search: `Seo::PAGES` `guides.index` / `guides.show` (the guide's own title/description),
@@ -653,6 +656,27 @@ that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec`
   CompanyGoals.vue`) hides for outsiders when there's nothing to show.
 - Tests freeze the clock mid-month (`CompanyGoalTest`). E2E (`goals.spec.ts`): Gina Goals owns
   Goal Getters; both members are private so their this-month jobs stay off the public feed.
+
+## Company invite links (#5221)
+
+- `company_invites`: `token_hash` (sha256 of a 40-char letters-and-digits token, unique),
+  `expires_at` (null = never), `max_uses` (null = unlimited), `uses`, `revoked_at`,
+  `created_by`. The plain token exists only in the flash right after `CompanyInvite::issue()`
+  (`Inertia::flash('invite', {id, url})`); `CompanyInvites.vue` keeps it in a ref, because the
+  auto-refresh's reload comes without the flash. Lost = make a new link.
+- `CompanyInviteController`: store / revoke (owners and managers, edit page section
+  `#invites`; the form offers 1 / 7 / never days and 1 / 5 / 25 / unlimited uses, the only
+  values validation accepts; at most `MAX_ACTIVE` (20) live links). `GET /invite/{token}`
+  is public (not in `Seo::PAGES`, so noindex) and puts itself in `url.intended` for guests,
+  so Fortify's login and register come back to it. `POST /invite/{token}` (10/min) joins.
+- A live link joins **whatever the recruitment setting** (Closed included). `claim()` takes
+  a use with one conditional `UPDATE … SET uses = uses + 1 WHERE usable`, so two drivers
+  can't both take a single-use link's last use; if the join then fails (they joined
+  elsewhere meanwhile) `release()` gives it back. A member of the company opening its link
+  uses nothing. Only live links are listed (`scopeUsable`).
+- E2E (`invites.spec.ts`): Ivy Invite owns Invite Only Freight (closed); Ian Invitee joins
+  with a single-use link, Gwen Guest signs in from the invite page. Revoke uses `confirm()`:
+  `page.once('dialog', d => d.accept())`.
 
 ## Quirks
 

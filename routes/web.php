@@ -7,6 +7,7 @@ use App\Http\Controllers\CompanyDiscordController;
 use App\Http\Controllers\CompanyEventController;
 use App\Http\Controllers\CompanyGoalController;
 use App\Http\Controllers\CompanyImageController;
+use App\Http\Controllers\CompanyInviteController;
 use App\Http\Controllers\CompanyMembershipController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\PreviewImageController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\VersionController;
+use App\Models\CompanyInvite;
 use App\Models\Post;
 use App\Support\Guides;
 use App\Support\ImageStore;
@@ -66,6 +68,11 @@ Route::get('drivers', [DriverController::class, 'index'])->name('drivers.index')
 Route::get('drivers/{driver:username}', [DriverController::class, 'show'])->name('drivers.show');
 Route::get('jobs/{delivery}', [DeliveryController::class, 'show'])->whereNumber('delivery')->name('jobs.show');
 Route::get('companies', [CompanyController::class, 'index'])->name('companies.index');
+// Company invite links (#5221): the page is public, so a guest sees what they're invited to.
+Route::get('invite/{token}', [CompanyInviteController::class, 'show'])
+    ->where('token', CompanyInvite::TOKEN_PATTERN)
+    ->middleware('throttle:30,1')
+    ->name('invites.show');
 // Company events and convoys (#4648).
 Route::get('events', [CompanyEventController::class, 'index'])->name('events.index');
 Route::get('events/{event}', [CompanyEventController::class, 'show'])->whereNumber('event')->name('events.show');
@@ -150,6 +157,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('companies/{company:slug}/applications/{application}', [CompanyMembershipController::class, 'decide'])->name('companies.applications.decide');
     Route::patch('companies/{company:slug}/members/{member}', [CompanyMembershipController::class, 'update'])->name('companies.members.update');
     Route::delete('companies/{company:slug}/members/{member}', [CompanyMembershipController::class, 'destroy'])->name('companies.members.destroy');
+
+    // Invite links (#5221).
+    Route::post('companies/{company:slug}/invites', [CompanyInviteController::class, 'store'])
+        ->middleware('throttle:20,1')->name('companies.invites.store');
+    Route::delete('companies/{company:slug}/invites/{invite}', [CompanyInviteController::class, 'destroy'])
+        ->whereNumber('invite')->name('companies.invites.destroy');
+    Route::post('invite/{token}', [CompanyInviteController::class, 'accept'])
+        ->where('token', CompanyInvite::TOKEN_PATTERN)
+        ->middleware('throttle:10,1')->name('invites.accept');
 
     Route::get('companies/{company:slug}/events/create', [CompanyEventController::class, 'create'])->name('companies.events.create');
     Route::post('companies/{company:slug}/events', [CompanyEventController::class, 'store'])->middleware('throttle:20,1')->name('companies.events.store');
