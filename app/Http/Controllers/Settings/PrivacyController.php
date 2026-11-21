@@ -84,6 +84,9 @@ class PrivacyController extends Controller
                 'slug' => $user->membership->company->slug,
                 'role' => $user->membership->getAttribute('role'),
                 'joined_at' => $user->membership->created_at?->toIso8601String(),
+                // Company rank (#5223): derived from synced jobs, or pinned by a manager.
+                'rank' => $user->membership->rank?->name,
+                'rank_pinned' => $user->membership->pinned_rank_id !== null,
             ],
             'level' => (int) $user->level,
             'achievements' => $user->achievements()->orderBy('unlocked_at')->get()

@@ -7,6 +7,7 @@ use App\Enums\DeliveryStatus;
 use App\Jobs\PostToDiscord;
 use App\Models\Company;
 use App\Models\CompanyEvent;
+use App\Models\CompanyRank;
 use App\Models\Delivery;
 use App\Models\User;
 use App\Notifications\HubNotice;
@@ -80,6 +81,20 @@ class DiscordWebhook
             'title' => self::field(__(':name joined :company', ['name' => $member->name, 'company' => $company->name]), 256),
             'url' => $member->profile_private ? route('companies.show', $company) : route('drivers.show', $member),
             'description' => __('Welcome aboard!'),
+        ]);
+    }
+
+    /** Company ranks (#5223): a member reached a higher rank. */
+    public static function rankPromoted(Company $company, User $member, CompanyRank $rank): void
+    {
+        if (! $company->discordActive() || $member->isSuspended()) {
+            return;
+        }
+
+        self::post($company, [
+            'title' => self::field(__(':name is now :rank', ['name' => $member->name, 'rank' => $rank->name]), 256),
+            'url' => $member->profile_private ? route('companies.show', $company) : route('drivers.show', $member),
+            'description' => self::field(__('Promoted at :company. Congratulations!', ['company' => $company->name]), 4096),
         ]);
     }
 

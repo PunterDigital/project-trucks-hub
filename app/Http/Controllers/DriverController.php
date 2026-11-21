@@ -49,7 +49,7 @@ class DriverController extends Controller
     public function show(Request $request, User $driver): Response
     {
         $viewer = $request->user();
-        $driver->loadMissing('membership.company', 'liveStatus');
+        $driver->loadMissing('membership.company', 'membership.rank', 'liveStatus');
 
         // Suspended (#4651): gone from the site, not even the "private profile" page.
         abort_if($driver->isSuspended(), 404);
@@ -93,6 +93,8 @@ class DriverController extends Controller
             'driver' => [
                 ...$driver->publicSummary(),
                 'role' => $driver->membership?->role->value,
+                // Company rank (#5223) on the company line; `rank` is the personal level rank.
+                'company_rank' => $driver->membership?->rank?->summary(),
                 'member_since' => $driver->created_at?->toIso8601String(),
                 'steam_url' => $driver->steam_id ? 'https://steamcommunity.com/profiles/'.$driver->steam_id : null,
                 'private' => $driver->profile_private,

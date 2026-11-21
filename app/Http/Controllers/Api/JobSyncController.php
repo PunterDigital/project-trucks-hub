@@ -7,6 +7,7 @@ use App\Enums\DeliveryStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Delivery;
 use App\Models\User;
+use App\Support\CompanyRanks;
 use App\Support\DiscordWebhook;
 use App\Sync\JobChecks;
 use Illuminate\Http\JsonResponse;
@@ -148,6 +149,10 @@ class JobSyncController extends Controller
 
             return $ids;
         });
+
+        // Company rank (#5223) first, so a promotion rings the bell and posts to Discord; the
+        // silent re-rank inside Progress::refresh then finds nothing to change.
+        CompanyRanks::refreshUser($user, notify: true);
 
         // Levels and achievements (#4645), now that the batch is stored.
         Progress::refresh($user);

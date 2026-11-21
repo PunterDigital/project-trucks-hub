@@ -97,6 +97,17 @@ class HubNotice extends Notification implements ShouldQueue
         );
     }
 
+    /** Company ranks (#5223): bell only. */
+    public static function rankPromoted(Company $company, string $rank): self
+    {
+        return new self(
+            NoticeType::RankPromoted,
+            __('You were promoted to :rank at :company.', ['rank' => $rank, 'company' => $company->name]),
+            route('companies.show', $company),
+            __('New rank at :company', ['company' => $company->name]),
+        );
+    }
+
     public static function ownershipHandedOver(Company $company, User $from): self
     {
         return new self(

@@ -114,6 +114,8 @@ test('staff open the panel from the user menu and every resource', async ({
 
     await page.getByRole('link', { name: 'Companies' }).first().click();
     await expect(page).toHaveURL(/\/admin\/companies$/);
+    // Newest first and paginated, like users: newer seeded companies push Nordic off page one.
+    await page.goto('/admin/companies?search=nordic');
     await page
         .getByRole('link', { name: /Nordic Haulage/ })
         .first()

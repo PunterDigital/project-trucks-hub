@@ -12,11 +12,13 @@ use App\Models\CompanyApplication;
 use App\Models\CompanyEvent;
 use App\Models\CompanyInvite;
 use App\Models\CompanyMember;
+use App\Models\CompanyRank;
 use App\Models\Delivery;
 use App\Models\User;
 use App\Support\ApplicationQuestions;
 use App\Support\Charts;
 use App\Support\CompanyGoals;
+use App\Support\CompanyRanks;
 use App\Support\Feed;
 use App\Support\ImageStore;
 use App\Support\LinkPreview;
@@ -116,6 +118,10 @@ class CompanyController extends Controller
             ->get()
             ->keyBy('user_id');
 
+        // Company ranks (#5223), lowest first.
+        $ranks = $company->ranks()->get();
+        $ranksById = $ranks->keyBy('id');
+
         $members = $company->members()
             ->with('user.liveStatus')
             ->get()
@@ -123,7 +129,7 @@ class CompanyController extends Controller
             ->reject(fn (CompanyMember $m) => $m->user->isSuspended())
             ->sortBy(fn (CompanyMember $m) => [array_search($m->role, CompanyRole::cases(), true), $m->user->name])
             ->values()
-            ->map(function (CompanyMember $m) use ($memberStats, $viewer, $role) {
+            ->map(function (CompanyMember $m) use ($memberStats, $viewer, $role, $ranksById) {
                 $visible = $role !== null || ! $m->user->profile_private || $viewer?->is($m->user);
                 $stats = $memberStats->get($m->user_id);
 
@@ -139,6 +145,9 @@ class CompanyController extends Controller
                         'distance_km' => round((float) ($stats->distance_km ?? 0), 1),
                     ],
                     'on_the_road' => $visible && $m->user->liveStatus?->isFresh(),
+                    'rank' => $m->rank_id !== null ? $ranksById->get($m->rank_id)?->summary() : null,
+                    // Only the people who can change it see the pin.
+                    'pinned_rank_id' => $role?->canManage() ? $m->pinned_rank_id : null,
                 ];
             });
 
@@ -172,6 +181,7 @@ class CompanyController extends Controller
                 'all' => Stats::totals($deliveries, Period::All),
             ],
             'members' => $members,
+            'ranks' => $ranks->map(fn (CompanyRank $r) => $r->summary())->values()->all(),
             // Charts (#4650): distance per member, folded into the viewer's days on the page.
             'chart' => Charts::companyDistance($company, $viewer, $role),
             'onTheRoad' => Feed::onTheRoad($viewer, 20, fn ($q) => $q->whereHas('user.membership', fn (Builder $m) => $m->where('company_id', $company->id))),
@@ -212,6 +222,7 @@ class CompanyController extends Controller
             ],
             'discord' => $company->discordSummary(),
             'questions' => ApplicationQuestions::for($company),
+            'ranks' => CompanyRanks::for($company),
             // Invite links (#5221): live ones only, never a token.
             'invites' => $company->invites()->usable()->with('creator')->latest()->get()
                 ->map(fn (CompanyInvite $i) => $i->summary())->values()->all(),

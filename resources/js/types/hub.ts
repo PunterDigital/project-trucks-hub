@@ -157,6 +157,14 @@ export type Paginated<T> = {
 export type Recruitment = 'open' | 'apply' | 'closed';
 export type CompanyRole = 'owner' | 'manager' | 'driver';
 
+/** Company ranks (#5223): reached at `min_km` counted km driven for the company. */
+export type CompanyRank = {
+    id: number;
+    name: string;
+    color: string;
+    min_km: number;
+};
+
 export type LeaderboardRow = {
     rank: number;
     subject: (DriverSummary | (CompanySummary & { members: number })) & {
