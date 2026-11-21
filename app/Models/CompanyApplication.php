@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
  * @property int $company_id
  * @property int $user_id
  * @property string|null $message
+ * @property list<array{question: string, type: string, answer: string|null}>|null $answers
  * @property ApplicationStatus $status
  * @property int|null $decided_by
  * @property Carbon|null $decided_at
@@ -21,7 +22,7 @@ use Illuminate\Support\Carbon;
  * @property-read Company $company
  * @property-read User $user
  */
-#[Fillable(['company_id', 'user_id', 'message', 'status', 'decided_by', 'decided_at'])]
+#[Fillable(['company_id', 'user_id', 'message', 'answers', 'status', 'decided_by', 'decided_at'])]
 class CompanyApplication extends Model
 {
     protected function casts(): array
@@ -29,6 +30,8 @@ class CompanyApplication extends Model
         return [
             'status' => ApplicationStatus::class,
             'decided_at' => 'datetime',
+            // The questions as asked with the answers (#5222): later edits don't change them.
+            'answers' => 'array',
         ];
     }
 

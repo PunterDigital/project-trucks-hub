@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\SteamController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\CompanyApplicationQuestionController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyDiscordController;
 use App\Http\Controllers\CompanyEventController;
@@ -140,6 +141,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('companies/{company:slug}/discord', [CompanyDiscordController::class, 'destroy'])->name('companies.discord.destroy');
     Route::delete('companies/{company:slug}', [CompanyController::class, 'destroy'])->name('companies.destroy');
     // Company goals (#4649): owners and managers set this month's targets.
+    Route::put('companies/{company:slug}/questions', [CompanyApplicationQuestionController::class, 'update'])
+        ->middleware('throttle:20,1')->name('companies.questions.update');
     Route::put('companies/{company:slug}/goals', [CompanyGoalController::class, 'update'])
         ->middleware('throttle:20,1')->name('companies.goals.update');
     Route::post('companies/{company:slug}/images/{kind}', [CompanyImageController::class, 'store'])

@@ -10,6 +10,7 @@ use App\Models\CompanyApplication;
 use App\Models\CompanyMember;
 use App\Models\User;
 use App\Notifications\HubNotice;
+use App\Support\ApplicationQuestions;
 use App\Support\CompanyRoster;
 use App\Support\DiscordWebhook;
 use Illuminate\Http\RedirectResponse;
@@ -51,7 +52,10 @@ class CompanyMembershipController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $data = $request->validate(['message' => ['nullable', 'string', 'max:1000']]);
+        // Application questions (#5222): each answer is checked against its question's type.
+        $questions = ApplicationQuestions::for($company);
+        [$rules, $attributes] = ApplicationQuestions::rules($questions);
+        $data = $request->validate(['message' => ['nullable', 'string', 'max:1000'], ...$rules], [], $attributes);
 
         if ($company->recruitment !== Recruitment::Apply) {
             return $this->fail($company, __('This company is not taking applications.'));
@@ -62,7 +66,10 @@ class CompanyMembershipController extends Controller
 
         $application = $company->applications()->firstOrCreate(
             ['user_id' => $user->id, 'status' => ApplicationStatus::Pending],
-            ['message' => $data['message'] ?? null],
+            [
+                'message' => $data['message'] ?? null,
+                'answers' => $questions === [] ? null : ApplicationQuestions::snapshot($questions, (array) ($data['answers'] ?? [])),
+            ],
         );
 
         // A second click on Apply finds the pending one: owners hear about it once.
