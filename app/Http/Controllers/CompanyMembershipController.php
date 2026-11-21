@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Achievements\Progress;
 use App\Enums\ApplicationStatus;
 use App\Enums\CompanyRole;
 use App\Enums\Recruitment;
@@ -11,9 +10,8 @@ use App\Models\CompanyApplication;
 use App\Models\CompanyMember;
 use App\Models\User;
 use App\Notifications\HubNotice;
+use App\Support\CompanyRoster;
 use App\Support\DiscordWebhook;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,12 +38,11 @@ class CompanyMembershipController extends Controller
             return $this->fail($company, __('Leave your current company first.'));
         }
 
-        if (! $this->addMember($company, $user)) {
+        if (! CompanyRoster::add($company, $user)) {
             return $this->fail($company, __('Leave your current company first.'));
         }
 
-        Notification::send($this->staffOf($company, CompanyRole::Owner), HubNotice::memberJoined($company, $user));
-        DiscordWebhook::memberJoined($company, $user);
+        CompanyRoster::announceJoin($company, $user);
 
         return $this->done($company, __('Welcome to :name!', ['name' => $company->name]));
     }
@@ -71,7 +68,7 @@ class CompanyMembershipController extends Controller
         // A second click on Apply finds the pending one: owners hear about it once.
         if ($application->wasRecentlyCreated) {
             Notification::send(
-                $this->staffOf($company, CompanyRole::Manager),
+                CompanyRoster::staffOf($company, CompanyRole::Manager),
                 HubNotice::applicationReceived($company, $user, $data['message'] ?? null),
             );
         }
@@ -109,7 +106,7 @@ class CompanyMembershipController extends Controller
             return $this->done($company, __('Application declined.'));
         }
 
-        if (! $this->addMember($company, $application->user)) {
+        if (! CompanyRoster::add($company, $application->user)) {
             $application->update(['status' => ApplicationStatus::Withdrawn]);
 
             return $this->fail($company, __(':name has joined another company.', ['name' => $application->user->name]));
@@ -186,45 +183,6 @@ class CompanyMembershipController extends Controller
         $member->user->notify(HubNotice::removedFromCompany($company));
 
         return $this->done($company, __(':name was removed from the company.', ['name' => $member->user->name]));
-    }
-
-    /**
-     * The members at `$minimum` or above (Manager = owner and managers), as users.
-     *
-     * @return Collection<int, User>
-     */
-    private function staffOf(Company $company, CompanyRole $minimum): Collection
-    {
-        $roles = $minimum === CompanyRole::Owner
-            ? [CompanyRole::Owner]
-            : [CompanyRole::Owner, CompanyRole::Manager];
-
-        return User::query()
-            ->whereIn('id', $company->members()->whereIn('role', $roles)->select('user_id'))
-            ->get();
-    }
-
-    /** Adds `$user` as a driver; false when they are already in a company. */
-    private function addMember(Company $company, User $user): bool
-    {
-        try {
-            DB::transaction(function () use ($company, $user) {
-                $company->members()->create(['user_id' => $user->id, 'role' => CompanyRole::Driver]);
-                CompanyApplication::query()
-                    ->where('user_id', $user->id)
-                    ->where('status', ApplicationStatus::Pending)
-                    ->where('company_id', '!=', $company->id)
-                    ->update(['status' => ApplicationStatus::Withdrawn]);
-            });
-        } catch (QueryException) {
-            // user_id is unique on company_members: they joined somewhere else meanwhile.
-            return false;
-        }
-
-        // "Team player" (#4645).
-        Progress::refresh($user->unsetRelation('membership'));
-
-        return true;
     }
 
     /** Owner ⊃ manager: `$minimum` Manager lets owners through too. */

@@ -490,6 +490,28 @@ class E2ESeeder extends Seeder
             'two_factor_confirmed_at' => now(),
         ])->save();
 
+        // Invite links (#5221): Ivy owns Invite Only Freight (recruitment closed); Ian joins with
+        // a single-use link, Gwen opens a reusable one signed out and signs in from there.
+        // Backdated: the admin Users list is newest first, and moderation.spec.ts looks for Susie
+        // on its first page.
+        foreach ([['Ivy Invite', 'ivy-invite'], ['Ian Invitee', 'ian-invitee'], ['Gwen Guest', 'gwen-guest']] as [$name, $username]) {
+            $user = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+            ]);
+            $user->forceFill(['email_verified_at' => now(), 'password_set_at' => now(), 'created_at' => now()->subYear()])->save();
+        }
+        $inviteOnly = Company::query()->create([
+            'name' => 'Invite Only Freight',
+            'slug' => 'invite-only-freight',
+            'tag' => 'IOF',
+            'description' => 'Members by invitation.',
+            'recruitment' => Recruitment::Closed,
+        ]);
+        $inviteOnly->members()->create(['user_id' => User::query()->where('username', 'ivy-invite')->value('id'), 'role' => CompanyRole::Owner]);
+
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');
     }

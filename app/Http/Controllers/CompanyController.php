@@ -10,6 +10,7 @@ use App\Enums\RsvpStatus;
 use App\Models\Company;
 use App\Models\CompanyApplication;
 use App\Models\CompanyEvent;
+use App\Models\CompanyInvite;
 use App\Models\CompanyMember;
 use App\Models\Delivery;
 use App\Models\User;
@@ -202,6 +203,9 @@ class CompanyController extends Controller
                 'banner' => ImageStore::url($company->banner_path),
             ],
             'discord' => $company->discordSummary(),
+            // Invite links (#5221): live ones only, never a token.
+            'invites' => $company->invites()->usable()->with('creator')->latest()->get()
+                ->map(fn (CompanyInvite $i) => $i->summary())->values()->all(),
             'isOwner' => $company->roleOf($request->user()) === CompanyRole::Owner,
         ]);
     }
