@@ -25,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $discord_webhook
  * @property Carbon|null $discord_webhook_disabled_at
  * @property string|null $discord_webhook_error
+ * @property array<int, mixed>|null $application_questions
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -42,6 +43,8 @@ class Company extends Model
             // never sent back to a page in full (see `discordSummary()`).
             'discord_webhook' => 'encrypted',
             'discord_webhook_disabled_at' => 'datetime',
+            // Application questions (#5222), read through `App\Support\ApplicationQuestions`.
+            'application_questions' => 'array',
         ];
     }
 

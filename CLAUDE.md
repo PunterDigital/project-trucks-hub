@@ -678,6 +678,28 @@ that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec`
   with a single-use link, Gwen Guest signs in from the invite page. Revoke uses `confirm()`:
   `page.once('dialog', d => d.accept())`.
 
+## Application questions (#5222)
+
+- `companies.application_questions` (JSON list, null = none) and
+  `company_applications.answers` (JSON snapshot). `App\Support\ApplicationQuestions`: `for()`
+  reads the company's list (skips malformed rows), `save()` validates and stores the edit page's
+  list (at most `MAX` 10; types `short_text` / `long_text` / `yes_no` / `choice` with 2 to 8
+  distinct options; blank options dropped), `rules()` builds the Apply form's `answers.<id>`
+  rules (attribute = the question's label), `snapshot()` stores `{question, type, answer}` per
+  question so later edits never change old answers.
+- Each question has an 8-character `id` that `save()` keeps across edits (the field name is
+  `answers[<id>]`); a row without a valid id gets a new one.
+- `PUT companies/{slug}/questions` (`CompanyApplicationQuestionController`, owners/managers,
+  20/min), edit page section `#questions` (`ApplicationQuestionsEditor.vue`, `useForm`, options
+  as one per line). Redirects to the edit page without a fragment (an Inertia redirect with one is
+  a 409).
+- Who sees answers: owners/managers (`applications.*.answers` on the company page) and the
+  applicant (`viewer.pendingAnswers`, "Your application" panel). The Apply form's `questions`
+  prop goes only to signed-in non-members of an Applications company. Privacy export includes
+  `answers`.
+- E2E (`application-questions.spec.ts`): Quinn Questions owns Question Time Haulage, Abby
+  Answers applies.
+
 ## Quirks
 
 - The starter kit's `bunny()` font build step was removed (a font download during a Forge

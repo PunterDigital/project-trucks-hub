@@ -2,10 +2,14 @@
 import { Form, Head, Link, router } from '@inertiajs/vue3';
 import { CalendarPlus, Settings } from '@lucide/vue';
 import { computed } from 'vue';
+import ApplicationAnswers from '@/components/hub/ApplicationAnswers.vue';
+import type { ApplicationAnswer } from '@/components/hub/ApplicationAnswers.vue';
+import type { ApplicationQuestion } from '@/components/hub/ApplicationQuestionsEditor.vue';
 import CompanyGoals from '@/components/hub/CompanyGoals.vue';
 import CompanyLogo from '@/components/hub/CompanyLogo.vue';
 import DistanceChart from '@/components/hub/DistanceChart.vue';
 import DriverAvatar from '@/components/hub/DriverAvatar.vue';
+import InputError from '@/components/InputError.vue';
 import EventList from '@/components/hub/EventList.vue';
 import JobList from '@/components/hub/JobList.vue';
 import OnTheRoad from '@/components/hub/OnTheRoad.vue';
@@ -57,7 +61,9 @@ const props = defineProps<{
         signedIn: boolean;
         inOtherCompany: boolean;
         pendingApplication: number | null;
+        pendingAnswers: ApplicationAnswer[];
     };
+    questions: ApplicationQuestion[];
     stats: PeriodTotals;
     members: Member[];
     chart: ChartSeries[];
@@ -68,6 +74,7 @@ const props = defineProps<{
     applications: {
         id: number;
         message: string | null;
+        answers: ApplicationAnswer[];
         created_at: string | null;
         driver: {
             name: string;
@@ -80,6 +87,9 @@ const props = defineProps<{
 defineOptions({
     layout: { breadcrumbs: [{ title: 'Companies', href: index() }] },
 });
+
+const fieldClass =
+    'rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50';
 
 const isOwner = computed(() => props.role === 'owner');
 const canManage = computed(
@@ -236,6 +246,13 @@ function leaveCompany() {
         </header>
 
         <Panel
+            v-if="viewer.pendingApplication && viewer.pendingAnswers.length > 0"
+            title="Your application"
+        >
+            <ApplicationAnswers :answers="viewer.pendingAnswers" />
+        </Panel>
+
+        <Panel
             v-if="
                 !role &&
                 viewer.signedIn &&
@@ -248,9 +265,101 @@ function leaveCompany() {
             <Form
                 v-bind="apply.form(company.slug)"
                 class="flex flex-col gap-3"
-                v-slot="{ processing }"
+                v-slot="{ errors, processing }"
             >
+                <!-- Application questions (#5222) -->
+                <div
+                    v-for="q in questions"
+                    :key="q.id"
+                    class="grid gap-2"
+                    data-test="apply-question"
+                >
+                    <template v-if="q.type === 'yes_no'">
+                        <fieldset class="grid gap-2">
+                            <legend class="text-sm font-medium">
+                                {{ q.label
+                                }}<span v-if="q.required" aria-hidden="true">
+                                    *</span
+                                >
+                            </legend>
+                            <div class="flex gap-4 text-sm">
+                                <label class="flex items-center gap-2"
+                                    ><input
+                                        type="radio"
+                                        :name="`answers[${q.id}]`"
+                                        value="yes"
+                                        :required="q.required"
+                                    />
+                                    Yes</label
+                                >
+                                <label class="flex items-center gap-2"
+                                    ><input
+                                        type="radio"
+                                        :name="`answers[${q.id}]`"
+                                        value="no"
+                                    />
+                                    No</label
+                                >
+                            </div>
+                        </fieldset>
+                    </template>
+                    <template v-else>
+                        <label
+                            :for="`answer-${q.id}`"
+                            class="text-sm font-medium"
+                            >{{ q.label
+                            }}<span v-if="q.required" aria-hidden="true">
+                                *</span
+                            ></label
+                        >
+                        <select
+                            v-if="q.type === 'choice'"
+                            :id="`answer-${q.id}`"
+                            :name="`answers[${q.id}]`"
+                            :required="q.required"
+                            :aria-label="q.label"
+                            :class="fieldClass"
+                        >
+                            <option value="" selected>Choose…</option>
+                            <option
+                                v-for="option in q.options"
+                                :key="option"
+                                :value="option"
+                            >
+                                {{ option }}
+                            </option>
+                        </select>
+                        <textarea
+                            v-else-if="q.type === 'long_text'"
+                            :id="`answer-${q.id}`"
+                            :name="`answers[${q.id}]`"
+                            rows="3"
+                            maxlength="2000"
+                            :required="q.required"
+                            :aria-label="q.label"
+                            :class="fieldClass"
+                        />
+                        <input
+                            v-else
+                            :id="`answer-${q.id}`"
+                            :name="`answers[${q.id}]`"
+                            type="text"
+                            maxlength="200"
+                            :required="q.required"
+                            :aria-label="q.label"
+                            :class="fieldClass"
+                        />
+                    </template>
+                    <InputError :message="errors[`answers.${q.id}`]" />
+                </div>
+                <label
+                    v-if="questions.length > 0"
+                    for="apply-message"
+                    class="text-sm font-medium"
+                    >Anything else? (optional)</label
+                >
                 <textarea
+                    id="apply-message"
                     name="message"
                     rows="3"
                     maxlength="1000"
@@ -299,6 +408,11 @@ function leaveCompany() {
                             >
                                 {{ application.message }}
                             </p>
+                            <ApplicationAnswers
+                                v-if="application.answers.length > 0"
+                                :answers="application.answers"
+                                class="mt-2"
+                            />
                         </div>
                     </div>
                     <div class="flex gap-2">

@@ -97,6 +97,7 @@ class PrivacyController extends Controller
                 ->map(fn (CompanyApplication $a) => [
                     'company' => $a->company->name,
                     'message' => $a->getAttribute('message'),
+                    'answers' => $a->getAttribute('answers'),
                     'status' => $a->getAttribute('status'),
                     'created_at' => $a->created_at?->toIso8601String(),
                     'decided_at' => $a->getAttribute('decided_at')?->toIso8601String(),

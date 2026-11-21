@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
+import ApplicationQuestionsEditor from '@/components/hub/ApplicationQuestionsEditor.vue';
+import type { ApplicationQuestion } from '@/components/hub/ApplicationQuestionsEditor.vue';
 import CompanyForm from '@/components/hub/CompanyForm.vue';
 import CompanyInvites from '@/components/hub/CompanyInvites.vue';
 import type { CompanyInvite } from '@/components/hub/CompanyInvites.vue';
@@ -34,6 +36,7 @@ defineProps<{
         error: string | null;
     };
     invites: CompanyInvite[];
+    questions: ApplicationQuestion[];
     isOwner: boolean;
 }>();
 
@@ -85,6 +88,11 @@ const webhookPlaceholder = 'https://discord.com/api/webhooks/…';
         </section>
 
         <CompanyInvites :slug="company.slug" :invites="invites" />
+
+        <ApplicationQuestionsEditor
+            :slug="company.slug"
+            :questions="questions"
+        />
 
         <section id="discord" class="space-y-4">
             <div>

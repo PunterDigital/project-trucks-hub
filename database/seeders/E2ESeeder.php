@@ -512,6 +512,27 @@ class E2ESeeder extends Seeder
         ]);
         $inviteOnly->members()->create(['user_id' => User::query()->where('username', 'ivy-invite')->value('id'), 'role' => CompanyRole::Owner]);
 
+        // Application questions (#5222): Quinn owns Question Time Haulage (applications, no
+        // questions yet); application-questions.spec.ts sets two, Abby applies and Quinn reads
+        // the answers. Backdated like the invite accounts.
+        foreach ([['Quinn Questions', 'quinn-questions'], ['Abby Answers', 'abby-answers']] as [$name, $username]) {
+            $user = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+            ]);
+            $user->forceFill(['email_verified_at' => now(), 'password_set_at' => now(), 'created_at' => now()->subYear()])->save();
+        }
+        $questionTime = Company::query()->create([
+            'name' => 'Question Time Haulage',
+            'slug' => 'question-time-haulage',
+            'tag' => 'QTH',
+            'description' => 'Tell us about yourself.',
+            'recruitment' => Recruitment::Apply,
+        ]);
+        $questionTime->members()->create(['user_id' => User::query()->where('username', 'quinn-questions')->value('id'), 'role' => CompanyRole::Owner]);
+
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');
     }

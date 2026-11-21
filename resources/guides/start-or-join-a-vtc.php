@@ -33,12 +33,12 @@ The jobs come from [ProjectTrucks](/download): each member links the app to thei
    - **Recruitment**: **Applications** (drivers apply and an owner or manager decides), **Open** (anyone can join straight away) or **Closed** (no new members).
 4. Click **Create company**. You are its owner.
 
-Owners and managers can then set monthly goals on the company page, and on its edit page add a logo and banner or connect a Discord channel, so new jobs, members and events are posted there.
+Owners and managers can then set monthly goals on the company page, and on its edit page add a logo and banner, ask up to 10 application questions (a short or long answer, yes or no, or one option from a list, each optional or required), or connect a Discord channel, so new jobs, members and events are posted there.
 
 ## Join a company
 
 1. Find one on the [Companies](/companies) page.
-2. On its page, click **Join company** if it is open, or write an optional message under **Apply to join** and click **Send application**. An owner or manager then accepts or declines it, and you get a notification.
+2. On its page, click **Join company** if it is open, or answer the company's questions (if it asks any) and write an optional message under **Apply to join**, then click **Send application**. Your answers stay on the company page under **Your application** while you wait. Only the company's owner and managers see them. An owner or manager then accepts or declines it, and you get a notification.
 
 You can be in one company at a time. To move, click **Leave company** first.
 

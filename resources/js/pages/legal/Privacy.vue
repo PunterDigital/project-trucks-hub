@@ -60,7 +60,8 @@ defineOptions({
             </li>
             <li>
                 <strong>Companies:</strong> which company you're in, your role,
-                and applications you sent or decided on.
+                and applications you sent (your message and your answers to the
+                company's questions) or decided on.
             </li>
             <li>
                 <strong>Linked apps:</strong> the name of each linked copy of
@@ -129,7 +130,8 @@ defineOptions({
                 to run the site.
             </li>
             <li>
-                Company owners and managers see applications to their company.
+                Company owners and managers see applications to their company,
+                with the message and answers.
             </li>
             <li>
                 <strong>Company Discord:</strong> if your company's owner or a

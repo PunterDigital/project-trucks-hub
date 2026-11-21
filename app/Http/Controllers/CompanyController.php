@@ -14,6 +14,7 @@ use App\Models\CompanyInvite;
 use App\Models\CompanyMember;
 use App\Models\Delivery;
 use App\Models\User;
+use App\Support\ApplicationQuestions;
 use App\Support\Charts;
 use App\Support\CompanyGoals;
 use App\Support\Feed;
@@ -158,7 +159,13 @@ class CompanyController extends Controller
                 'signedIn' => $viewer !== null,
                 'inOtherCompany' => $viewer?->membership !== null && $role === null,
                 'pendingApplication' => $application?->id,
+                // The applicant sees their own answers (#5222); managers see everyone's.
+                'pendingAnswers' => $application->answers ?? [],
             ],
+            // Application questions (#5222) for the Apply form.
+            'questions' => $company->recruitment === Recruitment::Apply && $role === null && $viewer !== null
+                ? ApplicationQuestions::for($company)
+                : [],
             'stats' => [
                 'week' => Stats::totals($deliveries, Period::Week),
                 'month' => Stats::totals($deliveries, Period::Month),
@@ -184,6 +191,7 @@ class CompanyController extends Controller
                 ? $company->pendingApplications()->with('user')->oldest()->get()->map(fn (CompanyApplication $a) => [
                     'id' => $a->id,
                     'message' => $a->message,
+                    'answers' => $a->answers ?? [],
                     'created_at' => $a->created_at?->toIso8601String(),
                     'driver' => ['name' => $a->user->name, 'username' => $a->user->username, 'avatar' => $a->user->avatar()],
                 ])
@@ -203,6 +211,7 @@ class CompanyController extends Controller
                 'banner' => ImageStore::url($company->banner_path),
             ],
             'discord' => $company->discordSummary(),
+            'questions' => ApplicationQuestions::for($company),
             // Invite links (#5221): live ones only, never a token.
             'invites' => $company->invites()->usable()->with('creator')->latest()->get()
                 ->map(fn (CompanyInvite $i) => $i->summary())->values()->all(),
