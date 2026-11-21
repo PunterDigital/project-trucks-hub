@@ -120,6 +120,16 @@ class Company extends Model
         return $this->hasMany(CompanyGoal::class);
     }
 
+    /**
+     * Company ranks (#5223), lowest first.
+     *
+     * @return HasMany<CompanyRank, $this>
+     */
+    public function ranks(): HasMany
+    {
+        return $this->hasMany(CompanyRank::class)->orderBy('min_km')->orderBy('id');
+    }
+
     /** @return HasMany<CompanyInvite, $this> */
     public function invites(): HasMany
     {

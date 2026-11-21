@@ -7,6 +7,7 @@ use App\Models\Delivery;
 use App\Models\DriverAchievement;
 use App\Models\User;
 use App\Notifications\HubNotice;
+use App\Support\CompanyRanks;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -103,6 +104,10 @@ final class Progress
                 $user->notify(HubNotice::achievementUnlocked($user, $achievement));
             }
         }
+
+        // Company rank (#5223): every place that changes what counts runs through here. Silent:
+        // only a job sync (JobSyncController) or a pin announces a promotion.
+        CompanyRanks::refreshUser($user, notify: false);
 
         return $new;
     }

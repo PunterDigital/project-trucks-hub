@@ -24,13 +24,16 @@ import { apply, edit, index, join, leave, withdraw } from '@/routes/companies';
 import { decide } from '@/routes/companies/applications';
 import {
     destroy as removeMember,
+    rank as pinMemberRank,
     update as updateMember,
 } from '@/routes/companies/members';
+import RankBadge from '@/components/hub/RankBadge.vue';
 import { show as showDriver } from '@/routes/drivers';
 import { create as createEvent } from '@/routes/companies/events';
 import type {
     ChartSeries,
     CompanyGoals as Goals,
+    CompanyRank,
     CompanyRole,
     CompanySummary,
     EventSummary,
@@ -47,6 +50,9 @@ type Member = {
     driver: { name: string; username: string | null; avatar: string | null };
     month: { deliveries: number; distance_km: number };
     on_the_road: boolean;
+    // Company ranks (#5223). The pin is only sent to owners and managers.
+    rank: CompanyRank | null;
+    pinned_rank_id: number | null;
 };
 
 const props = defineProps<{
@@ -66,6 +72,7 @@ const props = defineProps<{
     questions: ApplicationQuestion[];
     stats: PeriodTotals;
     members: Member[];
+    ranks: CompanyRank[];
     chart: ChartSeries[];
     onTheRoad: LiveSummary[];
     latest: JobSummary[];
@@ -119,6 +126,24 @@ function setRole(member: Member, role: CompanyRole) {
     router.patch(
         updateMember([props.company.slug, member.id]).url,
         { role },
+        { preserveScroll: true },
+    );
+}
+
+// Company ranks (#5223): the owner pins anyone, a manager pins drivers (the server also lets
+// a manager pin themselves).
+function canPin(member: Member): boolean {
+    return (
+        props.ranks.length > 0 &&
+        (isOwner.value ||
+            (props.role === 'manager' && member.role === 'driver'))
+    );
+}
+
+function pinRank(member: Member, value: string) {
+    router.put(
+        pinMemberRank([props.company.slug, member.id]).url,
+        { rank_id: value === '' ? null : Number(value) },
         { preserveScroll: true },
     );
 }
@@ -521,8 +546,12 @@ function leaveCompany() {
                                     >{{ member.driver.name }}</span
                                 >
                                 <span
-                                    class="text-xs text-muted-foreground capitalize"
+                                    class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground capitalize"
                                 >
+                                    <RankBadge
+                                        v-if="member.rank"
+                                        :rank="member.rank"
+                                    />
                                     {{ member.role }}
                                     <template v-if="member.on_the_road">
                                         ·
@@ -537,6 +566,33 @@ function leaveCompany() {
                                 class="text-sm text-muted-foreground tabular-nums"
                                 >{{ formatKm(member.month.distance_km) }}</span
                             >
+                            <select
+                                v-if="canPin(member)"
+                                class="max-w-32 rounded-md border bg-transparent px-1 py-0.5 text-xs"
+                                :aria-label="`Pinned rank of ${member.driver.name}`"
+                                @change="
+                                    pinRank(
+                                        member,
+                                        ($event.target as HTMLSelectElement)
+                                            .value,
+                                    )
+                                "
+                            >
+                                <option
+                                    value=""
+                                    :selected="member.pinned_rank_id === null"
+                                >
+                                    By distance
+                                </option>
+                                <option
+                                    v-for="r in ranks"
+                                    :key="r.id"
+                                    :value="r.id"
+                                    :selected="member.pinned_rank_id === r.id"
+                                >
+                                    At least {{ r.name }}
+                                </option>
+                            </select>
                             <select
                                 v-if="isOwner && member.role !== 'owner'"
                                 :value="member.role"

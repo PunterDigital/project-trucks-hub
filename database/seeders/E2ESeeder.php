@@ -533,6 +533,35 @@ class E2ESeeder extends Seeder
         ]);
         $questionTime->members()->create(['user_id' => User::query()->where('username', 'quinn-questions')->value('id'), 'role' => CompanyRole::Owner]);
 
+        // Company ranks (#5223): Rhonda owns Rank and File Haulage (no ranks yet), Rob drives
+        // for it with no jobs. company-ranks.spec.ts sets up ranks, syncs two jobs as Rob with
+        // the seeded app token below and checks the promotion. Backdated like the others.
+        foreach ([['Rhonda Ranks', 'rhonda-ranks'], ['Rob Rookie', 'rob-rookie']] as [$name, $username]) {
+            $user = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+            ]);
+            $user->forceFill(['email_verified_at' => now(), 'password_set_at' => now(), 'created_at' => now()->subYear()])->save();
+        }
+        $rankAndFile = Company::query()->create([
+            'name' => 'Rank and File Haulage',
+            'slug' => 'rank-and-file-haulage',
+            'tag' => 'RAF',
+            'description' => 'Climb the ladder.',
+            'recruitment' => Recruitment::Open,
+        ]);
+        $rhonda = User::query()->where('username', 'rhonda-ranks')->firstOrFail();
+        $rob = User::query()->where('username', 'rob-rookie')->firstOrFail();
+        $rankAndFile->members()->create(['user_id' => $rhonda->id, 'role' => CompanyRole::Owner]);
+        $rankAndFile->members()->create(['user_id' => $rob->id, 'role' => CompanyRole::Driver]);
+        $rob->forceFill(['profile_private' => true])->save();
+        // Off the top of the admin's newest-first company list (admin.spec looks for Nordic).
+        $rankAndFile->forceFill(['created_at' => now()->subYear()])->save();
+        // A linked-app token the spec knows (Sanctum looks a token without "id|" up by hash).
+        $rob->tokens()->create(['name' => 'ProjectTrucks (E2E)', 'token' => hash('sha256', 'e2e-rob-rookie-sync'), 'abilities' => ['sync']]);
+
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');
     }

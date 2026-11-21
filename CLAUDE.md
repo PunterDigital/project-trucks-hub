@@ -700,6 +700,34 @@ that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec`
 - E2E (`application-questions.spec.ts`): Quinn Questions owns Question Time Haulage, Abby
   Answers applies.
 
+## Company ranks (#5223)
+
+- `company_ranks` (company, `name` ≤ 40, `color` `#rrggbb`, `min_km`), at most
+  `CompanyRanks::MAX` (12), no DB unique on `min_km` (a swap of two thresholds would trip it
+  mid-save; `save()` refuses duplicates and same names). `company_members.rank_id` = the
+  current rank (stored), `pinned_rank_id` = a manual floor: the member gets the higher of the
+  pin and what their distance reaches, so driving still promotes past a pin.
+- Distance = `Delivery::earned()` (counted + suspended drivers') with the member's
+  `user_id` **and** this `company_id`, i.e. jobs synced while in the company.
+- `App\Support\CompanyRanks`: `save()` keeps ids of rows sent back with an `id` (pins
+  survive a rename), deletes the rest (pins/ranks on them nulled first), then re-ranks
+  everyone **silently**. `refreshUser($user, notify)`: `JobSyncController` calls it with
+  `notify: true` before `Progress::refresh` (bell `RankPromoted` + `DiscordWebhook::rankPromoted`);
+  `Progress::refresh` calls it silently, which covers job delete/hide, staff review and joining.
+  `pin()` notifies like a sync. Only a move **up** (higher `min_km`) is announced.
+- `PUT companies/{slug}/ranks` (owners/managers), `PUT companies/{slug}/members/{member}/rank`
+  (`rank_id` or null; owner pins anyone, a manager pins drivers and themselves). Pages: company
+  page `ranks` + member `rank` (`pinned_rank_id` only for managers), profile
+  `driver.company_rank` (not `rank`: that's the personal level rank), edit page `#ranks`
+  (`CompanyRanksEditor.vue` resets its rows from the saved props in `onSuccess`, or a second
+  save would send new rows without their ids). `RankBadge.vue` puts the company's colour only on
+  a dot, so any colour stays readable.
+- E2E (`company-ranks.spec.ts`): Rhonda Ranks owns Rank and File Haulage, Rob Rookie (private,
+  jobs 9-10 days old so public boards don't move) syncs with the seeded token
+  `e2e-rob-rookie-sync` (Sanctum finds a token without `id|` by hash). The admin company list
+  is newest first and paginated: `admin.spec` searches for Nordic, and new seeded companies
+  are backdated.
+
 ## Quirks
 
 - The starter kit's `bunny()` font build step was removed (a font download during a Forge

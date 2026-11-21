@@ -10,6 +10,7 @@ use App\Http\Controllers\CompanyGoalController;
 use App\Http\Controllers\CompanyImageController;
 use App\Http\Controllers\CompanyInviteController;
 use App\Http\Controllers\CompanyMembershipController;
+use App\Http\Controllers\CompanyRankController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\DeliveryReactionController;
@@ -145,6 +146,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('throttle:20,1')->name('companies.questions.update');
     Route::put('companies/{company:slug}/goals', [CompanyGoalController::class, 'update'])
         ->middleware('throttle:20,1')->name('companies.goals.update');
+    // Company ranks (#5223): the list on the edit page, and a pin per member.
+    Route::put('companies/{company:slug}/ranks', [CompanyRankController::class, 'update'])
+        ->middleware('throttle:20,1')->name('companies.ranks.update');
+    Route::put('companies/{company:slug}/members/{member}/rank', [CompanyRankController::class, 'pin'])
+        ->whereNumber('member')->middleware('throttle:30,1')->name('companies.members.rank');
     Route::post('companies/{company:slug}/images/{kind}', [CompanyImageController::class, 'store'])
         ->whereIn('kind', ['logo', 'banner'])
         ->middleware('throttle:20,1')

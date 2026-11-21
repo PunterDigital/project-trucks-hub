@@ -4,6 +4,7 @@ import ApplicationQuestionsEditor from '@/components/hub/ApplicationQuestionsEdi
 import type { ApplicationQuestion } from '@/components/hub/ApplicationQuestionsEditor.vue';
 import CompanyForm from '@/components/hub/CompanyForm.vue';
 import CompanyInvites from '@/components/hub/CompanyInvites.vue';
+import CompanyRanksEditor from '@/components/hub/CompanyRanksEditor.vue';
 import type { CompanyInvite } from '@/components/hub/CompanyInvites.vue';
 import ImageUpload from '@/components/hub/ImageUpload.vue';
 import InputError from '@/components/InputError.vue';
@@ -21,7 +22,7 @@ import {
     destroy as destroyImage,
     store as storeImage,
 } from '@/routes/companies/images';
-import type { CompanySummary, Recruitment } from '@/types/hub';
+import type { CompanyRank, CompanySummary, Recruitment } from '@/types/hub';
 
 defineProps<{
     company: CompanySummary & {
@@ -37,6 +38,7 @@ defineProps<{
     };
     invites: CompanyInvite[];
     questions: ApplicationQuestion[];
+    ranks: CompanyRank[];
     isOwner: boolean;
 }>();
 
@@ -93,6 +95,8 @@ const webhookPlaceholder = 'https://discord.com/api/webhooks/…';
             :slug="company.slug"
             :questions="questions"
         />
+
+        <CompanyRanksEditor :slug="company.slug" :ranks="ranks" />
 
         <section id="discord" class="space-y-4">
             <div>

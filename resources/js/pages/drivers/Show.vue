@@ -11,6 +11,7 @@ import JobList from '@/components/hub/JobList.vue';
 import OnTheRoad from '@/components/hub/OnTheRoad.vue';
 import Pagination from '@/components/hub/Pagination.vue';
 import Panel from '@/components/hub/Panel.vue';
+import RankBadge from '@/components/hub/RankBadge.vue';
 import ReportButton from '@/components/hub/ReportButton.vue';
 import StatGrid from '@/components/hub/StatGrid.vue';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,7 @@ import type {
     CargoRow,
     ChartPoint,
     ChartSeries,
+    CompanyRank,
     CompanyRole,
     DriverProgress,
     DriverSummary,
@@ -32,6 +34,7 @@ import type {
 const props = defineProps<{
     driver: DriverSummary & {
         role: CompanyRole | null;
+        company_rank: CompanyRank | null;
         member_since: string | null;
         steam_url: string | null;
         private: boolean;
@@ -147,6 +150,10 @@ const unlockedCount = computed(
                         >[{{ driver.company.tag }}]
                         {{ driver.company.name }}</Link
                     >
+                    <RankBadge
+                        v-if="driver.company_rank"
+                        :rank="driver.company_rank"
+                    />
                 </p>
             </div>
             <a

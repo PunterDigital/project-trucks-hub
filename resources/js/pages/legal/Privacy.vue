@@ -60,8 +60,10 @@ defineOptions({
             </li>
             <li>
                 <strong>Companies:</strong> which company you're in, your role,
-                and applications you sent (your message and your answers to the
-                company's questions) or decided on.
+                your company rank (worked out from the jobs you drove for it, or
+                set by an owner or manager), and applications you sent (your
+                message and your answers to the company's questions) or decided
+                on.
             </li>
             <li>
                 <strong>Linked apps:</strong> the name of each linked copy of
