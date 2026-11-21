@@ -114,6 +114,12 @@ class Company extends Model
         return $this->hasMany(CompanyEvent::class);
     }
 
+    /** @return HasMany<CompanyPost, $this> */
+    public function posts(): HasMany
+    {
+        return $this->hasMany(CompanyPost::class);
+    }
+
     /** @return HasMany<CompanyGoal, $this> */
     public function goals(): HasMany
     {

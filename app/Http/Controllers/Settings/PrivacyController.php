@@ -6,6 +6,7 @@ use App\Achievements\Progress;
 use App\Http\Controllers\Controller;
 use App\Models\CompanyApplication;
 use App\Models\CompanyEvent;
+use App\Models\CompanyPost;
 use App\Models\Delivery;
 use App\Models\DeliveryComment;
 use App\Models\DeliveryKudos;
@@ -161,7 +162,23 @@ class PrivacyController extends Controller
                     'created_at' => $e->created_at?->toIso8601String(),
                 ])
                 ->all(),
+            // Company news (#5224): posts the driver wrote for their company.
+            'news_posts' => CompanyPost::query()
+                ->with('company')
+                ->where('created_by', $user->id)
+                ->orderBy('id')
+                ->get()
+                ->map(fn (CompanyPost $p) => [
+                    'company' => $p->company->name,
+                    'title' => $p->title,
+                    'body' => $p->body,
+                    'visibility' => $p->visibility,
+                    'created_at' => $p->created_at?->toIso8601String(),
+                    'updated_at' => $p->updated_at?->toIso8601String(),
+                ])
+                ->all(),
             'email_notifications_off' => $user->mail_opt_outs ?? [],
+            'bell_notifications_off' => $user->bell_opt_outs ?? [],
             'notifications' => $user->notifications()
                 ->get()
                 ->map(fn ($n) => [

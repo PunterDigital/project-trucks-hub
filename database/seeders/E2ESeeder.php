@@ -562,6 +562,28 @@ class E2ESeeder extends Seeder
         // A linked-app token the spec knows (Sanctum looks a token without "id|" up by hash).
         $rob->tokens()->create(['name' => 'ProjectTrucks (E2E)', 'token' => hash('sha256', 'e2e-rob-rookie-sync'), 'abilities' => ['sync']]);
 
+        // Company news (#5224): Nell owns Newsroom Haulage, Ned drives for it. news.spec.ts
+        // posts a members-only and a public post as Nell, reads them as Ned and as a guest.
+        foreach ([['Nell News', 'nell-news'], ['Ned Reader', 'ned-reader']] as [$name, $username]) {
+            $user = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+            ]);
+            $user->forceFill(['email_verified_at' => now(), 'password_set_at' => now(), 'created_at' => now()->subYear()])->save();
+        }
+        $newsroom = Company::query()->create([
+            'name' => 'Newsroom Haulage',
+            'slug' => 'newsroom-haulage',
+            'tag' => 'NWR',
+            'description' => 'Read all about it.',
+            'recruitment' => Recruitment::Open,
+        ]);
+        $newsroom->members()->create(['user_id' => User::query()->where('username', 'nell-news')->value('id'), 'role' => CompanyRole::Owner]);
+        $newsroom->members()->create(['user_id' => User::query()->where('username', 'ned-reader')->value('id'), 'role' => CompanyRole::Driver]);
+        $newsroom->forceFill(['created_at' => now()->subYear()])->save();
+
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');
     }

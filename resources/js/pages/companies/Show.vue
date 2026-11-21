@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Form, Head, Link, router } from '@inertiajs/vue3';
-import { CalendarPlus, Settings } from '@lucide/vue';
+import { CalendarPlus, Megaphone, Settings } from '@lucide/vue';
 import { computed } from 'vue';
 import ApplicationAnswers from '@/components/hub/ApplicationAnswers.vue';
 import type { ApplicationAnswer } from '@/components/hub/ApplicationAnswers.vue';
 import type { ApplicationQuestion } from '@/components/hub/ApplicationQuestionsEditor.vue';
 import CompanyGoals from '@/components/hub/CompanyGoals.vue';
 import CompanyLogo from '@/components/hub/CompanyLogo.vue';
+import CompanyNews from '@/components/hub/CompanyNews.vue';
 import DistanceChart from '@/components/hub/DistanceChart.vue';
 import DriverAvatar from '@/components/hub/DriverAvatar.vue';
 import InputError from '@/components/InputError.vue';
@@ -30,6 +31,7 @@ import {
 import RankBadge from '@/components/hub/RankBadge.vue';
 import { show as showDriver } from '@/routes/drivers';
 import { create as createEvent } from '@/routes/companies/events';
+import { create as createNews } from '@/routes/companies/news';
 import type {
     ChartSeries,
     CompanyGoals as Goals,
@@ -39,6 +41,7 @@ import type {
     EventSummary,
     JobSummary,
     LiveSummary,
+    NewsPost,
     PeriodTotals,
     Recruitment,
 } from '@/types/hub';
@@ -77,6 +80,7 @@ const props = defineProps<{
     onTheRoad: LiveSummary[];
     latest: JobSummary[];
     events: EventSummary[];
+    news: NewsPost[];
     goals: Goals;
     applications: {
         id: number;
@@ -477,6 +481,26 @@ function leaveCompany() {
 
         <div class="grid gap-4 lg:grid-cols-3">
             <div class="flex flex-col gap-4 lg:col-span-2">
+                <Panel
+                    v-if="news.length > 0 || canManage"
+                    title="News"
+                    data-test="company-news"
+                >
+                    <template v-if="canManage" #actions>
+                        <Button as-child variant="outline" size="sm">
+                            <Link
+                                :href="createNews(company.slug)"
+                                data-test="new-news"
+                                ><Megaphone class="size-4" /> Post news</Link
+                            >
+                        </Button>
+                    </template>
+                    <CompanyNews
+                        :posts="news"
+                        :can-manage="canManage"
+                        empty="No news yet. Post an update for your drivers."
+                    />
+                </Panel>
                 <Panel title="Upcoming events" data-test="company-events">
                     <template v-if="canManage" #actions>
                         <Button as-child variant="outline" size="sm">

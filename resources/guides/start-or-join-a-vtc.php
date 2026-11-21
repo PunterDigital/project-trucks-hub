@@ -1,10 +1,10 @@
 <?php
 
 // Facts checked against the Hub's companies pages and CompanyMembershipController (#5151),
-// invite links against CompanyInviteController (#5221), ranks against CompanyRanks (#5223).
+// invite links against CompanyInviteController (#5221), ranks against CompanyRanks (#5223), news against CompanyNewsController (#5224).
 return [
     'order' => 3,
-    'updated' => '2026-11-21',
+    'updated' => '2026-11-22',
     'title' => 'How to start or join a virtual trucking company (VTC) in ETS2',
     'description' => 'Start your own Euro Truck Simulator 2 virtual trucking company on ProjectTrucks Hub, or find one to join: recruitment, roles, goals and company stats.',
     'answer' => 'Sign in to ProjectTrucks Hub, open Companies and click "New company" to start one: pick a name, a 2 to 5 character tag and how drivers join. To join one instead, open its page and click "Join company", or "Apply to join" if it takes applications. Your synced jobs then count towards the company\'s stats.',
@@ -16,6 +16,7 @@ A virtual trucking company (VTC) is a group of drivers who truck under one name.
 - company stats for this week, this month and all time, and a chart of each driver's distance over the last 30 days
 - the latest deliveries and who is on the road right now
 - the members list with each driver's distance this month
+- company news from the owner and managers, public or for members only
 - monthly goals for distance, deliveries or income
 - upcoming [convoys and events](/guides/ets2-convoys-and-events)
 - a place on the [company leaderboard](/guides/ets2-leaderboards)
@@ -35,6 +36,8 @@ The jobs come from [ProjectTrucks](/download): each member links the app to thei
 
 Owners and managers can then set monthly goals on the company page, and on its edit page add a logo and banner, ask up to 10 application questions (a short or long answer, yes or no, or one option from a list, each optional or required), or connect a Discord channel, so new jobs, members and events are posted there.
 
+They can also post news from **Post news** on the company page: a title and a message (line breaks and web links are kept), for **Members only** or **Public**. Members get a notification under the bell (they can switch it off under Settings → Notifications), and a post can also go to the company's Discord. One post can be pinned to the top.
+
 ## Join a company
 
 1. Find one on the [Companies](/companies) page.
@@ -45,7 +48,7 @@ You can be in one company at a time. To move, click **Leave company** first.
 ## Roles
 
 - **Owner**: everything, including changing members' roles and handing over ownership.
-- **Manager**: edits the company, its goals, Discord and events, decides applications and can remove drivers.
+- **Manager**: edits the company, its goals, Discord, news and events, decides applications and can remove drivers.
 - **Driver**: drives, shows up in the company's stats, and can leave at any time.
 
 ## Ranks
