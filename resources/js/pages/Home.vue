@@ -2,6 +2,7 @@
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Download } from '@lucide/vue';
 import { computed } from 'vue';
+import CompanyNews from '@/components/hub/CompanyNews.vue';
 import DriverLink from '@/components/hub/DriverLink.vue';
 import JobList from '@/components/hub/JobList.vue';
 import OnTheRoad from '@/components/hub/OnTheRoad.vue';
@@ -14,6 +15,7 @@ import type {
     JobSummary,
     LeaderboardRow,
     LiveSummary,
+    NewsPost,
     Totals,
 } from '@/types/hub';
 
@@ -25,6 +27,7 @@ defineProps<{
     feed: Feed;
     feeds: Feed[];
     latest: JobSummary[];
+    news: NewsPost[];
     topDrivers: LeaderboardRow[];
     downloadUrl: string;
 }>();
@@ -129,6 +132,14 @@ const FEED_EMPTY: Record<Feed, string> = {
         </section>
 
         <div class="grid gap-4 lg:grid-cols-3">
+            <Panel
+                v-if="feed === 'company' && news.length > 0"
+                title="Company news"
+                class="lg:col-span-3"
+                data-test="home-news"
+            >
+                <CompanyNews :posts="news" show-company />
+            </Panel>
             <Panel
                 title="Latest deliveries"
                 description="Jobs drivers have just finished"

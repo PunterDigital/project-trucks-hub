@@ -87,6 +87,12 @@ defineOptions({
                 show as "Private driver" to people outside their company.
             </li>
             <li>
+                <strong>Company news:</strong> news posts you write for your
+                company as an owner or manager. A public post shows to everyone
+                on the company page, a members-only post to the company's
+                members, with your name unless your profile is private.
+            </li>
+            <li>
                 <strong>Server logs:</strong> errors and requests, which can
                 include your IP address, kept for a short time to keep the site
                 running.
@@ -140,7 +146,8 @@ defineOptions({
                 manager connects a Discord webhook, your new jobs (route, cargo,
                 distance, truck), your joining and the company's new events are
                 posted to their Discord channel with your name, even if your
-                profile is private.
+                profile is private. A news post goes there too when its author
+                ticks "Also post to Discord".
             </li>
             <li>
                 <strong>Comments and kudos</strong> are shown to everyone who

@@ -12,6 +12,7 @@ use App\Models\CompanyApplication;
 use App\Models\CompanyEvent;
 use App\Models\CompanyInvite;
 use App\Models\CompanyMember;
+use App\Models\CompanyPost;
 use App\Models\CompanyRank;
 use App\Models\Delivery;
 use App\Models\User;
@@ -193,6 +194,16 @@ class CompanyController extends Controller
                 ->limit(5)
                 ->get()
                 ->map(fn (CompanyEvent $e) => $e->summary())
+                ->values()
+                ->all(),
+            // Company news (#5224): public posts for everyone, members-only ones for members.
+            'news' => $company->posts()
+                ->visibleTo($viewer)
+                ->feedOrder()
+                ->with('author.membership')
+                ->limit(CompanyPost::SHOWN)
+                ->get()
+                ->map(fn (CompanyPost $p) => $p->summary($viewer))
                 ->values()
                 ->all(),
             // Company goals (#4649): this month's targets, contributions and past months.

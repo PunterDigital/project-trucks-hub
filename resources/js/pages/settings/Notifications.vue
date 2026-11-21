@@ -9,23 +9,28 @@ defineOptions({
     layout: { breadcrumbs: [{ title: 'Notifications', href: edit() }] },
 });
 
+type Setting = {
+    type: string;
+    label: string;
+    description: string;
+    enabled: boolean;
+};
+
 const props = defineProps<{
-    emails: {
-        type: string;
-        label: string;
-        description: string;
-        enabled: boolean;
-    }[];
+    emails: Setting[];
+    // Bell notices that can be switched off (#5224): company news so far.
+    bell: Setting[];
 }>();
 
 const form = useForm({
     enabled: props.emails.filter((e) => e.enabled).map((e) => e.type),
+    bell: props.bell.filter((b) => b.enabled).map((b) => b.type),
 });
 
-function toggle(type: string, on: boolean) {
-    form.enabled = on
-        ? [...new Set([...form.enabled, type])]
-        : form.enabled.filter((t) => t !== type);
+function toggle(list: 'enabled' | 'bell', type: string, on: boolean) {
+    form[list] = on
+        ? [...new Set([...form[list], type])]
+        : form[list].filter((t) => t !== type);
 }
 
 function save() {
@@ -38,14 +43,45 @@ function save() {
 
     <h1 class="sr-only">Notification settings</h1>
 
-    <div class="space-y-6">
-        <Heading
-            variant="small"
-            title="Email notifications"
-            description="Everything also shows under the bell at the top of the page. Untick what you don't want by email."
-        />
+    <form class="space-y-8" @submit.prevent="save">
+        <div v-if="bell.length > 0" class="space-y-4">
+            <Heading
+                variant="small"
+                title="Bell notifications"
+                description="Shown under the bell at the top of the page. Everything about your own account, jobs and applications always shows."
+            />
+            <label
+                v-for="item in bell"
+                :key="item.type"
+                :for="`bell-${item.type}`"
+                class="flex items-start gap-3 rounded-xl border p-4"
+            >
+                <Checkbox
+                    :id="`bell-${item.type}`"
+                    :aria-label="item.label"
+                    :model-value="form.bell.includes(item.type)"
+                    class="mt-0.5"
+                    @update:model-value="
+                        (v) => toggle('bell', item.type, v === true)
+                    "
+                />
+                <span class="text-sm">
+                    <span class="block font-medium">{{ item.label }}</span>
+                    <span
+                        v-if="item.description"
+                        class="block text-muted-foreground"
+                        >{{ item.description }}</span
+                    >
+                </span>
+            </label>
+        </div>
 
-        <form class="space-y-4" @submit.prevent="save">
+        <div class="space-y-4">
+            <Heading
+                variant="small"
+                title="Email notifications"
+                description="Everything also shows under the bell at the top of the page. Untick what you don't want by email."
+            />
             <label
                 v-for="email in emails"
                 :key="email.type"
@@ -57,7 +93,9 @@ function save() {
                     :aria-label="email.label"
                     :model-value="form.enabled.includes(email.type)"
                     class="mt-0.5"
-                    @update:model-value="(v) => toggle(email.type, v === true)"
+                    @update:model-value="
+                        (v) => toggle('enabled', email.type, v === true)
+                    "
                 />
                 <span class="text-sm">
                     <span class="block font-medium">{{ email.label }}</span>
@@ -68,8 +106,8 @@ function save() {
                     >
                 </span>
             </label>
+        </div>
 
-            <Button type="submit" :disabled="form.processing">Save</Button>
-        </form>
-    </div>
+        <Button type="submit" :disabled="form.processing">Save</Button>
+    </form>
 </template>

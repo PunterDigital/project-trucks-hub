@@ -10,6 +10,7 @@ use App\Http\Controllers\CompanyGoalController;
 use App\Http\Controllers\CompanyImageController;
 use App\Http\Controllers\CompanyInviteController;
 use App\Http\Controllers\CompanyMembershipController;
+use App\Http\Controllers\CompanyNewsController;
 use App\Http\Controllers\CompanyRankController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryController;
@@ -182,6 +183,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('events/{event}', [CompanyEventController::class, 'update'])->whereNumber('event')->name('events.update');
     Route::post('events/{event}/cancel', [CompanyEventController::class, 'cancel'])->whereNumber('event')->name('events.cancel');
     Route::post('events/{event}/rsvp', [CompanyEventController::class, 'rsvp'])->whereNumber('event')->middleware('throttle:30,1')->name('events.rsvp');
+
+    // Company news (#5224).
+    Route::get('companies/{company:slug}/news/create', [CompanyNewsController::class, 'create'])->name('companies.news.create');
+    Route::post('companies/{company:slug}/news', [CompanyNewsController::class, 'store'])->middleware('throttle:10,1')->name('companies.news.store');
+    Route::get('news/{post}/edit', [CompanyNewsController::class, 'edit'])->whereNumber('post')->name('news.edit');
+    Route::put('news/{post}', [CompanyNewsController::class, 'update'])->whereNumber('post')->middleware('throttle:20,1')->name('news.update');
+    Route::put('news/{post}/pin', [CompanyNewsController::class, 'pin'])->whereNumber('post')->middleware('throttle:30,1')->name('news.pin');
+    Route::delete('news/{post}', [CompanyNewsController::class, 'destroy'])->whereNumber('post')->name('news.destroy');
 });
 
 // After the auth routes so /companies/create isn't read as a company slug.

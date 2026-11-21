@@ -73,6 +73,23 @@ export type EventSummary = {
     company: CompanySummary | null;
 };
 
+// Company news (#5224).
+export type NewsPost = {
+    id: number;
+    title: string;
+    body: string;
+    visibility: 'members' | 'public';
+    pinned: boolean;
+    created_at: string | null;
+    edited: boolean;
+    author: {
+        name: string;
+        username: string | null;
+        avatar: string | null;
+    } | null;
+    company: CompanySummary | null;
+};
+
 export type JobComment = {
     id: number;
     body: string;

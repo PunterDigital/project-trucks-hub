@@ -38,6 +38,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property int $level
  * @property Carbon|null $suspended_at
  * @property list<string>|null $mail_opt_outs
+ * @property list<string>|null $bell_opt_outs
  * @property string|null $suspension_reason
  * @property Carbon|null $email_verified_at
  * @property string $password
@@ -76,6 +77,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
             'show_on_map' => 'boolean',
             'suspended_at' => 'datetime',
             'mail_opt_outs' => 'array',
+            'bell_opt_outs' => 'array',
         ];
     }
 
@@ -86,6 +88,15 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
     public function wantsMail(NoticeType $type): bool
     {
         return $type->emails() && ! in_array($type->value, $this->mail_opt_outs ?? [], true);
+    }
+
+    /**
+     * Whether this driver gets `$type` under the bell (#5224). Only `NoticeType::bellOptional()`
+     * types can be switched off; everything else always rings.
+     */
+    public function wantsBell(NoticeType $type): bool
+    {
+        return ! $type->bellOptional() || ! in_array($type->value, $this->bell_opt_outs ?? [], true);
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Enums\DeliveryStatus;
 use App\Jobs\PostToDiscord;
 use App\Models\Company;
 use App\Models\CompanyEvent;
+use App\Models\CompanyPost;
 use App\Models\CompanyRank;
 use App\Models\Delivery;
 use App\Models\User;
@@ -115,6 +116,23 @@ class DiscordWebhook
                 ['name' => __('Starts'), 'value' => '<t:'.$event->starts_at->getTimestamp().':F>', 'inline' => true],
                 ['name' => __('Game'), 'value' => CompanyEvent::GAMES[$event->game] ?? $event->game, 'inline' => true],
             ],
+        ]);
+    }
+
+    /** Company news (#5224): only when the author ticks "Also post to Discord". */
+    public static function newsPosted(CompanyPost $post): void
+    {
+        $post->loadMissing('company');
+        $company = $post->company;
+        if (! $company->discordActive()) {
+            return;
+        }
+
+        self::post($company, [
+            'title' => self::field($post->title, 256),
+            'url' => route('companies.show', $company),
+            'description' => self::field($post->body, 4096),
+            'timestamp' => $post->created_at?->toIso8601String(),
         ]);
     }
 

@@ -307,6 +307,7 @@ without a full build.
   the emails wait in `jobs`; the bell still works.
 - Emails: `ApplicationReceived`, `ApplicationDecided`, `AppLinked` (`NoticeType::emails()`),
   on by default; `users.mail_opt_outs` lists the ones switched off in Settings → Notifications.
+  Bell notices always show, except `bellOptional()` ones (company news, #5224).
 - The bell (`components/hub/NotificationBell.vue`, in `AppSidebarHeader`) reads the shared
   `notifications` prop (`HandleInertiaRequests::notificationsFor()`: unread count + latest 15),
   so the 60 s auto-refresh updates it. Opening an item posts to `notifications.open` (marks
@@ -727,6 +728,31 @@ that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec`
   `e2e-rob-rookie-sync` (Sanctum finds a token without `id|` by hash). The admin company list
   is newest first and paginated: `admin.spec` searches for Nordic, and new seeded companies
   are backdated.
+
+## Company news (#5224)
+
+- `company_posts` (company, `created_by` nullable on account deletion, `title` ≤ 120, plain-text
+  `body` ≤ 5,000, `visibility` `members` | `public`, `pinned_at`), cascades with the company.
+  `CompanyPost::scopeVisibleTo($viewer)` = public posts plus the viewer's own company's (a
+  suspended member gets public only); `scopeFeedOrder()` = pinned first, then newest.
+  `summary($viewer)` shows the author as "Private driver" when `isVisibleTo` says no.
+- `CompanyNewsController` (owners/managers of **this** company, any of them can edit, pin or
+  delete any of its posts): `companies/{slug}/news/create` + store (10/min), `news/{post}/edit`,
+  update, `PUT news/{post}/pin` (`pinned` true unpins the company's others: one pinned post;
+  pinning saves without timestamps so it doesn't show as "edited"), delete. Page `news/Edit.vue`.
+- Pages: company page `news` (up to `CompanyPost::SHOWN`, "News" panel with "Post news"; the
+  panel hides for non-managers when empty), Home `news` only on the My company tab
+  (`HomeController::NEWS_SHOWN`). Bodies are printed as text: `CompanyNews.vue` splits out
+  `http(s)` links into `<a rel="nofollow ugc …">`, never `v-html`.
+- A new post rings every other member's bell (`NoticeType::CompanyNews`, no email, links to
+  the company page without a fragment). Editing doesn't ring again. "Also post to Discord"
+  (only offered while `discordActive()`) → `DiscordWebhook::newsPosted`.
+- Bell opt-outs: `users.bell_opt_outs` lists the `NoticeType::bellOptional()` types switched off
+  in Settings → Notifications ("Bell notifications", only company news so far);
+  `User::wantsBell()` and `HubNotice::via()` (returns `[]`) honour it. The settings form sends
+  `bell` next to `enabled`; a request without `bell` leaves it alone. The toast says
+  "Notification settings saved." Privacy export: `news_posts` and `bell_notifications_off`.
+- E2E (`news.spec.ts`, 90 s budget): Nell News owns Newsroom Haulage, Ned Reader drives for it.
 
 ## Quirks
 

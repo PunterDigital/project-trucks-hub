@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Auth\SteamController;
 use App\Models\Company;
+use App\Models\CompanyPost;
 use App\Models\Delivery;
 use App\Models\User;
 use App\Support\Feed;
@@ -21,6 +22,9 @@ class HomeController extends Controller
 {
     /** The latest-deliveries tabs a signed-in driver can pick (#4647); guests see Everyone. */
     public const FEEDS = ['everyone', 'following', 'company'];
+
+    /** Company news posts on the My company tab (#5224). */
+    public const NEWS_SHOWN = 3;
 
     public function __invoke(Request $request): Response
     {
@@ -44,6 +48,19 @@ class HomeController extends Controller
                 default => self::FEEDS,
             },
             'latest' => Feed::latestDeliveries($viewer, 12, $this->scope($feed, $viewer)),
+            // Company news (#5224) on the My company tab: the pinned post, then the newest.
+            'news' => $feed === 'company' && $viewer !== null
+                ? CompanyPost::query()
+                    ->where('company_id', $viewer->companyId())
+                    ->visibleTo($viewer)
+                    ->feedOrder()
+                    ->with('author.membership', 'company')
+                    ->limit(self::NEWS_SHOWN)
+                    ->get()
+                    ->map(fn (CompanyPost $p) => $p->summary($viewer))
+                    ->values()
+                    ->all()
+                : [],
             'topDrivers' => Leaderboard::drivers(Period::Week, 'distance', 5),
             'downloadUrl' => route('download'),
         ]);

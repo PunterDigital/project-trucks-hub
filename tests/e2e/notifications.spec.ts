@@ -97,7 +97,7 @@ test('email settings: switching an email off sticks', async ({ page }) => {
     await linked.click();
     await expect(linked).not.toBeChecked();
     await page.getByRole('button', { name: 'Save' }).click();
-    await expect(page.getByText('Email notifications saved.')).toBeVisible();
+    await expect(page.getByText('Notification settings saved.')).toBeVisible();
 
     await page.reload();
     await expect(

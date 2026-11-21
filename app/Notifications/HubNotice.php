@@ -7,6 +7,7 @@ use App\Enums\CompanyRole;
 use App\Enums\NoticeType;
 use App\Models\Company;
 use App\Models\CompanyEvent;
+use App\Models\CompanyPost;
 use App\Models\Delivery;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
@@ -201,10 +202,23 @@ class HubNotice extends Notification implements ShouldQueue
         );
     }
 
+    /** Company news (#5224): bell only, each member can switch it off. */
+    public static function companyNews(CompanyPost $post): self
+    {
+        $post->loadMissing('company');
+
+        return new self(
+            NoticeType::CompanyNews,
+            __(':company posted news: “:title”', ['company' => $post->company->name, 'title' => $post->title]),
+            route('companies.show', $post->company),
+            __('News from :company', ['company' => $post->company->name]),
+        );
+    }
+
     /** @return list<string> */
     public function via(User $notifiable): array
     {
-        if ($notifiable->isSuspended()) {
+        if ($notifiable->isSuspended() || ! $notifiable->wantsBell($this->notice)) {
             return [];
         }
 
