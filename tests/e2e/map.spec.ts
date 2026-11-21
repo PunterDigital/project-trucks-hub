@@ -73,3 +73,59 @@ test('a driver can switch the live map off in their profile settings', async ({
     await page.reload();
     await expect(page.locator('[data-test="show-on-map"]')).not.toBeChecked();
 });
+
+// #5207: tiles are rendered down to the closest zoom, and blank ones (sea, around the map)
+// aren't stored, so the map must never ask for one. Any 404 also logs a console error.
+test('the closest zoom loads its own tiles and never asks for a missing one', async ({
+    page,
+}) => {
+    const tileStatus = new Map<string, number>();
+    page.on('response', (response) => {
+        const path = new URL(response.url()).pathname;
+        if (path.startsWith('/map-tiles/ets2/tiles/')) {
+            tileStatus.set(path, response.status());
+        }
+    });
+
+    await page.goto('/map');
+    await expect(page.locator('[data-test="live-map"]')).toHaveAttribute(
+        'data-tiles',
+        'yes',
+    );
+
+    // Fred Free is in Germany: roads all around at every zoom.
+    await page
+        .getByRole('button', { name: 'Show Fred Free on the map' })
+        .click();
+    await page.keyboard.press('Escape');
+    const zoomIn = page.getByRole('button', { name: 'Zoom in' });
+    while (
+        !(await zoomIn.getAttribute('class'))?.includes('leaflet-disabled')
+    ) {
+        await zoomIn.click();
+        await page.waitForTimeout(300);
+    }
+
+    await expect
+        .poll(
+            () =>
+                [...tileStatus].filter(
+                    ([path, status]) =>
+                        path.includes('/tiles/8/') && status === 200,
+                ).length,
+        )
+        .toBeGreaterThan(0);
+
+    // All the way out too: most zoom-0..2 tiles around the map are blank.
+    const zoomOut = page.getByRole('button', { name: 'Zoom out' });
+    while (
+        !(await zoomOut.getAttribute('class'))?.includes('leaflet-disabled')
+    ) {
+        await zoomOut.click();
+        await page.waitForTimeout(150);
+    }
+    await page.waitForTimeout(500);
+
+    const missing = [...tileStatus].filter(([, status]) => status >= 400);
+    expect(missing).toEqual([]);
+});

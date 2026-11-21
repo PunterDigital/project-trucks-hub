@@ -51,18 +51,22 @@ internal static class Program
             var size = (int)Math.Pow(2, z);
             Fit(mapper, size * TileSize, out var pos, out var zoom);
             var done = 0;
+            var saved = 0;
             var renderer = new TsMapRenderer(mapper);
 
             for (var x = shard; x < size; x += shards)
             {
                 for (var y = 0; y < size; y++)
                 {
-                    SaveTile(renderer, z, x, y, pos, zoom, outDir, flags);
+                    if (SaveTile(renderer, z, x, y, pos, zoom, outDir, flags))
+                    {
+                        saved++;
+                    }
                     done++;
                 }
             }
 
-            Console.WriteLine($"[{shard}/{shards}] zoom {z}: {done} tiles, {clock.Elapsed.TotalSeconds:F0} s");
+            Console.WriteLine($"[{shard}/{shards}] zoom {z}: {saved} of {done} tiles kept, {clock.Elapsed.TotalSeconds:F0} s");
         }
 
         return 0;
@@ -84,7 +88,8 @@ internal static class Program
         }
     }
 
-    private static void SaveTile(TsMapRenderer renderer, int z, int x, int y, PointF origin, float zoom, string outDir, RenderFlags flags)
+    /// <returns>false when the tile was blank and not written.</returns>
+    private static bool SaveTile(TsMapRenderer renderer, int z, int x, int y, PointF origin, float zoom, string outDir, RenderFlags flags)
     {
         // Render with a margin and keep the middle: ts-map only draws what falls inside the
         // clip, so a city name across a tile edge would otherwise be cut off in both tiles.
@@ -105,18 +110,58 @@ internal static class Program
             g.DrawImage(big, new Rectangle(0, 0, TileSize, TileSize), new Rectangle(margin, margin, TileSize, TileSize), GraphicsUnit.Pixel);
         }
 
+        // Sea and the area around the map are plain background: no file. generate.mjs lists the
+        // tiles that exist (TileIndex.json), and the map draws the background for the rest without
+        // asking for them (#5207). Over half the tiles are blank, more at the deeper levels.
+        if (IsBlank(tile))
+        {
+            return false;
+        }
+
         var dir = Path.Combine(outDir, "tiles", z.ToString(), x.ToString());
         Directory.CreateDirectory(dir);
         tile.Save(Path.Combine(dir, y + ".png"), ImageFormat.Png);
+
+        return true;
+    }
+
+    private static bool IsBlank(Bitmap tile)
+    {
+        var background = HubPalette.BackgroundColor.ToArgb();
+        var data = tile.LockBits(new Rectangle(0, 0, tile.Width, tile.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+        try
+        {
+            var row = new int[tile.Width];
+            for (var y = 0; y < tile.Height; y++)
+            {
+                System.Runtime.InteropServices.Marshal.Copy(data.Scan0 + y * data.Stride, row, 0, tile.Width);
+                foreach (var pixel in row)
+                {
+                    if (pixel != background)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+        finally
+        {
+            tile.UnlockBits(data);
+        }
     }
 }
 
 /// <summary>Dark palette to sit under the Hub's UI; roads light so pins stand out.</summary>
 internal sealed class HubPalette : MapPalette
 {
+    /// <summary>The map page's own background (#181b22, `.hub-map` in pages/map/Index.vue).</summary>
+    public static readonly Color BackgroundColor = Color.FromArgb(24, 27, 34);
+
     public HubPalette()
     {
-        Background = new SolidBrush(Color.FromArgb(24, 27, 34));
+        Background = new SolidBrush(BackgroundColor);
         Road = new SolidBrush(Color.FromArgb(150, 158, 175));
         PrefabRoad = new SolidBrush(Color.FromArgb(150, 158, 175));
         PrefabLight = new SolidBrush(Color.FromArgb(52, 58, 72));

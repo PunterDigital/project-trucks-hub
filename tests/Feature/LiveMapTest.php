@@ -174,4 +174,39 @@ class LiveMapTest extends TestCase
             $existing === null ? File::delete($file) : File::put($file, $existing);
         }
     }
+
+    public function test_the_tile_index_says_which_tiles_exist(): void
+    {
+        $dir = public_path('map-tiles/ets2');
+        $info = $dir.'/TileMapInfo.json';
+        $index = $dir.'/TileIndex.json';
+        $existing = [
+            $info => is_file($info) ? File::get($info) : null,
+            $index => is_file($index) ? File::get($index) : null,
+        ];
+
+        try {
+            File::ensureDirectoryExists($dir);
+            File::put($info, (string) json_encode(['x1' => -100, 'x2' => 300, 'y1' => -50, 'y2' => 350, 'minZoom' => 0, 'maxZoom' => 1]));
+
+            // Zoom 1: tiles (0,1) and (1,0) exist, bits 1 and 2.
+            File::put($index, (string) json_encode(['version' => 1, 'tiles' => ['0' => 'AQ==', '1' => 'Bg==']]));
+            $this->get(route('map'))->assertInertia(fn (Assert $page) => $page
+                ->where('tiles.maxZoom', 1)
+                ->where('tiles.present', ['AQ==', 'Bg==']));
+
+            // A level missing from the index, or junk: every tile is requested, as before.
+            File::put($index, (string) json_encode(['version' => 1, 'tiles' => ['0' => 'AQ==']]));
+            $this->get(route('map'))->assertInertia(fn (Assert $page) => $page->where('tiles.present', null));
+            File::put($index, '{"tiles":{"0":"not base64!","1":"Bg=="}}');
+            $this->get(route('map'))->assertInertia(fn (Assert $page) => $page->where('tiles.present', null));
+
+            File::delete($index);
+            $this->get(route('map'))->assertInertia(fn (Assert $page) => $page->where('tiles.present', null));
+        } finally {
+            foreach ($existing as $file => $content) {
+                $content === null ? File::delete($file) : File::put($file, $content);
+            }
+        }
+    }
 }

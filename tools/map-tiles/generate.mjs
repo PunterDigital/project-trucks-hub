@@ -3,7 +3,7 @@
 // them in public/map-tiles/ets2 (committed; Forge never builds them). Run it again after a game or
 // map DLC update. Windows only (ts-map draws with System.Drawing), needs the .NET 10 SDK and git.
 //
-//   node tools/map-tiles/generate.mjs [--game "<ETS2 folder>"] [--max-zoom 6] [--shards 6]
+//   node tools/map-tiles/generate.mjs [--game "<ETS2 folder>"] [--max-zoom 8] [--shards 6]
 //
 // Uses ts-map (https://github.com/dariowouters/ts-map, MIT) at a pinned commit: its library
 // sources are compiled into TileExporter (this folder), a console program with no window.
@@ -13,9 +13,11 @@ import {
     cpSync,
     existsSync,
     mkdirSync,
+    readFileSync,
     readdirSync,
     rmSync,
     statSync,
+    writeFileSync,
 } from 'node:fs';
 import { cpus, tmpdir } from 'node:os';
 import path from 'node:path';
@@ -37,7 +39,7 @@ const game = arg(
     'game',
     'C:/Program Files (x86)/Steam/steamapps/common/Euro Truck Simulator 2',
 );
-const maxZoom = Number(arg('max-zoom', '6'));
+const maxZoom = Number(arg('max-zoom', '8'));
 const shards = Number(
     arg('shards', String(Math.max(1, Math.min(8, cpus().length - 2)))),
 );
@@ -126,6 +128,31 @@ const walk = (dir) => {
     }
 };
 walk(out);
+
+// TileIndex.json: which tiles exist (blank ones aren't written, #5207). One base64 bitmask per
+// zoom, bit x * 2^z + y, so the map draws the background for the rest without a request.
+const index = { version: 1, tiles: {} };
+for (let z = 0; z <= maxZoom; z++) {
+    const size = 2 ** z;
+    const bits = new Uint8Array(Math.ceil((size * size) / 8));
+    const zDir = path.join(out, 'tiles', String(z));
+    for (const x of existsSync(zDir) ? readdirSync(zDir) : []) {
+        for (const file of readdirSync(path.join(zDir, x))) {
+            const bit = Number(x) * size + Number(file.replace(/\.png$/, ''));
+            bits[bit >> 3] |= 1 << (bit & 7);
+        }
+    }
+    index.tiles[z] = Buffer.from(bits).toString('base64');
+}
+writeFileSync(path.join(out, 'TileIndex.json'), JSON.stringify(index));
+const info = JSON.parse(
+    readFileSync(path.join(out, 'TileMapInfo.json'), 'utf8'),
+);
+if (info.maxZoom !== maxZoom) {
+    throw new Error(
+        `TileMapInfo.json says maxZoom ${info.maxZoom}, expected ${maxZoom}`,
+    );
+}
 
 rmSync(target, { recursive: true, force: true });
 mkdirSync(path.dirname(target), { recursive: true });

@@ -115,6 +115,16 @@ without a full build.
   swapped for `QuietLogger.cs`: the original locks `%LOCALAPPDATA%\ts-map\TsMap.log`, so parallel
   processes crashed. The tile layer's bounds sit a hair inside the grid (Leaflet asked for
   edge-touching tiles, 404s).
+- Zoom 8 (#5207): tiles are rendered to zoom 8 (`--max-zoom 8`, the default), the map's
+  closest zoom, so no level is a stretched copy. Blank tiles (every pixel the background
+  `#181b22`, `HubPalette.BackgroundColor`) are not written: `generate.mjs` writes
+  `TileIndex.json` (per zoom a base64 bitmask, bit `x·2^z + y`), `MapTiles::info()` passes it
+  as `tiles.present`, and the page's `BlankAwareTiles` layer draws an empty div for a missing
+  tile instead of requesting it (a 404 would be a console error). No index or a bad one =
+  every tile requested. Render of Nov 21 (ETS2 1.59): 256 s with 8 processes, 20,231 of
+  87,381 tiles kept (only 19% of zoom 8), 81 MB. Keep the map container's background equal
+  to the palette's if either changes. `map.spec.ts` zooms to 8 near Fred Free and back out,
+  and fails on any tile 404.
 - E2E seeds Mona Map (job), Fred Free (free roam) and Pia Private with `updated_at` a day
   ahead so they stay fresh however late `map.spec.ts` runs. Leaflet markers are buttons named by
   their `title`: use `exact: true`, the list's "Show X on the map" buttons contain the name.

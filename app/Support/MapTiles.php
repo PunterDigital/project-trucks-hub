@@ -15,7 +15,14 @@ class MapTiles
 {
     public const DIR = 'map-tiles/ets2';
 
-    /** @return array{url: string, x1: float, x2: float, y1: float, y2: float, maxZoom: int}|null */
+    /**
+     * `present` comes from `TileIndex.json` (#5207): per zoom, a base64 bitmask (bit x * 2^z + y)
+     * of the tiles that exist. Blank tiles (sea, outside the map) aren't stored, and the page
+     * draws the background for them instead of asking for a file. Null for a tile set without
+     * an index: every tile is then requested.
+     *
+     * @return array{url: string, x1: float, x2: float, y1: float, y2: float, maxZoom: int, present: array<int, string>|null}|null
+     */
     public static function info(): ?array
     {
         $file = public_path(self::DIR.'/TileMapInfo.json');
@@ -37,6 +44,35 @@ class MapTiles
             'y1' => (float) $info['y1'],
             'y2' => (float) $info['y2'],
             'maxZoom' => (int) $info['maxZoom'],
+            'present' => self::present((int) $info['maxZoom']),
         ];
+    }
+
+    /** @return array<int, string>|null */
+    private static function present(int $maxZoom): ?array
+    {
+        $file = public_path(self::DIR.'/TileIndex.json');
+
+        if (! is_file($file)) {
+            return null;
+        }
+
+        $index = json_decode((string) file_get_contents($file), true);
+        $tiles = is_array($index) ? ($index['tiles'] ?? null) : null;
+
+        if (! is_array($tiles)) {
+            return null;
+        }
+
+        $present = [];
+        for ($z = 0; $z <= $maxZoom; $z++) {
+            $mask = $tiles[(string) $z] ?? null;
+            if (! is_string($mask) || base64_decode($mask, true) === false) {
+                return null;
+            }
+            $present[$z] = $mask;
+        }
+
+        return $present;
     }
 }
