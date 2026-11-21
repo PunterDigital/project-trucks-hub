@@ -73,6 +73,8 @@ export default defineConfig({
             'composer.json',
             'resources/js/components/ui/*',
             'resources/views/mail/*',
+            // Google Search Console's ownership file: must stay byte for byte (#5161).
+            'public/google*.html',
         ],
         sortTailwindcss: {
             functions: ['clsx', 'cn', 'cva'],

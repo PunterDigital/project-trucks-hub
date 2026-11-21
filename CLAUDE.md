@@ -435,6 +435,9 @@ without a full build.
   `visibleTo(null)` (no private or suspended), every company, events not cancelled. No jobs.
 - `public/robots.txt` is static on purpose: Forge's nginx has a `location = /robots.txt` that
   never reaches PHP. Its `Sitemap:` line names the live domain: change it with the domain.
+- `public/googlee9845bfde9df5b94.html` is Google Search Console's ownership check (HTML-file
+  method, #5161). Keep it, byte for byte (no trailing newline): Google re-checks it, and the
+  property loses verification if it goes. `seo.spec.ts` checks it.
 - JSON-LD comes from PHP arrays (`Seo::encode`, `JSON_HEX_TAG`), never written in Blade:
   Blade would compile an `@context` key as a directive (AniTrack #4456).
 
