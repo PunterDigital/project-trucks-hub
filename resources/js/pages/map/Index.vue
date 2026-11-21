@@ -17,6 +17,8 @@ type Tiles = {
     y1: number;
     y2: number;
     maxZoom: number;
+    /** TileIndex.json (#5207): per zoom, a base64 bitmask (bit x·2^z + y) of the tiles that exist. */
+    present: string[] | null;
 };
 
 type LiveDriver = {
@@ -51,6 +53,32 @@ const markers = new Map<number, Leaflet.Marker>();
 const TILE = 256;
 // Without rendered tiles the pins still need a scale: roughly ETS2's world.
 const FALLBACK = { x1: -120000, x2: 120000, y1: -120000, y2: 120000 };
+
+/**
+ * Whether a tile file exists, from TileIndex.json's bitmasks. Without an index every tile is
+ * requested (an older tile set).
+ */
+function tileIndex(
+    present: string[] | null,
+): (z: number, x: number, y: number) => boolean {
+    if (!present) {
+        return () => true;
+    }
+    const masks = present.map((mask) =>
+        Uint8Array.from(atob(mask), (c) => c.charCodeAt(0)),
+    );
+
+    return (z, x, y) => {
+        const mask = masks[z];
+        const size = 2 ** z;
+        if (!mask || x < 0 || y < 0 || x >= size || y >= size) {
+            return false;
+        }
+        const bit = x * size + y;
+
+        return (mask[bit >> 3] & (1 << (bit & 7))) !== 0;
+    };
+}
 
 /** Game x (east) / z (south) as a Leaflet LatLng: lat = z, lng = x. */
 const at = (d: { x: number; z: number }): Leaflet.LatLngExpression => [
@@ -176,7 +204,9 @@ onMounted(async () => {
         transformation: new L.Transformation(a, -a * box.x1, c, -c * box.y1),
     });
     const bounds = L.latLngBounds([box.y1, box.x1], [box.y2, box.x2]);
-    const maxZoom = (props.tiles?.maxZoom ?? 6) + 2;
+    // Zoom 8 is as close as the map goes; tiles are rendered that deep (#5207), so no level is a
+    // stretched copy of the one above. An older, shallower tile set is stretched up to it.
+    const maxZoom = Math.max(8, props.tiles?.maxZoom ?? 0);
 
     map = L.map(el.value, {
         crs,
@@ -191,7 +221,33 @@ onMounted(async () => {
     );
 
     if (props.tiles) {
-        L.tileLayer(props.tiles.url, {
+        const exists = tileIndex(props.tiles.present);
+        // Blank tiles (sea, around the map) aren't stored: draw the map's own background for
+        // them instead of a request that would 404 (#5207).
+        const BlankAwareTiles = L.TileLayer.extend({
+            createTile(
+                this: Leaflet.TileLayer,
+                coords: Leaflet.Coords,
+                done: Leaflet.DoneCallback,
+            ): HTMLElement {
+                if (exists(coords.z, coords.x, coords.y)) {
+                    return L!.TileLayer.prototype.createTile.call(
+                        this,
+                        coords,
+                        done,
+                    );
+                }
+                const blank = document.createElement('div');
+                L!.Util.requestAnimFrame(() => done(undefined, blank));
+
+                return blank;
+            },
+        }) as new (
+            url: string,
+            options?: Leaflet.TileLayerOptions,
+        ) => Leaflet.TileLayer;
+
+        new BlankAwareTiles(props.tiles.url, {
             tileSize: TILE,
             minZoom: 0,
             maxNativeZoom: props.tiles.maxZoom,
