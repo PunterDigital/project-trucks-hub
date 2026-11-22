@@ -18,6 +18,7 @@ use App\Models\Delivery;
 use App\Models\User;
 use App\Support\ApplicationQuestions;
 use App\Support\Charts;
+use App\Support\CompanyActivity;
 use App\Support\CompanyGoals;
 use App\Support\CompanyRanks;
 use App\Support\Feed;
@@ -123,14 +124,22 @@ class CompanyController extends Controller
         $ranks = $company->ranks()->get();
         $ranksById = $ranks->keyBy('id');
 
-        $members = $company->members()
+        $memberRows = $company->members()
             ->with('user.liveStatus')
             ->get()
             // Suspended drivers (#4651) are off every public page, their company's too.
             ->reject(fn (CompanyMember $m) => $m->user->isSuspended())
             ->sortBy(fn (CompanyMember $m) => [array_search($m->role, CompanyRole::cases(), true), $m->user->name])
-            ->values()
-            ->map(function (CompanyMember $m) use ($memberStats, $viewer, $role, $ranksById) {
+            ->values();
+
+        // Monthly activity (#5225): owners and managers see everyone's, a driver only their own.
+        $activity = CompanyActivity::forMembers(
+            $company,
+            $role?->canManage() ? $memberRows : $memberRows->filter(fn (CompanyMember $m) => $viewer !== null && $m->user_id === $viewer->id),
+        );
+
+        $members = $memberRows
+            ->map(function (CompanyMember $m) use ($memberStats, $viewer, $role, $ranksById, $activity) {
                 $visible = $role !== null || ! $m->user->profile_private || $viewer?->is($m->user);
                 $stats = $memberStats->get($m->user_id);
 
@@ -149,6 +158,7 @@ class CompanyController extends Controller
                     'rank' => $m->rank_id !== null ? $ranksById->get($m->rank_id)?->summary() : null,
                     // Only the people who can change it see the pin.
                     'pinned_rank_id' => $role?->canManage() ? $m->pinned_rank_id : null,
+                    'activity' => $activity[$m->id] ?? null,
                 ];
             });
 
@@ -183,6 +193,8 @@ class CompanyController extends Controller
             ],
             'members' => $members,
             'ranks' => $ranks->map(fn (CompanyRank $r) => $r->summary())->values()->all(),
+            // The monthly minimum (#5225), for members only.
+            'activity' => $role !== null && CompanyActivity::hasRequirement($company) ? CompanyActivity::requirement($company) : null,
             // Charts (#4650): distance per member, folded into the viewer's days on the page.
             'chart' => Charts::companyDistance($company, $viewer, $role),
             'onTheRoad' => Feed::onTheRoad($viewer, 20, fn ($q) => $q->whereHas('user.membership', fn (Builder $m) => $m->where('company_id', $company->id))),
@@ -234,6 +246,7 @@ class CompanyController extends Controller
             'discord' => $company->discordSummary(),
             'questions' => ApplicationQuestions::for($company),
             'ranks' => CompanyRanks::for($company),
+            'activity' => CompanyActivity::requirement($company),
             // Invite links (#5221): live ones only, never a token.
             'invites' => $company->invites()->usable()->with('creator')->latest()->get()
                 ->map(fn (CompanyInvite $i) => $i->summary())->values()->all(),

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
 import ApplicationQuestionsEditor from '@/components/hub/ApplicationQuestionsEditor.vue';
+import CompanyActivityEditor from '@/components/hub/CompanyActivityEditor.vue';
 import type { ApplicationQuestion } from '@/components/hub/ApplicationQuestionsEditor.vue';
 import CompanyForm from '@/components/hub/CompanyForm.vue';
 import CompanyInvites from '@/components/hub/CompanyInvites.vue';
@@ -39,6 +40,7 @@ defineProps<{
     invites: CompanyInvite[];
     questions: ApplicationQuestion[];
     ranks: CompanyRank[];
+    activity: { min_km: number | null; min_deliveries: number | null };
     isOwner: boolean;
 }>();
 
@@ -97,6 +99,8 @@ const webhookPlaceholder = 'https://discord.com/api/webhooks/…';
         />
 
         <CompanyRanksEditor :slug="company.slug" :ranks="ranks" />
+
+        <CompanyActivityEditor :slug="company.slug" :activity="activity" />
 
         <section id="discord" class="space-y-4">
             <div>

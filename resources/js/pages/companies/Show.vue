@@ -19,7 +19,7 @@ import ReportButton from '@/components/hub/ReportButton.vue';
 import RecruitmentBadge from '@/components/hub/RecruitmentBadge.vue';
 import StatGrid from '@/components/hub/StatGrid.vue';
 import { Button } from '@/components/ui/button';
-import { formatDate, formatKm, timeAgo } from '@/lib/format';
+import { formatDate, formatKm, plural, timeAgo } from '@/lib/format';
 import { login } from '@/routes';
 import { apply, edit, index, join, leave, withdraw } from '@/routes/companies';
 import { decide } from '@/routes/companies/applications';
@@ -56,6 +56,20 @@ type Member = {
     // Company ranks (#5223). The pin is only sent to owners and managers.
     rank: CompanyRank | null;
     pinned_rank_id: number | null;
+    // Monthly activity (#5225): everyone's for owners and managers, a driver's own row only.
+    activity: {
+        last_job_at: string | null;
+        month: ActivityProgress;
+        last_month: ActivityProgress | null;
+    } | null;
+};
+
+type ActivityProgress = {
+    distance_km: number;
+    deliveries: number;
+    required_km: number | null;
+    required_deliveries: number | null;
+    met: boolean | null;
 };
 
 const props = defineProps<{
@@ -76,6 +90,7 @@ const props = defineProps<{
     stats: PeriodTotals;
     members: Member[];
     ranks: CompanyRank[];
+    activity: { min_km: number | null; min_deliveries: number | null } | null;
     chart: ChartSeries[];
     onTheRoad: LiveSummary[];
     latest: JobSummary[];
@@ -101,6 +116,40 @@ defineOptions({
 
 const fieldClass =
     'rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50';
+
+// Monthly activity requirement (#5225).
+const minimumText = computed(() => {
+    const a = props.activity;
+
+    if (!a) {
+        return null;
+    }
+
+    const parts = [
+        a.min_km !== null ? formatKm(a.min_km) : null,
+        a.min_deliveries !== null ? plural(a.min_deliveries, 'job') : null,
+    ].filter((p) => p !== null);
+
+    return `Monthly minimum: ${parts.join(' and ')}`;
+});
+
+function progressText(p: ActivityProgress): string {
+    const parts: string[] = [];
+
+    if (p.required_km !== null) {
+        parts.push(`${formatKm(p.distance_km)} of ${formatKm(p.required_km)}`);
+    }
+
+    if (p.required_deliveries !== null) {
+        parts.push(
+            `${p.deliveries} of ${plural(p.required_deliveries, 'job')}`,
+        );
+    }
+
+    return parts.length > 0
+        ? `This month ${parts.join(', ')}`
+        : `This month ${plural(p.deliveries, 'job')}`;
+}
 
 const isOwner = computed(() => props.role === 'owner');
 const canManage = computed(
@@ -546,6 +595,13 @@ function leaveCompany() {
                     />
                 </Panel>
                 <Panel title="Members" description="Distance this month">
+                    <p
+                        v-if="minimumText"
+                        class="mb-2 text-xs text-muted-foreground"
+                        data-test="activity-minimum"
+                    >
+                        {{ minimumText }}
+                    </p>
                     <ul class="divide-y" data-test="members">
                         <li
                             v-for="member in members"
@@ -583,6 +639,38 @@ function leaveCompany() {
                                             class="text-green-600 dark:text-green-400"
                                             >driving</span
                                         ></template
+                                    >
+                                </span>
+                                <span
+                                    v-if="member.activity"
+                                    class="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground"
+                                    data-test="member-activity"
+                                >
+                                    <span
+                                        :class="
+                                            member.activity.month.met
+                                                ? 'text-green-600 dark:text-green-400'
+                                                : ''
+                                        "
+                                        >{{
+                                            progressText(member.activity.month)
+                                        }}</span
+                                    >
+                                    ·
+                                    <span>{{
+                                        member.activity.last_job_at
+                                            ? `last job ${formatDate(member.activity.last_job_at)}`
+                                            : 'no jobs yet'
+                                    }}</span>
+                                    <span
+                                        v-if="
+                                            member.activity.last_month?.met ===
+                                            false
+                                        "
+                                        class="rounded bg-amber-500/15 px-1.5 py-0.5 font-medium text-amber-800 dark:text-amber-200"
+                                        :title="`Last month: ${progressText(member.activity.last_month).replace('This month ', '')}`"
+                                        data-test="under-minimum"
+                                        >Under the minimum last month</span
                                     >
                                 </span>
                             </div>

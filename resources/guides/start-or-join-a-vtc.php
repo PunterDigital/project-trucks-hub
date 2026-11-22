@@ -1,7 +1,8 @@
 <?php
 
 // Facts checked against the Hub's companies pages and CompanyMembershipController (#5151),
-// invite links against CompanyInviteController (#5221), ranks against CompanyRanks (#5223), news against CompanyNewsController (#5224).
+// invite links against CompanyInviteController (#5221), ranks against CompanyRanks (#5223), news against CompanyNewsController (#5224),
+// the monthly minimum against CompanyActivity and hub:activity-check (#5225).
 return [
     'order' => 3,
     'updated' => '2026-11-22',
@@ -54,6 +55,10 @@ You can be in one company at a time. To move, click **Leave company** first.
 ## Ranks
 
 Owners and managers can set up to 12 ranks under **Edit company** → **Ranks**, each with a name, a colour and a distance. A member gets the highest rank that the jobs they've driven for the company reach (jobs that count, as on the leaderboards; jobs from before they joined don't). The rank shows next to their name on the company page and on their profile, and the Hub tells them when they move up (and posts it to the company's Discord, if it has one). An owner or manager can also pin a rank on a member from the member list: the member never drops below it, and driving can still take them higher.
+
+## Monthly minimum
+
+Under **Edit company** → **Monthly minimum**, owners and managers can ask every member for a minimum distance, a minimum number of jobs, or both, each calendar month (UTC). Only jobs that count and that a member drove for the company after joining go towards it, and someone who joins mid-month owes only their share of the month. On the members list, owners and managers see each driver's progress this month, the date of their last job and an "Under the minimum last month" badge for anyone who missed it; drivers see only their own progress. On the 1st, owners and managers get one notification naming who missed the month before. Nobody is removed automatically: what happens next is up to the company.
 MD,
     'faq' => [
         [

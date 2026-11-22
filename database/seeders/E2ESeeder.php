@@ -584,6 +584,31 @@ class E2ESeeder extends Seeder
         $newsroom->members()->create(['user_id' => User::query()->where('username', 'ned-reader')->value('id'), 'role' => CompanyRole::Driver]);
         $newsroom->forceFill(['created_at' => now()->subYear()])->save();
 
+        // Monthly activity requirement (#5225): Ada owns Active Haulage (no minimum yet), Axel
+        // drives for it with no jobs. Both joined a year ago, so Axel has missed last month once
+        // activity.spec.ts sets a minimum. No jobs, so no board or feed moves.
+        foreach ([['Ada Active', 'ada-active'], ['Axel Idle', 'axel-idle']] as [$name, $username]) {
+            $user = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+            ]);
+            $user->forceFill(['email_verified_at' => now(), 'password_set_at' => now(), 'created_at' => now()->subYear()])->save();
+        }
+        $active = Company::query()->create([
+            'name' => 'Active Haulage',
+            'slug' => 'active-haulage',
+            'tag' => 'ACV',
+            'description' => 'Keep on trucking.',
+            'recruitment' => Recruitment::Open,
+        ]);
+        foreach ([['ada-active', CompanyRole::Owner], ['axel-idle', CompanyRole::Driver]] as [$username, $role]) {
+            $active->members()->create(['user_id' => User::query()->where('username', $username)->value('id'), 'role' => $role])
+                ->forceFill(['created_at' => now()->subYear()])->save();
+        }
+        $active->forceFill(['created_at' => now()->subYear()])->save();
+
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');
     }
