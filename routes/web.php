@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\SteamController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\CompanyActivityController;
 use App\Http\Controllers\CompanyApplicationQuestionController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyDiscordController;
@@ -147,6 +148,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('throttle:20,1')->name('companies.questions.update');
     Route::put('companies/{company:slug}/goals', [CompanyGoalController::class, 'update'])
         ->middleware('throttle:20,1')->name('companies.goals.update');
+    // Monthly activity requirement (#5225), on the edit page.
+    Route::put('companies/{company:slug}/activity', [CompanyActivityController::class, 'update'])
+        ->middleware('throttle:20,1')->name('companies.activity.update');
     // Company ranks (#5223): the list on the edit page, and a pin per member.
     Route::put('companies/{company:slug}/ranks', [CompanyRankController::class, 'update'])
         ->middleware('throttle:20,1')->name('companies.ranks.update');

@@ -754,6 +754,30 @@ that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec`
   "Notification settings saved." Privacy export: `news_posts` and `bell_notifications_off`.
 - E2E (`news.spec.ts`, 90 s budget): Nell News owns Newsroom Haulage, Ned Reader drives for it.
 
+## Monthly activity requirement (#5225)
+
+- `companies.activity_min_km` / `activity_min_deliveries` (both nullable, null = no minimum for
+  it), `activity_checked_month` ("YYYY-MM" of the last notice sent). A member meets the month by
+  reaching **every** minimum that is set, with the company's counted jobs completed in the UTC
+  month **after their `company_members.created_at`** (an earlier stint's jobs don't count).
+  Joined mid-month = owes `ceil(min × days left incl. the join day / days in month)`. Nothing
+  is stored per month: last month is judged with the current minimum.
+- `App\Support\CompanyActivity`: `save()` (edit page `#activity`, `CompanyActivityEditor.vue`,
+  `PUT companies/{slug}/activity`, owners/managers, 20/min), `forMembers()` (this month, last
+  month (null if they joined this month), `last_job_at` = latest counted company job),
+  `missedLastMonth()` (suspended members left out).
+- Company page: `activity` = the minimum, members only; each member's `activity` goes to owners
+  and managers for everyone and to a driver for their own row only (null otherwise). The row
+  shows "This month X of Y", the last job date and "Under the minimum last month".
+- `hub:activity-check` (scheduler: 1st at 00:30 UTC) sends one bell `NoticeType::ActivityMissed`
+  to the owner and managers per company with misses; it sets `activity_checked_month` either
+  way, so a rerun sends nothing. Nobody is removed.
+- Tests `CompanyActivityTest` (frozen clock at the month boundary, mid-month joins). E2E
+  (`activity.spec.ts`): Ada Active owns Active Haulage, Axel Idle drives for it; both joined a
+  year ago and have no jobs, so Axel shows the badge as soon as a minimum is set.
+- `public.spec.ts` run on its own fails (Paula Privacy's seeded job is newest on the feed until
+  `privacy.spec` deletes it): run it with the suite, not alone.
+
 ## Quirks
 
 - The starter kit's `bunny()` font build step was removed (a font download during a Forge

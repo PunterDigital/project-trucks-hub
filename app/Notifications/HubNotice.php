@@ -109,6 +109,28 @@ class HubNotice extends Notification implements ShouldQueue
         );
     }
 
+    /**
+     * Monthly activity requirement (#5225): to the owner and managers on the 1st, bell only.
+     *
+     * @param  list<string>  $names  the drivers who missed it
+     */
+    public static function activityMissed(Company $company, string $month, array $names): self
+    {
+        $shown = array_slice($names, 0, 10);
+        $list = implode(', ', $shown).(count($names) > count($shown) ? ' '.__('and :n more', ['n' => count($names) - count($shown)]) : '');
+
+        return new self(
+            NoticeType::ActivityMissed,
+            trans_choice(
+                ":count driver missed :company's monthly minimum in :month: :names.|:count drivers missed :company's monthly minimum in :month: :names.",
+                count($names),
+                ['company' => $company->name, 'month' => $month, 'names' => $list],
+            ),
+            route('companies.show', $company),
+            __('Monthly minimum at :company', ['company' => $company->name]),
+        );
+    }
+
     public static function ownershipHandedOver(Company $company, User $from): self
     {
         return new self(

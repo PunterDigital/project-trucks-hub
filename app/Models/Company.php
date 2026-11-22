@@ -26,6 +26,9 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $discord_webhook_disabled_at
  * @property string|null $discord_webhook_error
  * @property array<int, mixed>|null $application_questions
+ * @property int|null $activity_min_km
+ * @property int|null $activity_min_deliveries
+ * @property string|null $activity_checked_month
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */

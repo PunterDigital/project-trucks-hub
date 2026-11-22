@@ -23,6 +23,7 @@ enum NoticeType: string
     case DiscordWebhookDisabled = 'discord_webhook_disabled';
     case RankPromoted = 'rank_promoted';
     case CompanyNews = 'company_news';
+    case ActivityMissed = 'activity_missed';
 
     public function emails(): bool
     {

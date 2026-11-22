@@ -25,5 +25,8 @@ Schedule::command('hub:storage-snapshot')->dailyAt('00:20')->withoutOverlapping(
 // New post files in resources/posts become blog drafts (#5153). The Blog posts list also runs it.
 Schedule::command('hub:import-post-drafts')->hourly()->withoutOverlapping();
 
+// Company activity requirement (#5225): tell owners and managers who missed last month's minimum.
+Schedule::command('hub:activity-check')->monthlyOn(1, '00:30')->withoutOverlapping();
+
 // Expired link requests, stale live statuses, old log files (#4667). Also buttons on the Storage page.
 Schedule::command('hub:prune')->dailyAt('00:25')->withoutOverlapping();

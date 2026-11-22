@@ -63,7 +63,10 @@ defineOptions({
                 your company rank (worked out from the jobs you drove for it, or
                 set by an owner or manager), and applications you sent (your
                 message and your answers to the company's questions) or decided
-                on.
+                on. If your company sets a monthly minimum, its owner and
+                managers see your progress towards it and the date of your last
+                job for the company, worked out from those jobs (nothing extra
+                is stored).
             </li>
             <li>
                 <strong>Linked apps:</strong> the name of each linked copy of
