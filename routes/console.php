@@ -28,5 +28,8 @@ Schedule::command('hub:import-post-drafts')->hourly()->withoutOverlapping();
 // Company activity requirement (#5225): tell owners and managers who missed last month's minimum.
 Schedule::command('hub:activity-check')->monthlyOn(1, '00:30')->withoutOverlapping();
 
+// Driver of the month (#5226): every company's top three of the month that just ended.
+Schedule::command('hub:monthly-awards')->monthlyOn(1, '00:40')->withoutOverlapping();
+
 // Expired link requests, stale live statuses, old log files (#4667). Also buttons on the Storage page.
 Schedule::command('hub:prune')->dailyAt('00:25')->withoutOverlapping();

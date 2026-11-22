@@ -5,6 +5,8 @@ import { computed } from 'vue';
 import ApplicationAnswers from '@/components/hub/ApplicationAnswers.vue';
 import type { ApplicationAnswer } from '@/components/hub/ApplicationAnswers.vue';
 import type { ApplicationQuestion } from '@/components/hub/ApplicationQuestionsEditor.vue';
+import CompanyAwards from '@/components/hub/CompanyAwards.vue';
+import type { MonthAwards } from '@/components/hub/CompanyAwards.vue';
 import CompanyGoals from '@/components/hub/CompanyGoals.vue';
 import CompanyLogo from '@/components/hub/CompanyLogo.vue';
 import CompanyNews from '@/components/hub/CompanyNews.vue';
@@ -13,6 +15,7 @@ import DriverAvatar from '@/components/hub/DriverAvatar.vue';
 import InputError from '@/components/InputError.vue';
 import EventList from '@/components/hub/EventList.vue';
 import JobList from '@/components/hub/JobList.vue';
+import MemberStatsDownload from '@/components/hub/MemberStatsDownload.vue';
 import OnTheRoad from '@/components/hub/OnTheRoad.vue';
 import Panel from '@/components/hub/Panel.vue';
 import ReportButton from '@/components/hub/ReportButton.vue';
@@ -97,6 +100,8 @@ const props = defineProps<{
     events: EventSummary[];
     news: NewsPost[];
     goals: Goals;
+    awards: MonthAwards[];
+    memberStatsPeriods: { value: string; label: string }[];
     applications: {
         id: number;
         message: string | null;
@@ -742,7 +747,13 @@ function leaveCompany() {
                             </button>
                         </li>
                     </ul>
+                    <MemberStatsDownload
+                        v-if="canManage && memberStatsPeriods.length > 0"
+                        :slug="company.slug"
+                        :periods="memberStatsPeriods"
+                    />
                 </Panel>
+                <CompanyAwards v-if="awards.length > 0" :awards="awards" />
             </div>
         </div>
     </div>

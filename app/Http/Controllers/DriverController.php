@@ -7,6 +7,7 @@ use App\Enums\DeliveryStatus;
 use App\Models\Delivery;
 use App\Models\User;
 use App\Support\Charts;
+use App\Support\CompanyAwards;
 use App\Support\LinkPreview;
 use App\Support\Period;
 use App\Support\Stats;
@@ -121,6 +122,8 @@ class DriverController extends Controller
             'live' => $live !== null && $live->isFresh() ? $live->summary() : null,
             'jobs' => $jobs,
             'progress' => Progress::summary($driver),
+            // Driver of the month badges (#5226).
+            'awards' => CompanyAwards::forDriver($driver),
         ])->withViewData('preview', fn () => LinkPreview::meta('driver', $driver->id));
     }
 

@@ -609,6 +609,47 @@ class E2ESeeder extends Seeder
         }
         $active->forceFill(['created_at' => now()->subYear()])->save();
 
+        // Driver of the month (#5226): Ava Awards owns Trophy Haulage, Abe Award (private) drives
+        // for it. Short jobs on last month's 10th and 11th, so no board or feed this spec doesn't
+        // own moves; then last month's awards are given as on the 1st.
+        foreach ([['Ava Awards', 'ava-awards', false], ['Abe Award', 'abe-award', true]] as [$name, $username, $private]) {
+            $user = User::query()->create([
+                'name' => $name,
+                'email' => $username.'@example.com',
+                'username' => $username,
+                'password' => $password,
+            ]);
+            $user->forceFill(['email_verified_at' => now(), 'password_set_at' => now(), 'created_at' => now()->subYear(), 'profile_private' => $private])->save();
+        }
+        $trophy = Company::query()->create([
+            'name' => 'Trophy Haulage',
+            'slug' => 'trophy-haulage',
+            'tag' => 'TRH',
+            'description' => 'Polishing the cups.',
+            'recruitment' => Recruitment::Open,
+        ]);
+        $trophy->forceFill(['created_at' => now()->subYear()])->save();
+        $lastMonth = now('UTC')->startOfMonth()->subMonthNoOverflow();
+        foreach ([['ava-awards', CompanyRole::Owner, 180.0, 10], ['abe-award', CompanyRole::Driver, 150.0, 11]] as [$username, $role, $km, $day]) {
+            $user = User::query()->where('username', $username)->firstOrFail();
+            $trophy->members()->create(['user_id' => $user->id, 'role' => $role])
+                ->forceFill(['created_at' => now()->subYear()])->save();
+            $completed = $lastMonth->copy()->addDays($day - 1)->setTime(12, 0);
+            Delivery::factory()->for($user)->create([
+                'company_id' => $trophy->id,
+                'source_city' => 'Gdańsk',
+                'dest_city' => 'Poznań',
+                'cargo_name' => 'Silverware',
+                'distance_km' => $km,
+                'income' => (int) ($km * 40),
+                'duration_sec' => 3 * 3600,
+                'avg_speed_kmh' => $km / 3,
+                'started_at' => $completed->copy()->subHours(3),
+                'completed_at' => $completed,
+            ]);
+        }
+        Artisan::call('hub:monthly-awards');
+
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');
     }

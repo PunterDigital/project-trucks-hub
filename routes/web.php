@@ -11,6 +11,7 @@ use App\Http\Controllers\CompanyGoalController;
 use App\Http\Controllers\CompanyImageController;
 use App\Http\Controllers\CompanyInviteController;
 use App\Http\Controllers\CompanyMembershipController;
+use App\Http\Controllers\CompanyMemberStatsController;
 use App\Http\Controllers\CompanyNewsController;
 use App\Http\Controllers\CompanyRankController;
 use App\Http\Controllers\DashboardController;
@@ -152,6 +153,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('companies/{company:slug}/activity', [CompanyActivityController::class, 'update'])
         ->middleware('throttle:20,1')->name('companies.activity.update');
     // Company ranks (#5223): the list on the edit page, and a pin per member.
+    // Member stats CSV (#5226), owners and managers.
+    Route::get('companies/{company:slug}/member-stats.csv', CompanyMemberStatsController::class)
+        ->middleware('throttle:20,1')->name('companies.member-stats');
     Route::put('companies/{company:slug}/ranks', [CompanyRankController::class, 'update'])
         ->middleware('throttle:20,1')->name('companies.ranks.update');
     Route::put('companies/{company:slug}/members/{member}/rank', [CompanyRankController::class, 'pin'])
