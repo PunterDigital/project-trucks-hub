@@ -67,6 +67,12 @@ test('linking ProjectTrucks and syncing a job', async ({ page, request }) => {
                     game_duration_min: 600,
                     avg_speed_kmh: 81.2,
                     started_at: new Date(Date.now() - 36_060_000).toISOString(),
+                    // What the game reported (#5227).
+                    game_revenue: 13_210,
+                    earned_xp: 540,
+                    cargo_damage: 0.021,
+                    costs: 860,
+                    cancel_penalty: null,
                 }),
                 // A job no truck could drive: the Hub flags it itself,
                 // though the "app" sent flagged: false.
@@ -162,6 +168,21 @@ test('linking ProjectTrucks and syncing a job', async ({ page, request }) => {
         .click();
     await expect(page.getByRole('heading', { level: 1 })).toContainText(
         'Brussel',
+    );
+    // The game's own figures (#5227): income is what the game paid.
+    await expect(page.locator('[data-test="job-income"]')).toHaveText(
+        '€13,210',
+    );
+    await expect(page.locator('[data-test="job-offered"]')).toHaveText(
+        'Offered €12,450',
+    );
+    await expect(page.locator('[data-test="job-costs"]')).toHaveText('€860');
+    await expect(page.locator('[data-test="job-xp"]')).toHaveText('540');
+    await expect(page.locator('[data-test="job-cargo-damage"]')).toHaveText(
+        '2.1%',
+    );
+    await expect(page.locator('[data-test="job-cancel-penalty"]')).toHaveCount(
+        0,
     );
     const jobUrl = page.url();
 

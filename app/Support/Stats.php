@@ -40,7 +40,7 @@ final class Stats
         }
 
         $row = $query->toBase()
-            ->selectRaw('COUNT(*) as deliveries, COALESCE(SUM(deliveries.distance_km), 0) as distance_km, COALESCE(SUM(deliveries.income), 0) as income')
+            ->selectRaw('COUNT(*) as deliveries, COALESCE(SUM(deliveries.distance_km), 0) as distance_km, COALESCE(SUM('.Delivery::INCOME_SQL.'), 0) as income')
             ->first();
 
         return [
@@ -59,7 +59,7 @@ final class Stats
     {
         return match ($metric) {
             'deliveries' => 'COUNT(*)',
-            'income' => 'SUM(deliveries.income)',
+            'income' => 'SUM('.Delivery::INCOME_SQL.')',
             default => 'SUM(deliveries.distance_km)',
         };
     }

@@ -98,6 +98,11 @@ company it counts for.
             "avg_speed_kmh": 72.8,
             "fuel_used_l": 95.2,
             "damage_delta": 0.013,
+            "game_revenue": 12890,
+            "earned_xp": 412,
+            "cargo_damage": 0.004,
+            "costs": 640,
+            "cancel_penalty": null,
             "started_at": "2026-11-14T10:00:00Z",
             "completed_at": "2026-11-14T14:00:00Z",
             "status": "DELIVERED",
@@ -119,6 +124,14 @@ company it counts for.
 | `damage_delta`               | 0–1                                                                     |
 | `game_duration_min`          | optional, in-game minutes from pickup to delivery (ProjectTrucks 0.11+) |
 | `avg_speed_kmh`              | `distance_km` per in-game hour; before 0.11, per real hour              |
+| `game_revenue`               | optional, what the game paid (ProjectTrucks 0.12+, scs-telemetry)       |
+| `earned_xp`                  | optional, ≥ 0                                                           |
+| `cargo_damage`               | optional, 0–1, cargo damage at delivery                                 |
+| `costs`                      | optional, ≥ 0, the job's tolls, fines and ferry/train fares in total    |
+| `cancel_penalty`             | optional, ≥ 0, what cancelling cost                                     |
+
+Income in every total (stats, leaderboards, goals) is `game_revenue` when the app sent one,
+else `declared_income` (the offered income), the same rule as ProjectTrucks' own stats.
 
 A batch with any invalid job is refused whole (422, Laravel validation errors keyed
 `jobs.<index>.<field>`). Response:

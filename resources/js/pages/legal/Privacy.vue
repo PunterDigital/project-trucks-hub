@@ -49,7 +49,10 @@ defineOptions({
                 only jobs it records after that. Each job has the truck, cities
                 and companies, cargo, weight, income, distance, duration (real
                 and in-game), average speed, fuel used, damage, start and end
-                times, and whether it was delivered, late or cancelled.
+                times, and whether it was delivered, late or cancelled. With the
+                game's own telemetry plugin it also has what the game paid, the
+                XP earned, cargo damage, the total of tolls, fines and fares on
+                the job, and any cancellation penalty.
             </li>
             <li>
                 <strong>Live status:</strong> while you drive, the app sends

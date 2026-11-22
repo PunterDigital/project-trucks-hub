@@ -42,6 +42,12 @@ without a full build.
   limit is per **in-game** hour (`game_duration_min`, sent by ProjectTrucks 0.11+); every job
   also gets a 3,000 km per real hour limit, the only one for older apps. Before this every
   recorded job was flagged; the migration re-ran the checks once (`JobChecks::recheckSpeedFlags`).
+- Game figures (#5227): `game_revenue`, `earned_xp`, `cargo_damage`, `costs` (the job's
+  tolls + fines + fares) and `cancel_penalty` are optional in the sync API (ProjectTrucks
+  0.12+ with scs-telemetry), null otherwise. `income` stays the offered (declared) income;
+  every total and `summary()['income']` use `Delivery::INCOME_SQL` /
+  `effectiveIncome()` (game revenue when present), as the app's own stats do, and
+  `JobChecks`' income limit judges that figure too. New income sums must use the constant.
 - Manual jobs (#4751): `source: MANUAL` (typed in by hand in the app) is never stored.
   `JobSyncController` accepts it (older apps still send it), deletes any copy it holds, leaves
   it out of `jobs` (older apps read that as synced, no link) and lists it under `skipped`.
