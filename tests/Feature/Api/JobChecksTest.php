@@ -101,6 +101,11 @@ class JobChecksTest extends TestCase
                 ['declared_income' => 1_000_000],
                 'Income too high for the distance',
             ],
+            // #5227: the game's figure is the one that counts, so it's the one judged.
+            'game revenue far above what the distance pays' => [
+                ['declared_income' => 12450, 'game_revenue' => 1_000_000],
+                'Income too high for the distance',
+            ],
             'completed in the future' => [
                 ['started_at' => '2026-11-15T08:00:00Z', 'completed_at' => '2026-11-15T12:00:00Z'],
                 'Completed in the future',

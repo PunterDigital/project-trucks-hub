@@ -31,7 +31,12 @@ use Illuminate\Support\Carbon;
  * @property string $cargo_id
  * @property string $cargo_name
  * @property float $cargo_mass_kg
- * @property int $income
+ * @property int $income The offered (declared) income; see {@see self::effectiveIncome()}
+ * @property int|null $game_revenue What the game paid (#5227), null from apps before 0.12
+ * @property int|null $earned_xp
+ * @property float|null $cargo_damage Cargo damage at delivery, 0 to 1
+ * @property int|null $costs Tolls, fines and ferry/train fares paid on the job, in total
+ * @property int|null $cancel_penalty
  * @property float $distance_km
  * @property int $duration_sec
  * @property int|null $game_duration_min In-game minutes between pickup and delivery (#4771), null from apps before 0.11
@@ -60,7 +65,7 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'user_id', 'client_id', 'company_id', 'game', 'truck_make', 'truck_model',
     'source_city', 'source_company', 'dest_city', 'dest_company', 'cargo_id', 'cargo_name',
-    'cargo_mass_kg', 'income', 'distance_km', 'duration_sec', 'game_duration_min', 'avg_speed_kmh', 'fuel_used_l',
+    'cargo_mass_kg', 'income', 'game_revenue', 'earned_xp', 'cargo_damage', 'costs', 'cancel_penalty', 'distance_km', 'duration_sec', 'game_duration_min', 'avg_speed_kmh', 'fuel_used_l',
     'damage', 'started_at', 'completed_at', 'status', 'source', 'flagged', 'flag_reason', 'hidden',
 ])]
 class Delivery extends Model
@@ -76,6 +81,12 @@ class Delivery extends Model
     /** {@see self::reviewState()} for a flagged job nobody has reviewed yet. */
     public const REVIEW_PENDING = 'pending';
 
+    /**
+     * A job's income in every total (#5227): what the game paid when the app sent it, else the
+     * offered income. The same rule as ProjectTrucks' own stats.
+     */
+    public const INCOME_SQL = 'COALESCE(deliveries.game_revenue, deliveries.income)';
+
     /** Shown to the driver next to a pending job. */
     public const REVIEW_TIME = 'Reviews usually take no more than 12 hours.';
 
@@ -84,6 +95,11 @@ class Delivery extends Model
         return [
             'cargo_mass_kg' => 'float',
             'income' => 'integer',
+            'game_revenue' => 'integer',
+            'earned_xp' => 'integer',
+            'cargo_damage' => 'float',
+            'costs' => 'integer',
+            'cancel_penalty' => 'integer',
             'distance_km' => 'float',
             'duration_sec' => 'integer',
             'game_duration_min' => 'integer',
@@ -269,7 +285,7 @@ class Delivery extends Model
             'dest_city' => $this->dest_city,
             'cargo_name' => $this->cargo_name,
             'cargo_mass_kg' => $this->cargo_mass_kg,
-            'income' => $this->income,
+            'income' => $this->effectiveIncome(),
             'distance_km' => $this->distance_km,
             'truck' => $this->truckName(),
             'status' => $this->status->value,
@@ -286,6 +302,12 @@ class Delivery extends Model
             'kudos_given' => (bool) ($this->getAttribute('kudos_given') ?? false),
             'comments' => (int) ($this->getAttribute('comments_count') ?? 0),
         ];
+    }
+
+    /** {@see self::INCOME_SQL} for one job. */
+    public function effectiveIncome(): int
+    {
+        return $this->game_revenue ?? $this->income;
     }
 
     /** Flagged by the app or by the Hub's checks, whatever staff decided since. */

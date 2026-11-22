@@ -1,9 +1,9 @@
 <?php
 
-// Facts checked against LeaderboardController, App\Support\Leaderboard and config/anticheat.php (#5151).
+// Facts checked against LeaderboardController, App\Support\Leaderboard and config/anticheat.php (#5151); income rule: Delivery::INCOME_SQL (#5227).
 return [
     'order' => 4,
-    'updated' => '2026-11-20',
+    'updated' => '2026-11-22',
     'title' => 'How the ETS2 leaderboards work',
     'description' => 'How ProjectTrucks Hub ranks Euro Truck Simulator 2 drivers and VTCs by distance, deliveries and income each week, month and all time, and how to get on them.',
     'answer' => 'The Hub ranks drivers and companies by distance, deliveries or income for this week, this month or all time, from the jobs ProjectTrucks records and syncs. To appear, link the app to a free Hub account and deliver jobs. Weeks start on Monday at 00:00 UTC.',
@@ -37,6 +37,8 @@ Only delivered jobs count, on time or late. These are left out:
 - drivers with a private profile (on the driver board; their jobs still count for their company)
 
 Jobs logged by hand in the app never leave your PC, so they never count.
+
+**Income** is what the game paid for the job when the app sends the game's own figures (ProjectTrucks 0.12 and later, with the game's telemetry plugin). For other jobs it is the income the job offered.
 
 ## Checks against impossible jobs
 

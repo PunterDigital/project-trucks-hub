@@ -74,7 +74,7 @@ final class Leaderboard
             ->selectRaw(Stats::metricExpression($metric).' as score')
             ->selectRaw('COUNT(*) as deliveries')
             ->selectRaw('SUM(deliveries.distance_km) as distance_km')
-            ->selectRaw('SUM(deliveries.income) as income')
+            ->selectRaw('SUM('.Delivery::INCOME_SQL.') as income')
             ->orderByDesc('score');
     }
 

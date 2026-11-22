@@ -10,6 +10,7 @@ import Panel from '@/components/hub/Panel.vue';
 import ReportButton from '@/components/hub/ReportButton.vue';
 import { Button } from '@/components/ui/button';
 import {
+    formatCount,
     formatDateTime,
     formatDuration,
     formatKm,
@@ -34,6 +35,12 @@ const props = defineProps<{
         avg_speed_kmh: number;
         fuel_used_l: number | null;
         damage: number | null;
+        declared_income: number;
+        game_revenue: number | null;
+        earned_xp: number | null;
+        cargo_damage: number | null;
+        costs: number | null;
+        cancel_penalty: number | null;
         started_at: string;
         source: 'TELEMETRY' | 'MANUAL';
         review_reasons: string[];
@@ -168,8 +175,40 @@ function toggleHidden() {
                     </div>
                     <div>
                         <dt class="text-xs text-muted-foreground">Income</dt>
-                        <dd class="font-medium">
+                        <dd class="font-medium" data-test="job-income">
                             {{ formatMoney(job.income) }}
+                        </dd>
+                        <dd
+                            v-if="
+                                job.game_revenue !== null &&
+                                job.game_revenue !== job.declared_income
+                            "
+                            class="text-xs text-muted-foreground"
+                            data-test="job-offered"
+                        >
+                            Offered {{ formatMoney(job.declared_income) }}
+                        </dd>
+                    </div>
+                    <div v-if="job.costs !== null">
+                        <dt class="text-xs text-muted-foreground">
+                            Tolls, fines and fares
+                        </dt>
+                        <dd class="font-medium" data-test="job-costs">
+                            {{ formatMoney(job.costs) }}
+                        </dd>
+                    </div>
+                    <div v-if="job.cancel_penalty !== null">
+                        <dt class="text-xs text-muted-foreground">
+                            Cancellation penalty
+                        </dt>
+                        <dd class="font-medium" data-test="job-cancel-penalty">
+                            {{ formatMoney(job.cancel_penalty) }}
+                        </dd>
+                    </div>
+                    <div v-if="job.earned_xp !== null">
+                        <dt class="text-xs text-muted-foreground">XP</dt>
+                        <dd class="font-medium" data-test="job-xp">
+                            {{ formatCount(job.earned_xp) }}
                         </dd>
                     </div>
                     <div>
@@ -210,6 +249,14 @@ function toggleHidden() {
                                     ? '–'
                                     : `${(job.damage * 100).toFixed(1)}%`
                             }}
+                        </dd>
+                    </div>
+                    <div v-if="job.cargo_damage !== null">
+                        <dt class="text-xs text-muted-foreground">
+                            Cargo damage
+                        </dt>
+                        <dd class="font-medium" data-test="job-cargo-damage">
+                            {{ (job.cargo_damage * 100).toFixed(1) }}%
                         </dd>
                     </div>
                     <div>

@@ -7,7 +7,11 @@ use App\Models\Company;
 use App\Models\Delivery;
 use App\Models\LiveStatus;
 use App\Models\User;
+use App\Support\Leaderboard;
+use App\Support\Period;
+use App\Support\Stats;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class JobSyncTest extends TestCase
@@ -72,6 +76,76 @@ class JobSyncTest extends TestCase
             ->assertOk();
         $this->assertSame(1, Delivery::query()->count());
         $this->assertSame(13000, Delivery::query()->sole()->income);
+    }
+
+    public function test_the_games_figures_are_stored_and_count_as_income(): void
+    {
+        [$user, $token] = $this->driver();
+
+        $this->withToken($token)->postJson(route('api.jobs.store'), ['jobs' => [self::job([
+            'game_revenue' => 12890,
+            'earned_xp' => 412,
+            'cargo_damage' => 0.004,
+            'costs' => 640,
+            'cancel_penalty' => null,
+        ])]])->assertOk();
+
+        $delivery = Delivery::query()->sole();
+        $this->assertSame(12450, $delivery->income);
+        $this->assertSame(12890, $delivery->game_revenue);
+        $this->assertSame(412, $delivery->earned_xp);
+        $this->assertSame(0.004, $delivery->cargo_damage);
+        $this->assertSame(640, $delivery->costs);
+        $this->assertNull($delivery->cancel_penalty);
+        $this->assertSame(12890, $delivery->summary()['income']);
+        $this->assertSame(12890, Stats::totals($user->deliveries()->getQuery())['income']);
+        $this->assertSame(12890, Leaderboard::drivers(Period::All, 'income')[0]['income']);
+
+        $this->get(route('jobs.show', $delivery))->assertInertia(fn (Assert $page) => $page
+            ->where('job.income', 12890)
+            ->where('job.declared_income', 12450)
+            ->where('job.game_revenue', 12890)
+            ->where('job.earned_xp', 412)
+            ->where('job.costs', 640)
+            ->where('job.cancel_penalty', null));
+
+        // A re-sync of the edited job replaces them, as for every other field.
+        $this->withToken($token)->postJson(route('api.jobs.store'), ['jobs' => [self::job(['game_revenue' => 13000, 'costs' => 0])]])
+            ->assertOk();
+        $delivery->refresh();
+        $this->assertSame(13000, $delivery->game_revenue);
+        $this->assertSame(0, $delivery->costs);
+        $this->assertNull($delivery->earned_xp);
+    }
+
+    public function test_older_apps_without_the_games_figures_keep_working(): void
+    {
+        [$user, $token] = $this->driver();
+
+        $this->withToken($token)->postJson(route('api.jobs.store'), ['jobs' => [self::job()]])->assertOk();
+
+        $delivery = Delivery::query()->sole();
+        $this->assertNull($delivery->game_revenue);
+        $this->assertNull($delivery->earned_xp);
+        $this->assertNull($delivery->cargo_damage);
+        $this->assertNull($delivery->costs);
+        $this->assertNull($delivery->cancel_penalty);
+        $this->assertSame(12450, $delivery->summary()['income']);
+        $this->assertSame(12450, Stats::totals($user->deliveries()->getQuery())['income']);
+    }
+
+    public function test_out_of_range_game_figures_are_refused(): void
+    {
+        [, $token] = $this->driver();
+
+        $this->withToken($token)->postJson(route('api.jobs.store'), ['jobs' => [self::job([
+            'earned_xp' => -1,
+            'cargo_damage' => 1.5,
+            'costs' => -10,
+            'cancel_penalty' => 'lots',
+        ])]])->assertUnprocessable()
+            ->assertJsonValidationErrors(['jobs.0.earned_xp', 'jobs.0.cargo_damage', 'jobs.0.costs', 'jobs.0.cancel_penalty']);
+        $this->assertSame(0, Delivery::query()->count());
     }
 
     public function test_a_resync_keeps_the_hidden_flag_and_the_original_company(): void

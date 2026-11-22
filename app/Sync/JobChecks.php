@@ -69,7 +69,7 @@ class JobChecks
         }
 
         $maxIncome = (int) $config['income_flat'] + $distance * (float) $config['income_per_km'];
-        if ($job->income > $maxIncome) {
+        if ($job->effectiveIncome() > $maxIncome) {
             $reasons[] = 'Income too high for the distance';
         }
 

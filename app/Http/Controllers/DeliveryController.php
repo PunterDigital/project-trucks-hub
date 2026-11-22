@@ -47,6 +47,13 @@ class DeliveryController extends Controller
                 'avg_speed_kmh' => $delivery->avg_speed_kmh,
                 'fuel_used_l' => $delivery->fuel_used_l,
                 'damage' => $delivery->damage,
+                // What the game reported (#5227); `income` above already uses game_revenue.
+                'declared_income' => $delivery->income,
+                'game_revenue' => $delivery->game_revenue,
+                'earned_xp' => $delivery->earned_xp,
+                'cargo_damage' => $delivery->cargo_damage,
+                'costs' => $delivery->costs,
+                'cancel_penalty' => $delivery->cancel_penalty,
                 'started_at' => $delivery->started_at->toIso8601String(),
                 'source' => $delivery->source,
                 // #4743: only the driver ever sees a pending or rejected job, with why.

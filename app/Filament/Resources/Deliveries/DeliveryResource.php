@@ -216,7 +216,13 @@ class DeliveryResource extends Resource
                     TextEntry::make('game_duration_min')->label('In-game time')->placeholder('— (app before 0.11)')
                         ->state(fn (Delivery $record): ?string => $record->game_duration_min === null ? null
                             : intdiv($record->game_duration_min, 60).' h '.str_pad((string) ($record->game_duration_min % 60), 2, '0', STR_PAD_LEFT).' m'),
-                    TextEntry::make('income')->numeric(),
+                    TextEntry::make('income')->label('Offered income')->numeric(),
+                    TextEntry::make('game_revenue')->label('Paid by the game')->numeric()->placeholder('—'),
+                    TextEntry::make('costs')->label('Tolls, fines and fares')->numeric()->placeholder('—'),
+                    TextEntry::make('earned_xp')->label('XP')->numeric()->placeholder('—'),
+                    TextEntry::make('cargo_damage')->label('Cargo damage')->placeholder('—')
+                        ->state(fn (Delivery $record): ?string => $record->cargo_damage === null ? null : number_format($record->cargo_damage * 100, 1).'%'),
+                    TextEntry::make('cancel_penalty')->label('Cancellation penalty')->numeric()->placeholder('—'),
                     TextEntry::make('started_at')->label('Started')->dateTime(),
                     TextEntry::make('completed_at')->label('Completed')->dateTime(),
                     TextEntry::make('source')->label('Recorded by'),

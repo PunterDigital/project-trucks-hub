@@ -6,6 +6,7 @@ use App\Enums\CompanyRole;
 use App\Models\Company;
 use App\Models\CompanyGoal;
 use App\Models\CompanyMember;
+use App\Models\Delivery;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -156,7 +157,7 @@ final class CompanyGoals
         $byUser = $company->deliveries()->counted()->toBase()
             ->where('deliveries.completed_at', '>=', $start)
             ->where('deliveries.completed_at', '<', $start->addMonth())
-            ->selectRaw('deliveries.user_id, COUNT(*) as deliveries, COALESCE(SUM(deliveries.distance_km), 0) as distance_km, COALESCE(SUM(deliveries.income), 0) as income')
+            ->selectRaw('deliveries.user_id, COUNT(*) as deliveries, COALESCE(SUM(deliveries.distance_km), 0) as distance_km, COALESCE(SUM('.Delivery::INCOME_SQL.'), 0) as income')
             ->groupBy('deliveries.user_id')
             ->get()
             ->keyBy('user_id');
