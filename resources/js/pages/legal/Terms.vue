@@ -86,8 +86,7 @@ defineOptions({
 
         <h2>Contact</h2>
         <p v-if="contactEmail">
-            Email <a :href="`mailto:${contactEmail}`">{{ contactEmail }}</a
-            >.
+            Email <a :href="`mailto:${contactEmail}`">{{ contactEmail }}</a>.
         </p>
         <p v-else>
             Open an issue on

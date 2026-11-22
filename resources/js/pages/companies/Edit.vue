@@ -119,8 +119,7 @@ const webhookPlaceholder = 'https://discord.com/api/webhooks/…';
                 data-test="discord-status"
             >
                 Connected: the webhook ending in
-                <code>{{ discord.hint }}</code
-                >.
+                <code>{{ discord.hint }}</code>.
             </p>
             <p
                 v-if="discord.disabled_at"
