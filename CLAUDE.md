@@ -784,6 +784,27 @@ that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec`
 - `public.spec.ts` run on its own fails (Paula Privacy's seeded job is newest on the feed until
   `privacy.spec` deletes it): run it with the suite, not alone.
 
+## Driver of the month and member stats (#5226)
+
+- `company_awards` (company, user, `month` "YYYY-MM" UTC, `place` 1–3, `distance_km`), unique per
+  company + month + place and per company + month + user, cascades with both. Never edited.
+- `App\Support\CompanyAwards::award($month)`: per company, the top three by counted distance with
+  `deliveries.company_id` = the company, completed in the month (drivers who left since included:
+  the jobs were for the company; suspended drivers' jobs don't count). Tie = earlier first counted
+  delivery of the month, then user id. Companies that already have the month are skipped
+  (`insertOrIgnore` covers two runs at once), so late syncs never change an award. Refuses an
+  unfinished month. `hub:monthly-awards [--month=]` (scheduler: 1st 00:40 UTC, after the activity check).
+- Pages: company `awards` (last `MONTHS_SHOWN` = 12 months, "Private driver" for outsiders as on
+  the members list, suspended left out; `CompanyAwards.vue`), profile `awards` badges. No bell.
+- Member stats CSV: `GET companies/{slug}/member-stats.csv?period=all|YYYY-MM`
+  (`CompanyMemberStatsController`, owners/managers, else 403; a period outside
+  `CompanyMemberStats::periods()` = this month + 11 before + all is a 404). One row per current
+  member (suspended left out): jobs, km, income (`Delivery::INCOME_SQL`), on-time %, last job
+  UTC, from the company's counted jobs. CRLF, fputcsv with no escape char; a cell starting with
+  `= + - @` gets a leading `'`. `MemberStatsDownload.vue` sits under the members list.
+- E2E (`awards.spec.ts`): Ava Awards owns Trophy Haulage, Abe Award (private) drives for it; the
+  seeder gives them jobs on last month's 10th/11th and runs `hub:monthly-awards`.
+
 ## Quirks
 
 - The starter kit's `bunny()` font build step was removed (a font download during a Forge

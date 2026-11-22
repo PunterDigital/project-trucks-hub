@@ -69,7 +69,12 @@ defineOptions({
                 on. If your company sets a monthly minimum, its owner and
                 managers see your progress towards it and the date of your last
                 job for the company, worked out from those jobs (nothing extra
-                is stored).
+                is stored). If you're one of a company's three furthest drivers
+                in a month, we keep that award (month, place and distance); it
+                shows on the company page and your profile, as "Private driver"
+                to people outside the company if your profile is private. Owners
+                and managers can download each member's job count, distance,
+                income, on-time share and last job date for the company.
             </li>
             <li>
                 <strong>Linked apps:</strong> the name of each linked copy of

@@ -19,7 +19,9 @@ use App\Models\User;
 use App\Support\ApplicationQuestions;
 use App\Support\Charts;
 use App\Support\CompanyActivity;
+use App\Support\CompanyAwards;
 use App\Support\CompanyGoals;
+use App\Support\CompanyMemberStats;
 use App\Support\CompanyRanks;
 use App\Support\Feed;
 use App\Support\ImageStore;
@@ -220,6 +222,10 @@ class CompanyController extends Controller
                 ->all(),
             // Company goals (#4649): this month's targets, contributions and past months.
             'goals' => CompanyGoals::forPage($company, $viewer, $role),
+            // Driver of the month (#5226): the last 12 months' top three.
+            'awards' => CompanyAwards::forCompany($company, $viewer, $role),
+            // Member stats CSV (#5226): the periods on offer, for owners and managers only.
+            'memberStatsPeriods' => $role?->canManage() ? CompanyMemberStats::periods() : [],
             'applications' => $role?->canManage()
                 ? $company->pendingApplications()->with('user')->oldest()->get()->map(fn (CompanyApplication $a) => [
                     'id' => $a->id,

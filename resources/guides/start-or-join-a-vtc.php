@@ -2,7 +2,8 @@
 
 // Facts checked against the Hub's companies pages and CompanyMembershipController (#5151),
 // invite links against CompanyInviteController (#5221), ranks against CompanyRanks (#5223), news against CompanyNewsController (#5224),
-// the monthly minimum against CompanyActivity and hub:activity-check (#5225).
+// the monthly minimum against CompanyActivity and hub:activity-check (#5225), Driver of the month
+// and the member stats CSV against CompanyAwards and CompanyMemberStats (#5226).
 return [
     'order' => 3,
     'updated' => '2026-11-22',
@@ -19,6 +20,7 @@ A virtual trucking company (VTC) is a group of drivers who truck under one name.
 - the members list with each driver's distance this month
 - company news from the owner and managers, public or for members only
 - monthly goals for distance, deliveries or income
+- each month's top three drivers, as Driver of the month
 - upcoming [convoys and events](/guides/ets2-convoys-and-events)
 - a place on the [company leaderboard](/guides/ets2-leaderboards)
 
@@ -59,6 +61,12 @@ Owners and managers can set up to 12 ranks under **Edit company** → **Ranks**,
 ## Monthly minimum
 
 Under **Edit company** → **Monthly minimum**, owners and managers can ask every member for a minimum distance, a minimum number of jobs, or both, each calendar month (UTC). Only jobs that count and that a member drove for the company after joining go towards it, and someone who joins mid-month owes only their share of the month. On the members list, owners and managers see each driver's progress this month, the date of their last job and an "Under the minimum last month" badge for anyone who missed it; drivers see only their own progress. On the 1st, owners and managers get one notification naming who missed the month before. Nobody is removed automatically: what happens next is up to the company.
+
+## Driver of the month
+
+On the 1st of each month (UTC), the three drivers who drove furthest for the company the month before, with jobs that count, become its **Driver of the month** (1st, 2nd and 3rd). If two drove the same distance, the one whose first delivery of the month came earlier goes first. The company page lists the last 12 months, and each driver's profile shows their awards. Drivers with a private profile show as "Private driver" to people outside the company.
+
+Owners and managers can also download the members' stats as a CSV file from the bottom of the members list, for one month or all time: each driver's jobs, distance, income, share of jobs delivered on time and the date of their last job for the company.
 MD,
     'faq' => [
         [

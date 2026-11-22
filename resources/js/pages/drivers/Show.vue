@@ -48,7 +48,16 @@ const props = defineProps<{
     live: LiveSummary | null;
     jobs: Paginated<JobSummary>;
     progress: DriverProgress;
+    // Driver of the month (#5226).
+    awards: {
+        month: string;
+        label: string;
+        place: number;
+        company: { name: string; slug: string; tag: string };
+    }[];
 }>();
+
+const placeLabel = (place: number) => ['1st', '2nd', '3rd'][place - 1] ?? '';
 
 const signedIn = usePage().props.auth.user !== null;
 
@@ -155,6 +164,35 @@ const unlockedCount = computed(
                         :rank="driver.company_rank"
                     />
                 </p>
+                <ul
+                    v-if="awards.length > 0"
+                    class="flex flex-wrap gap-1.5"
+                    data-test="driver-awards"
+                >
+                    <li
+                        v-for="a in awards"
+                        :key="`${a.month}-${a.company.slug}`"
+                        class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs"
+                        data-test="driver-award"
+                    >
+                        <Trophy
+                            class="size-3.5"
+                            :class="
+                                a.place === 1
+                                    ? 'text-amber-500'
+                                    : 'text-muted-foreground'
+                            "
+                            aria-hidden="true"
+                        />
+                        Driver of the month, {{ placeLabel(a.place) }} ·
+                        {{ a.label }} ·
+                        <Link
+                            :href="showCompany(a.company.slug)"
+                            class="hover:underline"
+                            >[{{ a.company.tag }}]</Link
+                        >
+                    </li>
+                </ul>
             </div>
             <a
                 v-if="driver.steam_url"

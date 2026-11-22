@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Achievements\Progress;
 use App\Http\Controllers\Controller;
 use App\Models\CompanyApplication;
+use App\Models\CompanyAward;
 use App\Models\CompanyEvent;
 use App\Models\CompanyPost;
 use App\Models\Delivery;
@@ -215,6 +216,19 @@ class PrivacyController extends Controller
                 ->map(fn (Delivery $d) => collect($d->attributesToArray())
                     ->except(['id', 'user_id', 'company_id'])
                     ->all())
+                ->all(),
+            // Driver of the month (#5226).
+            'company_awards' => CompanyAward::query()
+                ->where('user_id', $user->id)
+                ->with('company')
+                ->orderBy('month')
+                ->get()
+                ->map(fn (CompanyAward $a) => [
+                    'month' => $a->month,
+                    'place' => $a->place,
+                    'distance_km' => $a->distance_km,
+                    'company' => $a->company->name,
+                ])
                 ->all(),
         ];
     }
