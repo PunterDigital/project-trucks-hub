@@ -35,6 +35,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Security headers (#5533) on every response: pages, API, media, feeds and errors.
         $middleware->prepend(SecurityHeaders::class);
 
+        // Behind Cloudflare (#5703): its ranges are in config/trustedproxy.php. Only the
+        // visitor's address and the scheme are trusted, never a forwarded host.
+        $middleware->trustProxies(headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO);
+
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
