@@ -78,7 +78,7 @@ without a full build.
   with an email (random password; "Forgot password" sets one). 2FA accounts still go through
   Fortify's challenge (`login.id` in the session).
 - Steam flow state (#5519): OpenID has no state, so a callback URL from someone else's Steam
-  sign-in used to link *their* Steam account to whoever opened it (account takeover).
+  sign-in used to link _their_ Steam account to whoever opened it (account takeover).
   `SteamController::toSteam()` puts a random `steam_state` in the session and sends it in the
   `return_to` (`/auth/steam/callback?state=…`, signed by Steam, matched exactly by the
   provider); `callback()` refuses unless the query state equals the pulled session one. Every
