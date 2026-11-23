@@ -6,6 +6,7 @@ use App\Achievements\Progress;
 use App\Enums\DeliveryStatus;
 use App\Models\Delivery;
 use App\Models\User;
+use App\Support\AutoRefresh;
 use App\Support\Charts;
 use App\Support\CompanyAwards;
 use App\Support\LinkPreview;
@@ -18,6 +19,9 @@ use Inertia\Response;
 
 class DriverController extends Controller
 {
+    /** What the minute auto-refresh reloads on a profile (#5731). */
+    public const LIVE_PROPS = ['driver', 'live', 'jobs', 'stats'];
+
     public function index(Request $request): Response
     {
         $search = trim((string) $request->query('search', ''));
@@ -66,7 +70,8 @@ class DriverController extends Controller
         $isOwner = $viewer?->is($driver) ?? false;
         $deliveries = $driver->deliveries()->getQuery();
 
-        $trucks = $driver->deliveries()->counted()->toBase()
+        // Closures, so a partial reload (the auto-refresh, #5731) skips what it didn't ask for.
+        $trucks = fn () => $driver->deliveries()->counted()->toBase()
             ->selectRaw('truck_make, truck_model, COUNT(*) as deliveries, SUM(distance_km) as distance_km')
             ->whereNotNull('truck_make')
             ->groupBy('truck_make', 'truck_model')
@@ -79,7 +84,7 @@ class DriverController extends Controller
                 'distance_km' => round((float) $t->distance_km, 1),
             ]);
 
-        $jobs = $driver->deliveries()
+        $jobs = fn () => $driver->deliveries()
             // Others see what the job page would show them: not hidden, not waiting for a review (#4743).
             ->when(! $isOwner, fn (Builder $q) => $q->visibleTo($viewer))
             ->withReactions($viewer)
@@ -102,28 +107,29 @@ class DriverController extends Controller
             ],
             'isOwner' => $isOwner,
             // Follows (#4647): counts for everyone, the toggle's state for a signed-in viewer.
-            'follow' => [
+            'follow' => fn () => [
                 'followers' => $driver->followerCount(),
                 'following' => $driver->followingCount(),
                 'is_following' => $viewer !== null && ! $isOwner && $viewer->isFollowing($driver),
             ],
-            'stats' => [
+            'stats' => fn () => [
                 'week' => Stats::totals($deliveries, Period::Week),
                 'month' => Stats::totals($deliveries, Period::Month),
                 'all' => Stats::totals($deliveries, Period::All),
             ],
-            'onTime' => $this->onTimeRate($driver),
+            'onTime' => fn () => $this->onTimeRate($driver),
             'trucks' => $trucks,
             // Charts (#4650): 15-minute UTC buckets, folded into the viewer's days on the page.
-            'charts' => [
+            'charts' => fn () => [
                 'distance' => Charts::distance($deliveries),
                 'cargo' => Charts::cargo($deliveries),
             ],
             'live' => $live !== null && $live->isFresh() ? $live->summary() : null,
             'jobs' => $jobs,
-            'progress' => Progress::summary($driver),
+            'progress' => fn () => Progress::summary($driver),
             // Driver of the month badges (#5226).
-            'awards' => CompanyAwards::forDriver($driver),
+            'awards' => fn () => CompanyAwards::forDriver($driver),
+            'refreshOnly' => AutoRefresh::only(self::LIVE_PROPS),
         ])->withViewData('preview', fn () => LinkPreview::meta('driver', $driver->id));
     }
 

@@ -17,6 +17,7 @@ use App\Models\CompanyRank;
 use App\Models\Delivery;
 use App\Models\User;
 use App\Support\ApplicationQuestions;
+use App\Support\AutoRefresh;
 use App\Support\Charts;
 use App\Support\CompanyActivity;
 use App\Support\CompanyAwards;
@@ -31,6 +32,7 @@ use App\Support\Stats;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -39,6 +41,9 @@ use Inertia\Response;
 
 class CompanyController extends Controller
 {
+    /** What the minute auto-refresh reloads on a company page (#5731). */
+    public const LIVE_PROPS = ['stats', 'onTheRoad', 'latest'];
+
     public function index(Request $request): Response
     {
         $search = trim((string) $request->query('search', ''));
@@ -113,18 +118,107 @@ class CompanyController extends Controller
         $viewer = $request->user();
         $role = $company->roleOf($viewer);
         $deliveries = $company->deliveries()->getQuery();
-        $month = Period::Month->start();
 
+        // Company ranks (#5223), lowest first. Read once, by whichever prop needs them first:
+        // the props are closures, so a partial reload (the auto-refresh, #5731) runs only the
+        // ones it asked for.
+        $ranks = null;
+        $getRanks = function () use (&$ranks, $company) {
+            return $ranks ??= $company->ranks()->get();
+        };
+
+        $members = fn () => $this->members($company, $viewer, $role, $getRanks()->keyBy('id'));
+
+        $application = fn () => $viewer
+            ? $company->applications()->where('user_id', $viewer->id)->where('status', ApplicationStatus::Pending)->first()
+            : null;
+
+        return Inertia::render('companies/Show', [
+            'company' => [
+                ...$company->summary(),
+                'description' => $company->description,
+                'recruitment' => $company->recruitment->value,
+                'banner' => ImageStore::url($company->banner_path),
+                'created_at' => $company->created_at?->toIso8601String(),
+            ],
+            'role' => $role?->value,
+            'viewer' => fn () => [
+                'signedIn' => $viewer !== null,
+                'inOtherCompany' => $viewer?->membership !== null && $role === null,
+                'pendingApplication' => ($pending = $application())?->id,
+                // The applicant sees their own answers (#5222); managers see everyone's.
+                'pendingAnswers' => $pending->answers ?? [],
+            ],
+            // Application questions (#5222) for the Apply form.
+            'questions' => fn () => $company->recruitment === Recruitment::Apply && $role === null && $viewer !== null
+                ? ApplicationQuestions::for($company)
+                : [],
+            'stats' => fn () => [
+                'week' => Stats::totals($deliveries, Period::Week),
+                'month' => Stats::totals($deliveries, Period::Month),
+                'all' => Stats::totals($deliveries, Period::All),
+            ],
+            'members' => $members,
+            'ranks' => fn () => $getRanks()->map(fn (CompanyRank $r) => $r->summary())->values()->all(),
+            // The monthly minimum (#5225), for members only.
+            'activity' => fn () => $role !== null && CompanyActivity::hasRequirement($company) ? CompanyActivity::requirement($company) : null,
+            // Charts (#4650): distance per member, folded into the viewer's days on the page.
+            'chart' => fn () => Charts::companyDistance($company, $viewer, $role),
+            'onTheRoad' => fn () => Feed::onTheRoad($viewer, 20, fn ($q) => $q->whereHas('user.membership', fn (Builder $m) => $m->where('company_id', $company->id))),
+            'latest' => fn () => Feed::latestDeliveries($viewer, 15, fn ($q) => $q->where('deliveries.company_id', $company->id)),
+            // Company events (#4648): the next five.
+            'events' => fn () => $company->events()
+                ->upcoming()
+                ->withCount(['rsvps as going_count' => fn (Builder $q) => $q->where('status', RsvpStatus::Going)])
+                ->limit(5)
+                ->get()
+                ->map(fn (CompanyEvent $e) => $e->summary())
+                ->values()
+                ->all(),
+            // Company news (#5224): public posts for everyone, members-only ones for members.
+            'news' => fn () => $company->posts()
+                ->visibleTo($viewer)
+                ->feedOrder()
+                ->with('author.membership')
+                ->limit(CompanyPost::SHOWN)
+                ->get()
+                ->map(fn (CompanyPost $p) => $p->summary($viewer))
+                ->values()
+                ->all(),
+            // Company goals (#4649): this month's targets, contributions and past months.
+            'goals' => fn () => CompanyGoals::forPage($company, $viewer, $role),
+            // Driver of the month (#5226): the last 12 months' top three.
+            'awards' => fn () => CompanyAwards::forCompany($company, $viewer, $role),
+            // Member stats CSV (#5226): the periods on offer, for owners and managers only.
+            'memberStatsPeriods' => $role?->canManage() ? CompanyMemberStats::periods() : [],
+            'applications' => fn () => $role?->canManage()
+                ? $company->pendingApplications()->with('user')->oldest()->get()->map(fn (CompanyApplication $a) => [
+                    'id' => $a->id,
+                    'message' => $a->message,
+                    'answers' => $a->answers ?? [],
+                    'created_at' => $a->created_at?->toIso8601String(),
+                    'driver' => ['name' => $a->user->name, 'username' => $a->user->username, 'avatar' => $a->user->avatar()],
+                ])
+                : [],
+            'refreshOnly' => AutoRefresh::only(self::LIVE_PROPS),
+        ])->withViewData('preview', fn () => LinkPreview::meta('company', $company->id));
+    }
+
+    /**
+     * The members list with this month's numbers, rank and activity (a closure prop: the
+     * auto-refresh doesn't ask for it).
+     *
+     * @param  Collection<int, CompanyRank>  $ranksById
+     * @return array<int, array<string, mixed>>
+     */
+    private function members(Company $company, ?User $viewer, ?CompanyRole $role, Collection $ranksById): array
+    {
         $memberStats = $company->deliveries()->counted()->toBase()
-            ->where('completed_at', '>=', $month)
+            ->where('completed_at', '>=', Period::Month->start())
             ->selectRaw('user_id, COUNT(*) as deliveries, SUM(distance_km) as distance_km')
             ->groupBy('user_id')
             ->get()
             ->keyBy('user_id');
-
-        // Company ranks (#5223), lowest first.
-        $ranks = $company->ranks()->get();
-        $ranksById = $ranks->keyBy('id');
 
         $memberRows = $company->members()
             ->with('user.liveStatus')
@@ -140,7 +234,7 @@ class CompanyController extends Controller
             $role?->canManage() ? $memberRows : $memberRows->filter(fn (CompanyMember $m) => $viewer !== null && $m->user_id === $viewer->id),
         );
 
-        $members = $memberRows
+        return $memberRows
             ->map(function (CompanyMember $m) use ($memberStats, $viewer, $role, $ranksById, $activity) {
                 $visible = $role !== null || ! $m->user->profile_private || $viewer?->is($m->user);
                 $stats = $memberStats->get($m->user_id);
@@ -162,80 +256,8 @@ class CompanyController extends Controller
                     'pinned_rank_id' => $role?->canManage() ? $m->pinned_rank_id : null,
                     'activity' => $activity[$m->id] ?? null,
                 ];
-            });
-
-        $application = $viewer
-            ? $company->applications()->where('user_id', $viewer->id)->where('status', ApplicationStatus::Pending)->first()
-            : null;
-
-        return Inertia::render('companies/Show', [
-            'company' => [
-                ...$company->summary(),
-                'description' => $company->description,
-                'recruitment' => $company->recruitment->value,
-                'banner' => ImageStore::url($company->banner_path),
-                'created_at' => $company->created_at?->toIso8601String(),
-            ],
-            'role' => $role?->value,
-            'viewer' => [
-                'signedIn' => $viewer !== null,
-                'inOtherCompany' => $viewer?->membership !== null && $role === null,
-                'pendingApplication' => $application?->id,
-                // The applicant sees their own answers (#5222); managers see everyone's.
-                'pendingAnswers' => $application->answers ?? [],
-            ],
-            // Application questions (#5222) for the Apply form.
-            'questions' => $company->recruitment === Recruitment::Apply && $role === null && $viewer !== null
-                ? ApplicationQuestions::for($company)
-                : [],
-            'stats' => [
-                'week' => Stats::totals($deliveries, Period::Week),
-                'month' => Stats::totals($deliveries, Period::Month),
-                'all' => Stats::totals($deliveries, Period::All),
-            ],
-            'members' => $members,
-            'ranks' => $ranks->map(fn (CompanyRank $r) => $r->summary())->values()->all(),
-            // The monthly minimum (#5225), for members only.
-            'activity' => $role !== null && CompanyActivity::hasRequirement($company) ? CompanyActivity::requirement($company) : null,
-            // Charts (#4650): distance per member, folded into the viewer's days on the page.
-            'chart' => Charts::companyDistance($company, $viewer, $role),
-            'onTheRoad' => Feed::onTheRoad($viewer, 20, fn ($q) => $q->whereHas('user.membership', fn (Builder $m) => $m->where('company_id', $company->id))),
-            'latest' => Feed::latestDeliveries($viewer, 15, fn ($q) => $q->where('deliveries.company_id', $company->id)),
-            // Company events (#4648): the next five.
-            'events' => $company->events()
-                ->upcoming()
-                ->withCount(['rsvps as going_count' => fn (Builder $q) => $q->where('status', RsvpStatus::Going)])
-                ->limit(5)
-                ->get()
-                ->map(fn (CompanyEvent $e) => $e->summary())
-                ->values()
-                ->all(),
-            // Company news (#5224): public posts for everyone, members-only ones for members.
-            'news' => $company->posts()
-                ->visibleTo($viewer)
-                ->feedOrder()
-                ->with('author.membership')
-                ->limit(CompanyPost::SHOWN)
-                ->get()
-                ->map(fn (CompanyPost $p) => $p->summary($viewer))
-                ->values()
-                ->all(),
-            // Company goals (#4649): this month's targets, contributions and past months.
-            'goals' => CompanyGoals::forPage($company, $viewer, $role),
-            // Driver of the month (#5226): the last 12 months' top three.
-            'awards' => CompanyAwards::forCompany($company, $viewer, $role),
-            // Member stats CSV (#5226): the periods on offer, for owners and managers only.
-            'memberStatsPeriods' => $role?->canManage() ? CompanyMemberStats::periods() : [],
-            'applications' => $role?->canManage()
-                ? $company->pendingApplications()->with('user')->oldest()->get()->map(fn (CompanyApplication $a) => [
-                    'id' => $a->id,
-                    'message' => $a->message,
-                    'answers' => $a->answers ?? [],
-                    'created_at' => $a->created_at?->toIso8601String(),
-                    'driver' => ['name' => $a->user->name, 'username' => $a->user->username, 'avatar' => $a->user->avatar()],
-                ])
-                : [],
-        ])->withViewData('preview', fn () => LinkPreview::meta('company', $company->id));
+            })
+            ->all();
     }
 
     public function edit(Request $request, Company $company): Response

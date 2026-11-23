@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\CompanyPost;
 use App\Models\Delivery;
 use App\Models\User;
+use App\Support\AutoRefresh;
 use App\Support\Feed;
 use App\Support\Leaderboard;
 use App\Support\Period;
@@ -26,6 +27,9 @@ class HomeController extends Controller
     /** Company news posts on the My company tab (#5224). */
     public const NEWS_SHOWN = 3;
 
+    /** What the minute auto-refresh reloads (#5731); everything else waits for the next visit. */
+    public const LIVE_PROPS = ['onTheRoad', 'latest', 'news'];
+
     public function __invoke(Request $request): Response
     {
         $viewer = $request->user();
@@ -34,12 +38,13 @@ class HomeController extends Controller
         return Inertia::render('Home', [
             'canRegister' => Features::enabled(Features::registration()),
             'steamEnabled' => SteamController::enabled(),
-            'totals' => [
+            // Closures, so a partial reload (the auto-refresh, #5731) skips what it didn't ask for.
+            'totals' => fn () => [
                 ...Stats::totals(Delivery::query()),
                 'drivers' => User::query()->count(),
                 'companies' => Company::query()->count(),
             ],
-            'onTheRoad' => Feed::onTheRoad($viewer, 8),
+            'onTheRoad' => fn () => Feed::onTheRoad($viewer, 8),
             'feed' => $feed,
             // Tabs only for a signed-in driver; My company only with a company.
             'feeds' => match (true) {
@@ -47,9 +52,9 @@ class HomeController extends Controller
                 $viewer->companyId() === null => ['everyone', 'following'],
                 default => self::FEEDS,
             },
-            'latest' => Feed::latestDeliveries($viewer, 12, $this->scope($feed, $viewer)),
+            'latest' => fn () => Feed::latestDeliveries($viewer, 12, $this->scope($feed, $viewer)),
             // Company news (#5224) on the My company tab: the pinned post, then the newest.
-            'news' => $feed === 'company' && $viewer !== null
+            'news' => fn () => $feed === 'company' && $viewer !== null
                 ? CompanyPost::query()
                     ->where('company_id', $viewer->companyId())
                     ->visibleTo($viewer)
@@ -61,8 +66,9 @@ class HomeController extends Controller
                     ->values()
                     ->all()
                 : [],
-            'topDrivers' => Leaderboard::drivers(Period::Week, 'distance', 5),
+            'topDrivers' => fn () => Leaderboard::drivers(Period::Week, 'distance', 5),
             'downloadUrl' => route('download'),
+            'refreshOnly' => AutoRefresh::only(self::LIVE_PROPS),
         ]);
     }
 
