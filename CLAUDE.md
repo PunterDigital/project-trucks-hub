@@ -66,7 +66,9 @@ without a full build.
 - Live status: one row per driver, fresh for `LiveStatus::FRESH_SECONDS` (120 s).
 - Device linking: `DeviceAuthorization` (RFC 8628 style), device code stored as sha256, user
   code 8 chars without vowels. Tokens are Sanctum PATs with ability `sync`; the website lists
-  them under Settings → Linked apps. Contract for the app: `docs/api.md`. Change the API
+  them under Settings → Linked apps. `/link` warns to approve only a code your own app shows
+  (device-code phishing: anyone can start a request with any `client_name`, #5531).
+  Contract for the app: `docs/api.md`. Change the API
   only additively; ProjectTrucks releases lag behind.
 - Steam: sign-in is Steam's **OpenID** provider only (`App\Auth\SteamProvider`, our subclass of
   socialiteproviders/steam, registered in `AppServiceProvider`). The Web API key is never used
@@ -328,7 +330,12 @@ without a full build.
 - The bell (`components/hub/NotificationBell.vue`, in `AppSidebarHeader`) reads the shared
   `notifications` prop (`HandleInertiaRequests::notificationsFor()`: unread count + latest 15),
   so the 60 s auto-refresh updates it. Opening an item posts to `notifications.open` (marks
-  read, redirects only to our own URLs); "Mark all read" → `notifications.read-all`.
+  read, redirects only to our own URLs: `NotificationController::isOwnUrl` compares scheme,
+  host and port, #5531); "Mark all read" → `notifications.read-all`.
+- Mail Markdown (#5531): `AppServiceProvider` turns on `Markdown::withSecuredEncoding()`, so
+  `[`, `]`, backslash and `<` echoed into any email are escaped before CommonMark runs: an
+  applicant's `[text](https://evil.example)` stays text, in the HTML and the plain-text part.
+  The applicant's note is one paragraph (whitespace collapsed). `MailThemeTest` checks it.
 - Account deletion removes notifications (morph, no FK: `User::booted()`); the privacy
   export includes them and the email opt-outs.
 - E2E (`notifications.spec.ts`): abe-apply applies to nora-notify's Bell Freight. An open
@@ -341,7 +348,8 @@ without a full build.
   (company edit page, `CompanyImageController`, owners/managers). `App\Support\ImageStore`
   decodes every upload with intervention/image 4 (GD), crops it (`ImageKind`: 256² avatar/logo,
   1500×400 banner) and re-encodes WebP, so nothing from the original file (EXIF, GPS, hidden
-  bytes) is kept. PNG/JPEG/WebP, 2 MB (`ImageStore::RULES`). Random 40-char names; the old
+  bytes) is kept. PNG/JPEG/WebP, 2 MB, at most 4096 px a side (`ImageStore::RULES`; 8000² decoded
+  to ~256 MB in GD, #5531). Random 40-char names; the old
   file is deleted on replace/remove, account deletion, company deletion and the staff
   "Reset name and description".
 - Served by `MediaController` at `/media/{avatars|logos|banners}/{name}.webp` from the

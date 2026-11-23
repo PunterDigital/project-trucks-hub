@@ -30,6 +30,10 @@ test('linking ProjectTrucks and syncing a job', async ({ page, request }) => {
     await expect(page.locator('[data-test="link-request"]')).toContainText(
         'ProjectTrucks on E2E-RIG',
     );
+    // Device-code phishing (#5531): the page says to approve only your own app's code.
+    await expect(page.locator('[data-test="link-warning"]')).toContainText(
+        'Only approve a code that your own ProjectTrucks app is showing you',
+    );
     await page.getByRole('button', { name: 'Approve' }).click();
     await expect(page).toHaveURL(/\/settings\/devices$/);
 

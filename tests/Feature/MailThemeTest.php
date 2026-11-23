@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Company;
 use App\Models\User;
 use App\Notifications\HubNotice;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -92,5 +93,33 @@ class MailThemeTest extends TestCase
 
         $this->assertBranded($email);
         $this->assertStringContainsString('Settings → Notifications', (string) $email->getTextBody());
+    }
+
+    /** #5531: Markdown in what drivers type never turns into links or images in a Hub email. */
+    public function test_markdown_in_user_text_stays_text(): void
+    {
+        $owner = User::factory()->create();
+        $company = Company::factory()->create(['name' => '[Free](https://evil.example/c) Haulage']);
+        $applicant = User::factory()->create(['name' => 'Ann <b>Apply</b>']);
+        $note = "Click [here](https://evil.example/a) ![x](https://evil.example/i.png)\n# Big\n<https://evil.example/auto>";
+
+        $email = $this->send($owner, HubNotice::applicationReceived($company, $applicant, $note));
+
+        $html = (string) $email->getHtmlBody();
+        $text = (string) $email->getTextBody();
+        $this->assertBranded($email);
+        $this->assertStringNotContainsString('href="https://evil.example', $html);
+        $this->assertStringNotContainsString('src="https://evil.example', $html);
+        $this->assertStringNotContainsString('<b>Apply</b>', $html);
+        $this->assertDoesNotMatchRegularExpression('/<h1[^>]*>\s*Big/', $html);
+        // Shown as typed, in both parts, without escape characters.
+        foreach ([$html, $text] as $body) {
+            $this->assertStringContainsString('[here](https://evil.example/a)', $body);
+            $this->assertStringContainsString('[Free](https://evil.example/c) Haulage', $body);
+            $this->assertStringNotContainsString('\\[', $body);
+        }
+        $this->assertStringContainsString('Ann <b>Apply</b>', $text);
+        // Our own links still work.
+        $this->assertStringContainsString('href="'.route('companies.show', $company).'"', $html);
     }
 }

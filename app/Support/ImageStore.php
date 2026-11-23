@@ -21,7 +21,7 @@ class ImageStore
     public const DISK = 'public';
 
     /** Accepted uploads: the validation rules for the file field. */
-    public const RULES = ['required', 'file', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048', 'dimensions:max_width=8000,max_height=8000'];
+    public const RULES = ['required', 'file', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048', 'dimensions:max_width=4096,max_height=4096'];
 
     /** The path pattern MediaController serves (see `path()`). */
     public const FILE_PATTERN = '[A-Za-z0-9]{40}\.webp';

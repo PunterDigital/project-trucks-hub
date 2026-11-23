@@ -6,6 +6,7 @@ use App\Admin\Moderation;
 use App\Enums\CompanyRole;
 use App\Enums\NoticeType;
 use App\Enums\Recruitment;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Settings\PrivacyController;
 use App\Models\Company;
 use App\Models\CompanyApplication;
@@ -173,6 +174,33 @@ class NotificationTest extends TestCase
         $this->app['auth']->forgetGuards();
         $this->get(route('home'))->assertInertia(fn ($page) => $page->where('notifications', null));
         $this->actingAs(User::factory()->create())->post(route('notifications.open', $first->id))->assertNotFound();
+    }
+
+    public function test_opening_a_notice_never_redirects_off_site(): void
+    {
+        [$company, $owner] = $this->company();
+        // A prefix check on url('/') let a look-alike host through (#5531).
+        $evil = url('/').'.evil.test/x';
+        $owner->notify(new HubNotice(NoticeType::MemberJoined, 'x', $evil, 'x'));
+        $notice = $owner->notifications()->first();
+
+        $response = $this->actingAs($owner)->from(route('dashboard'))->post(route('notifications.open', $notice->id));
+        $response->assertRedirect(route('dashboard'));
+        $this->assertNotNull($notice->fresh()->read_at);
+
+        $this->assertTrue(NotificationController::isOwnUrl(route('companies.show', $company)));
+        $this->assertTrue(NotificationController::isOwnUrl(url('/')));
+        foreach ([
+            $evil,
+            'https://evil.test/',
+            '//evil.test/x',
+            '/relative/path',
+            str_replace('://', '://me@', url('/')).'/x',
+            strtr(url('/'), ['http://' => 'https://', 'https://' => 'http://']).'/x',
+            'javascript:alert(1)',
+        ] as $url) {
+            $this->assertFalse(NotificationController::isOwnUrl($url), $url);
+        }
     }
 
     public function test_email_settings_turn_emails_off_but_keep_the_bell(): void
