@@ -205,10 +205,6 @@ defineOptions({
                 cookies.
             </li>
             <li>
-                <strong>Bunny Fonts</strong>: the site's font loads from
-                fonts.bunny.net, which doesn't log IP addresses or set cookies.
-            </li>
-            <li>
                 Our hosting provider runs the server and our email provider
                 sends account emails (verification, password resets, and the
                 notification emails you keep on under Settings → Notifications).

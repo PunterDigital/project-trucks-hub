@@ -22,6 +22,7 @@ import {
 import { cpus, tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stampIndex } from './hash.mjs';
 
 const TS_MAP_REPO = 'https://github.com/dariowouters/ts-map.git';
 const TS_MAP_COMMIT = 'ae8b4c0e77c7af74ca5e76eef84d06e2864732eb'; // 2026-11-10, ETS2 1.59
@@ -145,6 +146,8 @@ for (let z = 0; z <= maxZoom; z++) {
     index.tiles[z] = Buffer.from(bits).toString('base64');
 }
 writeFileSync(path.join(out, 'TileIndex.json'), JSON.stringify(index));
+// The content hash (#5733) is the tiles' ?v=, so they're fetched anew only when they change.
+stampIndex(out);
 const info = JSON.parse(
     readFileSync(path.join(out, 'TileMapInfo.json'), 'utf8'),
 );
