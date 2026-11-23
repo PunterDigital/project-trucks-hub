@@ -40,6 +40,9 @@ class HubNotice extends Notification implements ShouldQueue
 
     public static function applicationReceived(Company $company, User $applicant, ?string $note): self
     {
+        // One paragraph: a line break in the note would let Markdown start a heading or list
+        // inside the email. (Links are escaped for every mail, AppServiceProvider.)
+        $note = $note !== null ? trim(preg_replace('/\s+/u', ' ', $note) ?? $note) : null;
         $lines = $note !== null && $note !== '' ? ['Their message: “'.$note.'”'] : [];
 
         return new self(

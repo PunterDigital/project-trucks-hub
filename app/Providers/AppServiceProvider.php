@@ -15,6 +15,7 @@ use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Console\Events\ScheduledTaskFailed;
 use Illuminate\Console\Events\ScheduledTaskFinished;
 use Illuminate\Http\Request;
+use Illuminate\Mail\Markdown;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
@@ -48,6 +49,11 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->configureRateLimiting();
         $this->configureAuthMail();
+
+        // Mail Markdown (#5531): text echoed into an email (an applicant's message, a company
+        // or driver name, an app's name) has `[`, `]`, `\` and `<` escaped before CommonMark
+        // runs, so `[text](https://evil.example)` stays text instead of a link the Hub sent.
+        Markdown::withSecuredEncoding();
 
         // Our subclass of the Steam provider: OpenID sign-in that works without a Web API key.
         Event::listen(SocialiteWasCalled::class, fn (SocialiteWasCalled $event) => $event->extendSocialite('steam', SteamProvider::class));
