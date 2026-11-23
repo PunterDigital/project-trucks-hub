@@ -836,6 +836,19 @@ that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec`
 - E2E (`awards.spec.ts`): Ava Awards owns Trophy Haulage, Abe Award (private) drives for it; the
   seeder gives them jobs on last month's 10th/11th and runs `hub:monthly-awards`.
 
+## Security headers (#5533)
+
+- `App\Http\Middleware\SecurityHeaders`, prepended globally (`bootstrap/app.php`), so pages,
+  API, media, feeds and error pages all get: HSTS `max-age=31536000` (no preload; sent on every
+  response because Cloudflare sits in front and browsers ignore it over http), CSP
+  `frame-ancestors 'none'; base-uri 'self'; object-src 'none'` (no full CSP: Filament/Livewire,
+  Leaflet and inline styles would need nonces), nosniff, Referrer-Policy
+  `strict-origin-when-cross-origin`, Permissions-Policy (camera, microphone, geolocation,
+  payment, usb off; passkeys untouched). No X-Frame-Options from the app: Forge's nginx sends
+  SAMEORIGIN, and nosniff shows twice (nginx + app, same value). Only Chromium-known features in
+  Permissions-Policy: an unknown one is a console error, and every E2E spec fails on those.
+- `SecurityHeadersTest`, `security-headers.spec.ts`.
+
 ## Quirks
 
 - The starter kit's `bunny()` font build step was removed (a font download during a Forge

@@ -3,6 +3,7 @@
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RecordApiUsage;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SignOutSuspended;
 use App\Http\Middleware\ThrottleAccountRequests;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
@@ -30,6 +31,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Laravel sorts every middleware in its priority list ahead of the route group's
         // others, so it has to be in that list itself.
         $middleware->prependToPriorityList(before: AuthenticatesRequests::class, prepend: RecordApiUsage::class);
+
+        // Security headers (#5533) on every response: pages, API, media, feeds and errors.
+        $middleware->prepend(SecurityHeaders::class);
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
