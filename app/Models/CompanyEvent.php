@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\RsvpStatus;
+use App\Support\TruckersMpEvents;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +26,8 @@ use Illuminate\Support\Carbon;
  * @property string $dest_city
  * @property string|null $dest_company
  * @property string|null $route_notes
+ * @property int|null $truckersmp_event_id
+ * @property string|null $route_image_url
  * @property int|null $max_drivers
  * @property bool $open
  * @property Carbon|null $cancelled_at
@@ -46,6 +49,7 @@ class CompanyEvent extends Model
         return [
             'starts_at' => 'datetime',
             'max_drivers' => 'integer',
+            'truckersmp_event_id' => 'integer',
             'open' => 'boolean',
             'cancelled_at' => 'datetime',
         ];
@@ -105,6 +109,19 @@ class CompanyEvent extends Model
     public function isFull(): bool
     {
         return $this->max_drivers !== null && $this->goingCount() >= $this->max_drivers;
+    }
+
+    /**
+     * The TruckersMP link and route image (#5228), for the event page and its form.
+     *
+     * @return array{truckersmp_url: string|null, route_image_url: string|null}
+     */
+    public function truckersMp(): array
+    {
+        return [
+            'truckersmp_url' => $this->truckersmp_event_id !== null ? TruckersMpEvents::url($this->truckersmp_event_id) : null,
+            'route_image_url' => TruckersMpEvents::isImageUrl($this->route_image_url) ? $this->route_image_url : null,
+        ];
     }
 
     /** @return array<string, mixed> */

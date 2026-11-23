@@ -11,6 +11,7 @@ use App\Models\LiveStatus;
 use App\Models\Post;
 use App\Models\User;
 use App\Support\LatestRelease;
+use App\Support\TruckersMpEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -649,6 +650,33 @@ class E2ESeeder extends Seeder
             ]);
         }
         Artisan::call('hub:monthly-awards');
+
+        // TruckersMP events (#5228): Tess TruckersMP owns TMP Convoys. The recorded API answer
+        // for event 38846 waits in the cache, a week ahead, so "Fill from TruckersMP" never
+        // calls TruckersMP from E2E.
+        $tess = User::query()->create([
+            'name' => 'Tess TruckersMP',
+            'email' => 'tess-tmp@example.com',
+            'username' => 'tess-tmp',
+            'password' => $password,
+        ]);
+        $tess->forceFill(['email_verified_at' => now(), 'password_set_at' => now(), 'created_at' => now()->subYear()])->save();
+        $tmp = Company::query()->create([
+            'name' => 'TMP Convoys',
+            'slug' => 'tmp-convoys',
+            'tag' => 'TMP',
+            'description' => 'Public convoys on TruckersMP.',
+            'recruitment' => Recruitment::Open,
+        ]);
+        $tmp->forceFill(['created_at' => now()->subYear()])->save();
+        $tmp->members()->create(['user_id' => $tess->id, 'role' => CompanyRole::Owner])
+            ->forceFill(['created_at' => now()->subYear()])->save();
+        $recorded = json_decode((string) file_get_contents(base_path('tests/fixtures/truckersmp/event-38846.json')), true);
+        $event = $recorded['response'];
+        $start = now('UTC')->addWeek()->setTime(19, 0);
+        $event['start_at'] = $start->format('Y-m-d H:i:s');
+        $event['meetup_at'] = $start->copy()->subHour()->format('Y-m-d H:i:s');
+        Cache::forever(TruckersMpEvents::cacheKey(38846), $event);
 
         // Levels and achievements (#4645) for everything seeded above, silently, as on deploy.
         Artisan::call('hub:progress');

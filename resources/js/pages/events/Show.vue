@@ -4,6 +4,7 @@ import {
     ArrowRight,
     CalendarDays,
     CalendarPlus,
+    ExternalLink,
     Pencil,
     Users,
     X,
@@ -24,6 +25,8 @@ const props = defineProps<{
         start_company: string | null;
         dest_company: string | null;
         route_notes: string | null;
+        truckersmp_url: string | null;
+        route_image_url: string | null;
         over: boolean;
         full: boolean;
     };
@@ -102,6 +105,20 @@ function cancelEvent() {
                         ><CalendarPlus class="size-4" /> Add to calendar</a
                     >
                 </Button>
+                <Button
+                    v-if="event.truckersmp_url"
+                    as-child
+                    variant="outline"
+                    size="sm"
+                >
+                    <a
+                        :href="event.truckersmp_url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-test="truckersmp-link"
+                        ><ExternalLink class="size-4" /> On TruckersMP</a
+                    >
+                </Button>
                 <template v-if="viewer.canManage && !event.cancelled">
                     <Button as-child variant="outline" size="sm">
                         <Link :href="edit(event.id)" data-test="edit-event"
@@ -156,6 +173,22 @@ function cancelEvent() {
                 >
                     {{ event.route_notes }}
                 </p>
+                <a
+                    v-if="event.route_image_url"
+                    :href="event.route_image_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="mt-3 block"
+                    data-test="route-image"
+                >
+                    <img
+                        :src="event.route_image_url"
+                        alt="Route map"
+                        loading="lazy"
+                        referrerpolicy="no-referrer"
+                        class="max-h-96 w-full rounded-lg border object-contain"
+                    />
+                </a>
             </Panel>
 
             <Panel title="Are you coming?">

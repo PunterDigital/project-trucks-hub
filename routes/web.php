@@ -187,6 +187,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('companies/{company:slug}/events/create', [CompanyEventController::class, 'create'])->name('companies.events.create');
     Route::post('companies/{company:slug}/events', [CompanyEventController::class, 'store'])->middleware('throttle:20,1')->name('companies.events.store');
+    Route::get('companies/{company:slug}/events/truckersmp', [CompanyEventController::class, 'truckersmp'])->middleware('throttle:20,1')->name('companies.events.truckersmp');
     Route::get('events/{event}/edit', [CompanyEventController::class, 'edit'])->whereNumber('event')->name('events.edit');
     Route::put('events/{event}', [CompanyEventController::class, 'update'])->whereNumber('event')->name('events.update');
     Route::post('events/{event}/cancel', [CompanyEventController::class, 'cancel'])->whereNumber('event')->name('events.cancel');

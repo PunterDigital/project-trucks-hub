@@ -423,6 +423,18 @@ without a full build.
 - Attendees: private-profile drivers show as "Private driver" to people who can't see them
   (`User::isVisibleTo`); suspended drivers are left out.
 - E2E (`events.spec.ts`): Eve Events owns Convoy Club, Max Member answers, Otto Outsider can't.
+- TruckersMP (#5228): `company_events.truckersmp_event_id` + `route_image_url`. The form's
+  "Fill from TruckersMP" calls `GET companies/{slug}/events/truckersmp?url=` (owners/managers,
+  20/min, JSON), which reads `https://api.truckersmp.com/v2/events/{id}` server-side
+  (`App\Support\TruckersMpEvents`: 5 s timeout, no key, good answers cached 10 min, failures
+  not cached) and returns the form's fields; a bad link or an outage is a 200 with `fields: null` and a message
+  and the form stays as it was. TruckersMP times are UTC. Its Cloudflare answers a
+  browser-like User-Agent with a challenge page, so the Hub sends `ProjectTrucksHub/1.0`.
+  Route images: only `https://static.truckersmp.com/images/` URLs (shown inline on the event
+  page, `referrerpolicy="no-referrer"`). Pest: `TruckersMpEventTest` on the recorded answer
+  `tests/fixtures/truckersmp/event-38846.json` (attendee names removed). E2E
+  (`truckersmp.spec.ts`): Tess TruckersMP owns TMP Convoys; E2ESeeder caches the recorded
+  answer a week ahead, and the spec answers `static.truckersmp.com` itself.
 
 ## Charts (#4650)
 

@@ -1,0 +1,57 @@
+{
+    "error": false,
+    "response": {
+        "id": 38846,
+        "event_type": {
+            "key": "convoy",
+            "name": "Convoy"
+        },
+        "name": "Community Contributor Convoy",
+        "slug": "38846-community-contributor-convoy",
+        "game": "ETS2",
+        "server": {
+            "id": 40,
+            "name": "Event Server"
+        },
+        "language": "English",
+        "departure": {
+            "location": "Assigned slots",
+            "city": "Kalamata"
+        },
+        "arrive": {
+            "location": "City",
+            "city": "Ioannina"
+        },
+        "meetup_at": "2026-12-06 18:00:00",
+        "start_at": "2026-12-06 19:00:00",
+        "banner": "https://static.truckersmp.com/images/event/cover/38846.1794227678.jpg",
+        "map": "https://static.truckersmp.com/images/event/map/38846.1794227679.jpg",
+        "description": "### Please see your favorite Community Contributor for more information on this event! If you are not a Community Contributor or not apart of their community, you will not be able to attend.\r\n\r\n![](ht",
+        "rule": "### Event Rules for Participants  \r\n* Participants must follow Event Staff instructions.  \r\n* Participants should park at their designated slots.  \r\n* Convoy participants must only leave the starting ",
+        "voice_link": "https://discord.gg/truckersmp",
+        "external_link": "https://discord.gg/truckersmp",
+        "featured": "Featured",
+        "vtc": {
+            "id": 0,
+            "name": null
+        },
+        "user": {
+            "id": 1,
+            "username": "organiser"
+        },
+        "attendances": {
+            "confirmed": 118,
+            "unsure": 18,
+            "vtcs": 8,
+            "confirmed_users": [],
+            "unsure_users": [],
+            "confirmed_vtcs": []
+        },
+        "dlcs": {
+            "2604420": "Greece"
+        },
+        "url": "/events/38846-community-contributor-convoy",
+        "created_at": "2026-11-09 12:32:48",
+        "updated_at": "2026-11-09 12:35:19"
+    }
+}
