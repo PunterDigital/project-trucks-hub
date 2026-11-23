@@ -80,10 +80,12 @@ class JobSyncController extends Controller
                 // copy the Hub got before is removed. They're left out of `jobs` (older apps
                 // read a missing entry as "synced, no link") and listed under `skipped`.
                 if ($job['source'] === 'MANUAL') {
+                    // A model delete, so its "Top ten" week is forgotten (#5732).
                     Delivery::query()
                         ->where('user_id', $user->id)
                         ->where('client_id', $job['id'])
-                        ->delete();
+                        ->first()
+                        ?->delete();
                     $skipped[] = ['id' => $job['id'], 'reason' => 'manual'];
 
                     continue;
@@ -170,8 +172,13 @@ class JobSyncController extends Controller
                     Audit::record('job.approval_reset', $delivery, $approvalReset, ['review' => $delivery->reviewState()]);
                 }
 
-                // Discord (#4652): only jobs the Hub hasn't seen before.
+                // Discord (#4652): only jobs the Hub hasn't seen before. The driver and company
+                // are set here, so the post loop doesn't load them per job (#5732).
                 if ($isNew) {
+                    $delivery->setRelation('user', $user);
+                    if ($delivery->company_id !== null && $user->membership?->company_id === $delivery->company_id) {
+                        $delivery->setRelation('company', $user->membership->company);
+                    }
                     $announce[] = $delivery;
                 }
 
@@ -233,10 +240,12 @@ class JobSyncController extends Controller
     /** The driver deleted the job in ProjectTrucks. */
     public function destroy(Request $request, string $clientId): Response
     {
+        // A model delete, so its "Top ten" week is forgotten (#5732).
         Delivery::query()
             ->where('user_id', $request->user()->id)
             ->where('client_id', $clientId)
-            ->delete();
+            ->first()
+            ?->delete();
 
         Progress::refresh($request->user(), notify: false);
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Achievements\Progress;
+use App\Achievements\TopTenWeeks;
 use App\Enums\NoticeType;
 use App\Support\ImageStore;
 use Database\Factories\UserFactory;
@@ -126,6 +127,15 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
             $user->tokens()->delete();
             $user->notifications()->delete();
             ImageStore::delete($user->avatar_path);
+            // Their jobs go by cascade, with no model events: "Top ten" weeks they were in (#5732).
+            TopTenWeeks::forgetUser($user);
+        });
+
+        // Going private or being suspended (or back) changes who is on every week's board.
+        static::updated(function (User $user) {
+            if ($user->wasChanged(['profile_private', 'suspended_at'])) {
+                TopTenWeeks::forgetUser($user);
+            }
         });
     }
 
