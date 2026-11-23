@@ -11,7 +11,11 @@ use App\Notifications\HubNotice;
 use App\Support\DiscordWebhook;
 use App\Support\EventCalendar;
 use App\Support\LinkPreview;
+use App\Support\TruckersMpEvents;
+use App\Support\TruckersMpException;
+use Closure;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
@@ -63,6 +67,7 @@ class CompanyEventController extends Controller
                 'start_company' => $event->start_company,
                 'dest_company' => $event->dest_company,
                 'route_notes' => $event->route_notes,
+                ...$event->truckersMp(),
                 'over' => $event->isOver(),
                 'full' => $event->isFull(),
             ],
@@ -118,9 +123,32 @@ class CompanyEventController extends Controller
                 'start_company' => $event->start_company,
                 'dest_company' => $event->dest_company,
                 'route_notes' => $event->route_notes,
+                ...$event->truckersMp(),
             ],
             'games' => CompanyEvent::GAMES,
         ]);
+    }
+
+    /**
+     * "Fill from TruckersMP" on the event form (#5228): the form's fields for a TruckersMP
+     * event link, as JSON. A bad link or a TruckersMP outage answers 200 with `fields: null` and
+     * a message (a 4xx would log a console error in the browser).
+     */
+    public function truckersmp(Request $request, Company $company): JsonResponse
+    {
+        $this->authorizeManage($request, $company);
+
+        $url = $request->query('url');
+        $id = TruckersMpEvents::parseId(is_string($url) ? $url : null);
+        if ($id === null) {
+            return response()->json(['message' => __('That isn’t a TruckersMP event link. Copy it from the event’s page, like https://truckersmp.com/events/12345.'), 'fields' => null]);
+        }
+
+        try {
+            return response()->json(['fields' => TruckersMpEvents::fields($id)]);
+        } catch (TruckersMpException $e) {
+            return response()->json(['message' => $e->getMessage(), 'fields' => null]);
+        }
     }
 
     public function update(Request $request, CompanyEvent $event): RedirectResponse
@@ -202,10 +230,24 @@ class CompanyEventController extends Controller
             'route_notes' => ['nullable', 'string', 'max:2000'],
             'max_drivers' => ['nullable', 'integer', 'min:1', 'max:500'],
             'open' => ['nullable', 'boolean'],
-        ], ['starts_at.after' => __('The start time must be in the future.')], ['starts_at' => 'start time']);
+            'truckersmp_url' => ['nullable', 'string', 'max:200', function (string $attribute, mixed $value, Closure $fail): void {
+                if (TruckersMpEvents::parseId(is_string($value) ? $value : null) === null) {
+                    $fail(__('Use the link to a TruckersMP event, like https://truckersmp.com/events/12345.'));
+                }
+            }],
+            'route_image_url' => ['nullable', 'string', 'max:500', function (string $attribute, mixed $value, Closure $fail): void {
+                if (! TruckersMpEvents::isImageUrl(is_string($value) ? $value : null)) {
+                    $fail(__('Use a route image from TruckersMP (static.truckersmp.com).'));
+                }
+            }],
+        ], ['starts_at.after' => __('The start time must be in the future.')], ['starts_at' => 'start time', 'truckersmp_url' => 'TruckersMP link', 'route_image_url' => 'route map image']);
 
         $data['starts_at'] = Carbon::parse((string) $data['starts_at'])->utc();
         $data['open'] = (bool) ($data['open'] ?? false);
+        // A cleared box unlinks the event (#5228).
+        $data['truckersmp_event_id'] = TruckersMpEvents::parseId($data['truckersmp_url'] ?? null);
+        $data['route_image_url'] ??= null;
+        unset($data['truckersmp_url']);
 
         return $data;
     }
