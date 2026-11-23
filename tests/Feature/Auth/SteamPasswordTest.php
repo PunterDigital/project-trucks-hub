@@ -34,6 +34,16 @@ class SteamPasswordTest extends TestCase
         return $user->refresh();
     }
 
+    /** Start a Steam flow in this browser (unless one is open) and return its callback URL. */
+    private function steamCallback(): string
+    {
+        if (! is_string(session('steam_state'))) {
+            $this->get(route('steam.redirect'));
+        }
+
+        return route('steam.callback', ['state' => session('steam_state')]);
+    }
+
     private function fakeSteam(string $id = self::STEAM_ID): void
     {
         Socialite::fake('steam', (new SocialiteUser)->map(['id' => $id, 'nickname' => 'Dave', 'avatar' => null]));
@@ -42,7 +52,7 @@ class SteamPasswordTest extends TestCase
     public function test_steam_sign_up_leaves_the_password_unset_and_email_sign_up_sets_it(): void
     {
         $this->fakeSteam();
-        $this->get(route('steam.callback'));
+        $this->get($this->steamCallback());
         $this->post(route('steam.store'), ['name' => 'Dave', 'username' => 'dave', 'email' => 'dave@example.com']);
         $this->assertFalse(User::query()->where('email', 'dave@example.com')->sole()->hasPassword());
 
@@ -84,7 +94,7 @@ class SteamPasswordTest extends TestCase
 
         $this->actingAs($user)->get(route('security.edit'));
         $this->actingAs($user)->get(route('steam.confirm'))->assertRedirect();
-        $this->actingAs($user)->get(route('steam.callback'))->assertRedirect(route('security.edit'));
+        $this->actingAs($user)->get($this->steamCallback())->assertRedirect(route('security.edit'));
 
         $this->actingAs($user)->get(route('security.edit'))->assertOk()
             ->assertInertia(fn ($page) => $page->component('settings/Security')->where('hasPassword', false));
@@ -97,7 +107,7 @@ class SteamPasswordTest extends TestCase
         $this->fakeSteam('76561198000000099');
 
         $this->actingAs($user)->get(route('steam.confirm'));
-        $this->actingAs($user)->get(route('steam.callback'))->assertRedirect(route('password.confirm'));
+        $this->actingAs($user)->get($this->steamCallback())->assertRedirect(route('password.confirm'));
 
         $this->assertNull(session('auth.password_confirmed_at'));
         $this->actingAs($user)->get(route('security.edit'))->assertRedirect(route('password.confirm'));
