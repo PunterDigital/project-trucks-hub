@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Achievements\Progress;
+use App\Admin\Audit;
 use App\Enums\DeliveryStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Delivery;
@@ -97,7 +98,7 @@ class JobSyncController extends Controller
                     $delivery->company_id = $companyId;
                 }
 
-                $delivery->fill([
+                $figures = [
                     'game' => $job['game'] ?? 'ets2',
                     'truck_make' => $job['truck_make'] ?? null,
                     'truck_model' => $job['truck_model'] ?? null,
@@ -126,7 +127,28 @@ class JobSyncController extends Controller
                     'source' => $job['source'],
                     'flagged' => (bool) ($job['flagged'] ?? false),
                     'flag_reason' => $job['flag_reason'] ?? null,
-                ]);
+                ];
+                $delivery->fill($figures);
+
+                // #5530: staff approved the figures they saw. A re-sync that changes any of them
+                // (a plausible job approved, then sent again with 100,000 km) takes the approval
+                // away: the job runs the checks again and waits for a new review while it is
+                // flagged. A rejection stays whatever is sent, and an unchanged re-sync keeps
+                // the approval.
+                $approvalReset = null;
+                if ($delivery->exists && $delivery->review === Delivery::REVIEW_APPROVED && $delivery->isDirty(array_keys($figures))) {
+                    $approvalReset = [
+                        'review' => $delivery->review,
+                        'review_note' => $delivery->review_note,
+                        'changed' => array_keys($delivery->getDirty()),
+                    ];
+                    $delivery->forceFill([
+                        'review' => null,
+                        'review_note' => null,
+                        'reviewed_at' => null,
+                        'staff_reviewed' => false,
+                    ]);
+                }
 
                 // The Hub's own checks (#4642). A Hub flag is never cleared by a re-sync, so an
                 // edited client can't send a job twice to wash it. A job staff have reviewed
@@ -141,6 +163,12 @@ class JobSyncController extends Controller
 
                 $isNew = ! $delivery->exists;
                 $delivery->save();
+
+                // Staff see in the audit log why an approved job is pending again; the driver's
+                // re-sync is the actor.
+                if ($approvalReset !== null) {
+                    Audit::record('job.approval_reset', $delivery, $approvalReset, ['review' => $delivery->reviewState()]);
+                }
 
                 // Discord (#4652): only jobs the Hub hasn't seen before.
                 if ($isNew) {

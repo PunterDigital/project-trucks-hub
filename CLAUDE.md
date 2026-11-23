@@ -273,7 +273,11 @@ without a full build.
     - Jobs: Hide / Unhide (`deliveries.staff_hidden`: the driver still sees it with a note and
       can't show it again), Approve / Reject (see **Pending review** below; they replaced
       "Flag as cheated" and "Clear Hub flag"). Both set `staff_reviewed`, and
-      `JobSyncController` skips `JobChecks` on them.
+      `JobSyncController` skips `JobChecks` on them. Except (#5530): a re-sync that changes
+      any synced field of an **approved** job clears `review`, `review_note`, `reviewed_at` and
+      `staff_reviewed` (audit `job.approval_reset`, the driver as actor), so the checks run
+      again and a flagged job is pending again. Rejections stay; an unchanged re-sync keeps
+      the approval (`isDirty` on the synced fields).
     - Companies: Reset name and description (name/tag/slug → "Company 12"/"C12"/"company-12",
       description, logo and banner removed), Remove member (never the owner).
 - E2E (`moderation.spec.ts`): rex-report reports troll-tom; mo-mod (staff, its own TOTP

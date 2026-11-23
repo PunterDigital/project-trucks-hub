@@ -90,7 +90,8 @@ class Moderation
 
     /**
      * Approves a flagged (or earlier rejected) job (#4743): it shows publicly and counts, the
-     * app's flag included. Re-syncs keep the decision and no longer run the Hub's checks on it.
+     * app's flag included. Unchanged re-syncs keep the decision and no longer run the Hub's
+     * checks on it; a re-sync with changed figures takes the approval away (#5530).
      */
     public static function approveJob(Delivery $job, string $note, ?User $staff = null): void
     {
