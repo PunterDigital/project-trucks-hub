@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Api;
 
+use App\Admin\Moderation;
+use App\Models\AdminAuditLog;
 use App\Models\Delivery;
 use App\Models\User;
 use App\Sync\JobChecks;
@@ -286,5 +288,81 @@ class JobChecksTest extends TestCase
             ->where('job.review_reasons', ['Income too high for the distance'])
             ->where('job.review_time', 'Reviews usually take no more than 12 hours.')
             ->where('job.review_note', null));
+    }
+
+    private function approve(Delivery $job): void
+    {
+        $staff = User::factory()->create();
+        $staff->forceFill(['is_staff' => true])->save();
+        Moderation::approveJob($job, 'Checked the route', $staff);
+    }
+
+    /**
+     * #5530: a driver got one plausible job approved, then re-synced the same id with huge
+     * figures. The approval goes, the checks run again, and it stops counting.
+     */
+    public function test_a_resync_with_changed_figures_takes_the_approval_away(): void
+    {
+        $this->sync([JobSyncTest::job(['flagged' => true, 'flag_reason' => 'Teleported'])])->assertOk();
+        $this->approve($this->stored());
+        $this->assertSame(1, Delivery::query()->counted()->count());
+
+        $this->sync([JobSyncTest::job(['distance_km' => 100_000, 'declared_income' => 100_000_000])])
+            ->assertOk()
+            ->assertJsonPath('jobs.0.review', 'pending');
+
+        $job = $this->stored();
+        $this->assertNull($job->review);
+        $this->assertNull($job->reviewed_at);
+        $this->assertFalse($job->staff_reviewed);
+        $this->assertNotNull($job->hub_flag_reason, 'the checks ran again');
+        $this->assertSame(0, Delivery::query()->counted()->count());
+
+        $log = AdminAuditLog::query()->where('action', 'job.approval_reset')->sole();
+        $this->assertSame($job->id, $log->target_id);
+        $this->assertSame('approved', $log->before['review']);
+        $this->assertContains('distance_km', $log->before['changed']);
+        $this->assertSame('pending', $log->after['review']);
+    }
+
+    public function test_a_hub_flagged_job_is_pending_again_after_a_changed_resync(): void
+    {
+        $this->sync([JobSyncTest::job(['declared_income' => 1_000_000])])->assertOk();
+        $this->approve($this->stored());
+        $this->assertSame(1, Delivery::query()->counted()->count());
+
+        $this->sync([JobSyncTest::job(['declared_income' => 1_000_001])])
+            ->assertOk()
+            ->assertJsonPath('jobs.0.review', 'pending');
+
+        $this->assertSame('Income too high for the distance', $this->stored()->hub_flag_reason);
+        $this->assertSame(0, Delivery::query()->counted()->count());
+    }
+
+    public function test_an_unchanged_resync_keeps_the_approval(): void
+    {
+        $this->sync([JobSyncTest::job(['flagged' => true, 'flag_reason' => 'Teleported'])])->assertOk();
+        $this->approve($this->stored());
+
+        $this->sync([JobSyncTest::job(['flagged' => true, 'flag_reason' => 'Teleported'])])
+            ->assertOk()
+            ->assertJsonPath('jobs.0.review', 'approved');
+
+        $this->assertTrue($this->stored()->staff_reviewed);
+        $this->assertSame(1, Delivery::query()->counted()->count());
+        $this->assertFalse(AdminAuditLog::query()->where('action', 'job.approval_reset')->exists());
+    }
+
+    public function test_a_resync_never_lifts_a_rejection(): void
+    {
+        $this->sync([JobSyncTest::job()])->assertOk();
+        $staff = User::factory()->create();
+        Moderation::rejectJob($this->stored(), 'Teleported', $staff);
+
+        $this->sync([JobSyncTest::job(['distance_km' => 290])])
+            ->assertOk()
+            ->assertJsonPath('jobs.0.review', 'rejected');
+
+        $this->assertSame(0, Delivery::query()->counted()->count());
     }
 }

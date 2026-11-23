@@ -221,8 +221,10 @@ All authenticated calls share 120 requests/min per account. A 429 carries `Retry
 Stats and leaderboards count jobs with status `DELIVERED` or `LATE` that ProjectTrucks did not
 flag, the Hub's own checks did not flag, and the driver did not hide. A flagged job is **pending
 review** (#4743): only its driver sees it until staff approve it (then it shows and counts like
-any other) or reject it (then it stays hidden and counts nowhere). Re-syncs never change the
-decision.
+any other) or reject it (then it stays hidden and counts nowhere). Re-syncs never lift a
+rejection. An approval covers the figures staff saw (#5530): re-syncing an approved job with any
+changed field takes the approval away, the Hub's checks run again, and the job is `"pending"`
+again while it is flagged. Re-syncing it unchanged keeps the approval.
 
 The Hub re-checks every delivered or late job it receives (`config/anticheat.php`): average
 speed over 150 km/h per in-game hour (#4771: the game's odometer counts game kilometres, ~19 per
