@@ -112,6 +112,8 @@ class ImageUploadTest extends TestCase
             UploadedFile::fake()->image('anim.gif', 300, 300),
             UploadedFile::fake()->create('notes.pdf', 10, 'application/pdf'),
             UploadedFile::fake()->createWithContent('fake.png', '<?php echo 1;'),
+            // Over 4096 px a side (#5531): GD would decode it to hundreds of MB.
+            UploadedFile::fake()->image('huge.png', 4097, 10),
         ] as $file) {
             $this->actingAs($user)->post(route('avatar.store'), ['avatar' => $file])->assertSessionHasErrors('avatar');
         }

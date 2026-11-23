@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
-import { MonitorSmartphone } from '@lucide/vue';
+import { MonitorSmartphone, TriangleAlert } from '@lucide/vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,6 +59,21 @@ defineProps<{
                         data-test="link-privacy"
                         >What gets synced</Link
                     >.
+                </p>
+            </div>
+            <div
+                class="flex gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm"
+                role="note"
+                data-test="link-warning"
+            >
+                <TriangleAlert
+                    class="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
+                />
+                <p>
+                    Only approve a code that your own ProjectTrucks app is
+                    showing you right now. If someone sent you this link or the
+                    code, decline: approving lets their app sync jobs to your
+                    account.
                 </p>
             </div>
             <div class="grid grid-cols-2 gap-3">
