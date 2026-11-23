@@ -34,9 +34,23 @@
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-        {{-- Loaded by the browser, not the build: a font download during the Forge build can fail the deploy (Panel #3197). --}}
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+        {{-- Instrument Sans from our own origin (#5733): no third-party DNS + TLS before first paint, and no
+             download during the Forge build (Panel #3197). Files in public/fonts/instrument-sans (OFL). --}}
+        <link rel="preload" href="/fonts/instrument-sans/instrument-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+        <style>
+            @foreach ([400, 500, 600] as $weight)
+                @foreach (['latin' => 'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD', 'latin-ext' => 'U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF'] as $subset => $range)
+            @font-face {
+                font-family: 'Instrument Sans';
+                font-style: normal;
+                font-weight: {{ $weight }};
+                font-display: swap;
+                src: url(/fonts/instrument-sans/instrument-sans-{{ $subset }}-{{ $weight }}-normal.woff2) format('woff2');
+                unicode-range: {{ $range }};
+            }
+                @endforeach
+            @endforeach
+        </style>
 
         {{-- Link previews (#4652): printed by Blade, so crawlers get them without SSR. Built as a guest sees the item. --}}
         <meta property="og:site_name" content="{{ config('app.name') }}">

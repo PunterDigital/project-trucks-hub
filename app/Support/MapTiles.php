@@ -38,7 +38,7 @@ class MapTiles
         }
 
         return [
-            'url' => '/'.self::DIR.'/tiles/{z}/{x}/{y}.png?v='.filemtime($file),
+            'url' => '/'.self::DIR.'/tiles/{z}/{x}/{y}.png?v='.self::version($file),
             'x1' => (float) $info['x1'],
             'x2' => (float) $info['x2'],
             'y1' => (float) $info['y1'],
@@ -46,6 +46,26 @@ class MapTiles
             'maxZoom' => (int) $info['maxZoom'],
             'present' => self::present((int) $info['maxZoom']),
         ];
+    }
+
+    /**
+     * The tiles' `?v=` (#5733): the content hash `generate.mjs` stores in `TileIndex.json`, so it
+     * changes only when the tiles do. Never a file time: a zero-downtime release is a fresh
+     * checkout, so every deploy would make every visitor (and Cloudflare) fetch every tile anew.
+     * A set without the hash falls back to a hash of its two JSON files.
+     */
+    private static function version(string $infoFile): string
+    {
+        $indexFile = public_path(self::DIR.'/TileIndex.json');
+        $index = is_file($indexFile) ? (string) file_get_contents($indexFile) : '';
+        $decoded = json_decode($index, true);
+        $hash = is_array($decoded) ? ($decoded['hash'] ?? null) : null;
+
+        if (is_string($hash) && preg_match('/^[0-9a-f]{8,64}$/', $hash) === 1) {
+            return $hash;
+        }
+
+        return substr(hash('sha256', (string) file_get_contents($infoFile)."\0".$index), 0, 16);
     }
 
     /** @return array<int, string>|null */

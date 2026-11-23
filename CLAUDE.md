@@ -142,6 +142,11 @@ without a full build.
   87,381 tiles kept (only 19% of zoom 8), 81 MB. Keep the map container's background equal
   to the palette's if either changes. `map.spec.ts` zooms to 8 near Fred Free and back out,
   and fails on any tile 404.
+- Tile `?v=` (#5733) = `TileIndex.json`'s `hash` (sha256 over every tile's path and bytes,
+  `tools/map-tiles/hash.mjs`; `generate.mjs` stamps it, or run `node tools/map-tiles/hash.mjs`
+  after editing tiles by hand). Never a file time: a zero-downtime release is a fresh checkout,
+  so `filemtime` moved on every deploy and every visitor (and Cloudflare) fetched every tile
+  again. No hash = a hash of the two JSON files. `LiveMapTest` fails if the committed index has none.
 - E2E seeds Mona Map (job), Fred Free (free roam) and Pia Private with `updated_at` a day
   ahead so they stay fresh however late `map.spec.ts` runs. Leaflet markers are buttons named by
   their `title`: use `exact: true`, the list's "Show X on the map" buttons contain the name.
@@ -860,8 +865,10 @@ that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec`
 
 ## Quirks
 
-- The starter kit's `bunny()` font build step was removed (a font download during a Forge
-  build can fail the deploy): fonts load with a `<link>` in `app.blade.php`.
+- Fonts (#5733): Instrument Sans 400/500/600 (latin + latin-ext woff2, OFL) are committed in
+  `public/fonts/instrument-sans` and declared in `app.blade.php` (`font-display: swap`, 400
+  latin preloaded): no third-party origin before first paint and no download during the Forge
+  build (the starter kit's `bunny()` step stays removed). `fonts.spec.ts` checks light and dark.
 - Starter-kit pages reading `auth.user` must handle `null`: the sidebar and public pages
   render for guests.
 - Nested Inertia layouts: page `defineOptions({ layout: { breadcrumbs } })` only.

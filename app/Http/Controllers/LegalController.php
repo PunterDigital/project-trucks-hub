@@ -9,7 +9,7 @@ use Inertia\Response;
 class LegalController extends Controller
 {
     /** Bump when the wording of either page changes. */
-    public const UPDATED = '22 November 2026';
+    public const UPDATED = '24 November 2026';
 
     public function privacy(): Response
     {

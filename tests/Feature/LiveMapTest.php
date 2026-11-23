@@ -175,6 +175,62 @@ class LiveMapTest extends TestCase
         }
     }
 
+    public function test_the_committed_tiles_carry_their_content_hash(): void
+    {
+        $index = json_decode(File::get(public_path('map-tiles/ets2/TileIndex.json')), true);
+
+        $this->assertIsArray($index);
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{16}$/', $index['hash'] ?? '', 'Run node tools/map-tiles/hash.mjs after changing the tiles.');
+        $this->get(route('map'))->assertInertia(fn (Assert $page) => $page
+            ->where('tiles.url', '/map-tiles/ets2/tiles/{z}/{x}/{y}.png?v='.$index['hash']));
+    }
+
+    public function test_the_tile_version_follows_content_not_file_times(): void
+    {
+        $dir = public_path('map-tiles/ets2');
+        $info = $dir.'/TileMapInfo.json';
+        $index = $dir.'/TileIndex.json';
+        $existing = [
+            $info => is_file($info) ? File::get($info) : null,
+            $index => is_file($index) ? File::get($index) : null,
+        ];
+        $url = function (): string {
+            $url = null;
+            $this->get(route('map'))->assertInertia(function (Assert $page) use (&$url) {
+                $url = $page->toArray()['props']['tiles']['url'];
+            });
+
+            return (string) $url;
+        };
+
+        try {
+            File::ensureDirectoryExists($dir);
+            File::put($info, (string) json_encode(['x1' => -100, 'x2' => 300, 'y1' => -50, 'y2' => 350, 'minZoom' => 0, 'maxZoom' => 1]));
+
+            // The generator's hash is the version, whatever the files' times (a deploy is a fresh checkout).
+            File::put($index, (string) json_encode(['version' => 1, 'tiles' => ['0' => 'AQ==', '1' => 'Bg=='], 'hash' => 'abcdef0123456789']));
+            $this->assertStringEndsWith('.png?v=abcdef0123456789', $url());
+            touch($info, time() + 3600);
+            touch($index, time() + 3600);
+            clearstatcache();
+            $this->assertStringEndsWith('.png?v=abcdef0123456789', $url());
+
+            // No hash (or junk): a hash of the two files, so still stable across deploys.
+            File::put($index, (string) json_encode(['version' => 1, 'tiles' => ['0' => 'AQ==', '1' => 'Bg=='], 'hash' => '../x']));
+            $first = $url();
+            $this->assertMatchesRegularExpression('/\.png\?v=[0-9a-f]{16}$/', $first);
+            touch($index, time() + 7200);
+            clearstatcache();
+            $this->assertSame($first, $url());
+            File::put($index, (string) json_encode(['version' => 1, 'tiles' => ['0' => 'AQ==', '1' => 'Ag==']]));
+            $this->assertNotSame($first, $url());
+        } finally {
+            foreach ($existing as $file => $content) {
+                $content === null ? File::delete($file) : File::put($file, $content);
+            }
+        }
+    }
+
     public function test_the_tile_index_says_which_tiles_exist(): void
     {
         $dir = public_path('map-tiles/ets2');
