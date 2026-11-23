@@ -652,6 +652,13 @@ that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec`
   60 s after the last page load while the tab is visible. Hidden tabs don't poll; coming back
   after more than a minute refreshes at once. It skips while a visit runs or a text field has
   focus. Pages with their own faster `usePoll` (the map) keep it.
+- Live props (#5731): a page that sends `refreshOnly` gets a **partial** reload of just
+  those (`AutoRefresh::only(LIVE_PROPS)` = the page's list + `auth` + `notifications`):
+  Home `onTheRoad, latest, news`, company page `stats, onTheRoad, latest`, profile
+  `driver, live, jobs, stats`. Their other props are closures, so the refresh never runs
+  them (company page 40 → 11 queries, profile 21 → 11, Home 15 → 7 with no all-time scan;
+  `AutoRefreshTest`). A heavy prop on those pages must stay a closure; a value computed
+  before `Inertia::render` runs on every refresh. Pages without `refreshOnly` reload everything.
 - `auto-refresh.spec.ts` drives the minute with `page.clock` and fakes `document.visibilityState`;
   `rita-refresh@example.com` renames herself in a second context.
 

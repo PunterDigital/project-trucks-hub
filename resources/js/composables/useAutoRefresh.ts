@@ -1,8 +1,23 @@
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import { onMounted, onUnmounted } from 'vue';
 
 /** How often an open, visible page fetches fresh props (#4723). */
 export const AUTO_REFRESH_MS = 60_000;
+
+/**
+ * The props this refresh asks for (#5731): a page that sends `refreshOnly` (its live props
+ * plus the bell and the signed-in user, `App\Support\AutoRefresh`) gets a partial
+ * reload of just those, so the server skips the rest. Without it, every prop reloads.
+ */
+export function refreshProps(props: Record<string, unknown>): string[] | null {
+    const only = props.refreshOnly;
+
+    return Array.isArray(only) &&
+        only.length > 0 &&
+        only.every((p) => typeof p === 'string')
+        ? (only as string[])
+        : null;
+}
 
 /** A field the visitor may be typing in: never refresh under their fingers. */
 function isEditing(): boolean {
@@ -31,6 +46,7 @@ function isEditing(): boolean {
  * the visitor is typing.
  */
 export function useAutoRefresh(intervalMs = AUTO_REFRESH_MS): void {
+    const page = usePage();
     let lastLoadedAt = Date.now();
     let timer: number | null = null;
     let busy = 0;
@@ -65,7 +81,12 @@ export function useAutoRefresh(intervalMs = AUTO_REFRESH_MS): void {
             return;
         }
 
-        router.reload({ async: true, showProgress: false });
+        const only = refreshProps(page.props);
+        router.reload({
+            async: true,
+            showProgress: false,
+            ...(only ? { only } : {}),
+        });
         schedule(intervalMs);
     };
 

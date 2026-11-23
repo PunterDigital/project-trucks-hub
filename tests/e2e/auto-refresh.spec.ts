@@ -68,7 +68,15 @@ test('an open page picks up new data after a minute, and a hidden tab waits', as
     await page.clock.fastForward(31_000);
     await expect(heading).toContainText('Rita Renamed');
     expect(reloads).toHaveLength(1);
-    expect(reloads[0].headers()['x-inertia-partial-component']).toBeFalsy();
+    // Only the profile's live props, the bell and the user (#5731), not every prop.
+    expect(reloads[0].headers()['x-inertia-partial-component']).toBe(
+        'drivers/Show',
+    );
+    expect(reloads[0].headers()['x-inertia-partial-data']).toBe(
+        'driver,live,jobs,stats,auth,notifications',
+    );
+    // Props it didn't ask for stay on the page as they were.
+    await expect(page.getByRole('tab', { name: /Achievements/ })).toBeVisible();
 
     // A hidden tab doesn't poll at all...
     await setVisible(page, false);
