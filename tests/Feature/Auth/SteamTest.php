@@ -4,6 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Tests\TestCase;
@@ -26,6 +27,67 @@ class SteamTest extends TestCase
             'nickname' => 'Big Rig Dave',
             'avatar' => 'https://avatars.example.com/dave.jpg',
         ]));
+    }
+
+    /** Start a Steam flow in this browser (as a real sign-in would) and return its callback URL. */
+    private function steamCallback(): string
+    {
+        if (! is_string(session('steam_state'))) {
+            $this->get(route('steam.redirect'));
+        }
+
+        return route('steam.callback', ['state' => session('steam_state')]);
+    }
+
+    public function test_the_return_url_carries_a_state_kept_in_the_session(): void
+    {
+        $location = (string) $this->get(route('steam.redirect'))->assertRedirect()->headers->get('Location');
+
+        $state = session('steam_state');
+        $this->assertIsString($state);
+        $this->assertSame(40, strlen($state));
+        $this->assertStringContainsString(urlencode(route('steam.callback', ['state' => $state])), $location);
+    }
+
+    public function test_a_callback_without_a_flow_started_in_this_session_links_nothing(): void
+    {
+        // #5519: the attacker's own callback URL, opened by a signed-in driver.
+        $victim = User::factory()->create();
+        $this->fakeSteam('76561198000000666');
+
+        $this->actingAs($victim)->get(route('steam.callback', ['state' => Str::random(40)]))
+            ->assertRedirect(route('connections.edit'));
+        $this->actingAs($victim)->get(route('steam.callback'))->assertRedirect(route('connections.edit'));
+
+        $this->assertNull($victim->fresh()->steam_id);
+    }
+
+    public function test_a_callback_with_another_flows_state_links_nothing(): void
+    {
+        $victim = User::factory()->create();
+        $this->fakeSteam('76561198000000666');
+
+        // The victim has a Steam flow of their own open; the attacker's URL carries a different state.
+        $this->actingAs($victim)->get(route('steam.redirect'));
+        $this->actingAs($victim)->get(route('steam.callback', ['state' => 'attacker-state-'.Str::random(26)]))
+            ->assertRedirect(route('connections.edit'));
+
+        $this->assertNull($victim->fresh()->steam_id);
+        $this->assertNull(session('steam_state'), 'a failed callback uses up the pending state');
+    }
+
+    public function test_a_state_works_once(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+        $user->forceFill(['steam_id' => '76561198000000001'])->save();
+        $this->fakeSteam();
+
+        $callback = $this->steamCallback();
+        $this->get($callback)->assertRedirect(route('dashboard'));
+        auth()->logout();
+
+        $this->get($callback)->assertRedirect(route('login'));
+        $this->assertGuest();
     }
 
     public function test_steam_sign_in_needs_no_api_key_and_goes_to_steams_openid_page(): void
@@ -51,7 +113,7 @@ class SteamTest extends TestCase
     {
         Socialite::fake('steam', (new SocialiteUser)->map(['id' => '76561198000000002', 'nickname' => null, 'avatar' => null]));
 
-        $this->get(route('steam.callback'))->assertRedirect(route('steam.complete'));
+        $this->get($this->steamCallback())->assertRedirect(route('steam.complete'));
         $this->get(route('steam.complete'))->assertInertia(fn ($page) => $page
             ->where('nickname', '')
             ->where('suggestedUsername', 'driver'));
@@ -61,7 +123,7 @@ class SteamTest extends TestCase
     {
         $this->fakeSteam();
 
-        $this->get(route('steam.callback'))->assertRedirect(route('steam.complete'));
+        $this->get($this->steamCallback())->assertRedirect(route('steam.complete'));
         $this->get(route('steam.complete'))->assertInertia(fn ($page) => $page
             ->component('auth/SteamComplete')
             ->where('nickname', 'Big Rig Dave')
@@ -86,7 +148,7 @@ class SteamTest extends TestCase
         $user->forceFill(['steam_id' => '76561198000000001'])->save();
         $this->fakeSteam();
 
-        $this->get(route('steam.callback'))->assertRedirect(route('dashboard'));
+        $this->get($this->steamCallback())->assertRedirect(route('dashboard'));
         $this->assertAuthenticatedAs($user);
     }
 
@@ -96,7 +158,7 @@ class SteamTest extends TestCase
         $user->forceFill(['steam_id' => '76561198000000001'])->save();
         $this->fakeSteam();
 
-        $this->get(route('steam.callback'))->assertRedirect(route('two-factor.login'));
+        $this->get($this->steamCallback())->assertRedirect(route('two-factor.login'));
         $this->assertGuest();
         $this->assertSame($user->id, session('login.id'));
     }
@@ -106,7 +168,7 @@ class SteamTest extends TestCase
         $user = User::factory()->create();
         $this->fakeSteam();
 
-        $this->actingAs($user)->get(route('steam.callback'))->assertRedirect(route('connections.edit'));
+        $this->actingAs($user)->get($this->steamCallback())->assertRedirect(route('connections.edit'));
         $this->assertSame('76561198000000001', $user->fresh()->steam_id);
 
         $this->actingAs($user)->delete(route('steam.destroy'));
@@ -120,7 +182,7 @@ class SteamTest extends TestCase
         $user = User::factory()->create();
         $this->fakeSteam();
 
-        $this->actingAs($user)->get(route('steam.callback'));
+        $this->actingAs($user)->get($this->steamCallback());
         $this->assertNull($user->fresh()->steam_id);
     }
 

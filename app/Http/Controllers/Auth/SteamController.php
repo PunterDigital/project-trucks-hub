@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Laravel\Socialite\Contracts\Provider;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\AbstractProvider;
 use Throwable;
 
 /**
@@ -31,11 +33,11 @@ class SteamController extends Controller
         return (bool) config('services.steam.enabled');
     }
 
-    public function redirect(): RedirectResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    public function redirect(Request $request): RedirectResponse|\Symfony\Component\HttpFoundation\RedirectResponse
     {
         abort_unless(self::enabled(), 404);
 
-        return Socialite::driver('steam')->redirect();
+        return $this->toSteam($request);
     }
 
     /** Confirm it's you by signing in through Steam again (drivers without a password). */
@@ -45,15 +47,28 @@ class SteamController extends Controller
 
         $request->session()->put('steam_confirm', true);
 
-        return Socialite::driver('steam')->redirect();
+        return $this->toSteam($request);
     }
 
     public function callback(Request $request): RedirectResponse
     {
         abort_unless(self::enabled(), 404);
 
+        // Steam's OpenID has no state of its own, so a callback URL from someone else's sign-in
+        // would otherwise link their Steam account to whoever opens it (#5519). Only the flow
+        // this browser started, with the state kept in its session, may finish.
+        $state = $request->query('state');
+        $expected = $request->session()->pull('steam_state');
+
+        if (! is_string($state) || ! is_string($expected) || $expected === '' || ! hash_equals($expected, $state)) {
+            $request->session()->forget('steam_confirm');
+
+            return to_route($request->user() ? 'connections.edit' : 'login')
+                ->with('status', __('Steam sign-in failed. Please try again.'));
+        }
+
         try {
-            $steam = Socialite::driver('steam')->user();
+            $steam = $this->steamFor($state)->user();
         } catch (Throwable $e) {
             report($e);
 
@@ -115,6 +130,33 @@ class SteamController extends Controller
         ]);
 
         return to_route('steam.complete');
+    }
+
+    /** Send the browser to Steam with a fresh state that only its own session knows. */
+    private function toSteam(Request $request): RedirectResponse|\Symfony\Component\HttpFoundation\RedirectResponse
+    {
+        $state = Str::random(40);
+        $request->session()->put('steam_state', $state);
+
+        return $this->steamFor($state)->redirect();
+    }
+
+    /** The Steam provider with this flow's callback URL as its return_to. */
+    private function steamFor(string $state): Provider
+    {
+        /** @var AbstractProvider $steam (Socialite::fake() swaps in a FakeProvider that forwards the call) */
+        $steam = Socialite::driver('steam');
+        $steam->redirectUrl($this->callbackUrl($state));
+
+        return $steam;
+    }
+
+    /** The callback URL with the flow's state, signed by Steam as openid.return_to. */
+    private function callbackUrl(string $state): string
+    {
+        $base = (string) (config('services.steam.redirect') ?: route('steam.callback'));
+
+        return $base.(str_contains($base, '?') ? '&' : '?').http_build_query(['state' => $state]);
     }
 
     public function complete(Request $request): Response|RedirectResponse
