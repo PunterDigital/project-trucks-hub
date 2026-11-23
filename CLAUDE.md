@@ -849,6 +849,15 @@ that logs in uses its own seeded account (a sixth `erin` login broke `sync.spec`
   Permissions-Policy: an unknown one is a console error, and every E2E spec fails on those.
 - `SecurityHeadersTest`, `security-headers.spec.ts`.
 
+## Behind Cloudflare (#5703)
+
+- The site answers through Cloudflare. `config/trustedproxy.php` lists Cloudflare's published
+  ranges (as MCPacks #5525; `TRUSTED_PROXIES` replaces them) and `bootstrap/app.php` trusts
+  only X-Forwarded-For and X-Forwarded-Proto from them, so `$request->ip()` is the visitor and
+  per-IP limits (login, sign-up, forgot password) don't share one bucket per edge. Any other
+  REMOTE_ADDR keeps its own address; a forwarded host is never trusted. `TrustedProxyTest`.
+  Cloudflare changes its ranges rarely: recheck https://www.cloudflare.com/ips now and then.
+
 ## Quirks
 
 - The starter kit's `bunny()` font build step was removed (a font download during a Forge
