@@ -25,7 +25,7 @@ function tileFiles(dir) {
         }
     };
     walk('tiles');
-    return out.sort();
+    return out.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 }
 
 /** First 16 hex characters of the sha256 over each tile's path and bytes. */
