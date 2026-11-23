@@ -77,9 +77,9 @@ final class Progress
      */
     public static function refresh(User $user, bool $notify = true): array
     {
-        $earned = self::compute($user);
+        [$earned, $km] = self::compute($user);
 
-        $new = DB::transaction(function () use ($user, $earned) {
+        $new = DB::transaction(function () use ($user, $earned, $km) {
             $existing = $user->achievements()->get()->keyBy(fn (DriverAchievement $a) => $a->achievement->value);
 
             $user->achievements()
@@ -94,7 +94,7 @@ final class Progress
                 }
             }
 
-            $user->forceFill(['level' => self::level((float) $user->deliveries()->earned()->sum('distance_km'))])->saveQuietly();
+            $user->forceFill(['level' => self::level($km)])->saveQuietly();
 
             return $new;
         });
@@ -112,7 +112,12 @@ final class Progress
         return $new;
     }
 
-    /** @return array<string, Carbon|CarbonImmutable> achievement key => when it was earned */
+    /**
+     * One pass over the driver's counted jobs: achievements, total km, and each finished
+     * week's km for "Top ten" (#5732: no second sum, no query per week).
+     *
+     * @return array{array<string, Carbon|CarbonImmutable>, float} achievement key => when it was earned, and the km
+     */
     private static function compute(User $user): array
     {
         $earned = [];
@@ -123,6 +128,9 @@ final class Progress
         $km = 0.0;
         $count = 0;
         $streak = 0;
+        /** @var array<string, float> $weeks week start => km, finished weeks only */
+        $weeks = [];
+        $thisWeek = TopTenWeeks::weekOf(CarbonImmutable::now('UTC'));
         $jobs = $user->deliveries()->earned()
             ->orderBy('completed_at')->orderBy('id')
             ->toBase()
@@ -132,6 +140,10 @@ final class Progress
         foreach ($jobs as $job) {
             $at = Carbon::parse($job->completed_at);
             $km += (float) $job->distance_km;
+            $week = TopTenWeeks::weekOf($at);
+            if ($week < $thisWeek) {
+                $weeks[$week] = ($weeks[$week] ?? 0.0) + (float) $job->distance_km;
+            }
             $count++;
             $streak = $job->status === DeliveryStatus::Delivered->value ? $streak + 1 : 0;
 
@@ -161,62 +173,31 @@ final class Progress
             $earn(Achievement::JoinedCompany, $membership->created_at ?? now());
         }
 
-        if ($week = self::firstTopTenWeek($user)) {
+        if ($week = self::firstTopTenWeek($user, $weeks)) {
             $earn(Achievement::WeeklyTopTen, $week);
         }
 
-        return $earned;
+        return [$earned, $km];
     }
 
     /**
      * The end of the first finished week (Monday to Monday, UTC) in which the driver was in the
-     * driver leaderboard's top 10 by distance. Private profiles aren't on that board, so they
-     * never get it; suspended drivers' rivals are left out like on the board.
+     * driver leaderboard's top 10 by distance: fewer than 10 other public drivers drove further.
+     * Private profiles aren't on that board, so they never get it; suspended drivers' rivals
+     * are left out like on the board. Each week's leaders come from {@see TopTenWeeks} (one
+     * cache read), so a sync no longer runs two aggregates per week driven (#5732).
+     *
+     * @param  array<string, float>  $weeks  week start => the driver's km
      */
-    private static function firstTopTenWeek(User $user): ?CarbonImmutable
+    private static function firstTopTenWeek(User $user, array $weeks): ?CarbonImmutable
     {
         if ($user->profile_private) {
             return null;
         }
 
-        $thisWeek = CarbonImmutable::now('UTC')->startOfWeek(CarbonImmutable::MONDAY);
-        $weeks = $user->deliveries()->earned()
-            ->where('completed_at', '<', $thisWeek)
-            ->orderBy('completed_at')
-            ->pluck('completed_at')
-            ->map(fn ($at) => CarbonImmutable::parse($at)->utc()->startOfWeek(CarbonImmutable::MONDAY)->toDateTimeString())
-            ->unique()
-            ->values();
+        $week = TopTenWeeks::firstWeek($user, $weeks);
 
-        foreach ($weeks as $start) {
-            $start = CarbonImmutable::parse($start, 'UTC');
-            $end = $start->addWeek();
-            $mine = (float) $user->deliveries()->earned()
-                ->where('completed_at', '>=', $start)->where('completed_at', '<', $end)
-                ->sum('distance_km');
-
-            // Drivers who drove further that week, as on the board (one row per driver).
-            $ahead = DB::query()->fromSub(
-                Delivery::query()->counted()->toBase()
-                    ->join('users', 'users.id', '=', 'deliveries.user_id')
-                    ->where('users.profile_private', false)
-                    ->where('deliveries.user_id', '!=', $user->id)
-                    ->where('deliveries.completed_at', '>=', $start)
-                    ->where('deliveries.completed_at', '<', $end)
-                    ->groupBy('deliveries.user_id')
-                    // CAST: SQLite compares a bare bound value as text, and any number is
-                    // "less" than text there, so nobody was ever ahead.
-                    ->havingRaw('SUM(deliveries.distance_km) > CAST(? AS DECIMAL(12,3))', [round($mine, 3)])
-                    ->select('deliveries.user_id'),
-                'ahead',
-            )->count();
-
-            if ($ahead < Achievement::TOP) {
-                return $end;
-            }
-        }
-
-        return null;
+        return $week === null ? null : CarbonImmutable::parse($week, 'UTC')->addWeek();
     }
 
     /** @return list<string> */

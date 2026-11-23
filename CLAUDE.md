@@ -384,6 +384,16 @@ without a full build.
   further. The HAVING compares with `CAST(? AS DECIMAL(12,3))`: SQLite compares a bare bound
   value as text and nobody was ever ahead. Awarded on the driver's next sync, or by the
   scheduled `hub:progress --notify` (Mondays 00:15, needs `schedule:run` on the server).
+- Cost (#5732): `App\Achievements\TopTenWeeks` caches each finished week's 11 furthest public
+  drivers (one aggregate per week, a day's TTL, one `Cache::many` read per refresh), and
+  `compute()` sums the driver's own weeks in its single pass over their jobs. A sync is
+  14 queries whatever the weeks driven (was 21 at 2 weeks, 57 at 20; `TopTenCostTest`).
+  Invalidation: `Delivery` saved/deleted (board fields only) and `User` privacy/suspension
+  change or delete forget the weeks they touch, after the transaction commits. **A mass
+  query on deliveries fires no events**: call `TopTenWeeks::forget()`/`forgetUser()` next to
+  it (Settings → Privacy does; the API deletes go through the model).
+- `DiscordWebhook::jobDelivered` checks the job's own columns before loading anything, and
+  the sync sets `user`/`company` on new jobs: a 100-job backlog went from 200 lazy loads to 0.
 - `hub:progress` (silent) ran from the migration as the backfill; E2ESeeder calls it last.
 - Profile: level + progress bar in the header, Jobs | Achievements tabs (`#achievements` opens
   the second, the bell links there). Joining a company now rings the bell twice (decision +

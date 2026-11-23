@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Achievements\Progress;
+use App\Achievements\TopTenWeeks;
 use App\Http\Controllers\Controller;
 use App\Models\CompanyApplication;
 use App\Models\CompanyAward;
@@ -48,6 +49,8 @@ class PrivacyController extends Controller
 
     public function destroyJobs(Request $request): RedirectResponse
     {
+        // A mass delete fires no model events: forget their "Top ten" weeks first (#5732).
+        TopTenWeeks::forgetUser($request->user());
         $deleted = $request->user()->deliveries()->delete();
         Progress::refresh($request->user(), notify: false);
 

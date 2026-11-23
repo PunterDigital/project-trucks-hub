@@ -39,14 +39,18 @@ class DiscordWebhook
     /** A counted job the driver just synced, if their company listens. True when it was posted. */
     public static function jobDelivered(Delivery $job): bool
     {
+        // The job's own columns first: a first sync's backlog of old jobs loads nothing (#5732).
+        if ($job->company_id === null
+            || $job->completed_at->lt(now()->subHours(self::JOB_MAX_AGE_HOURS))
+            || ! in_array($job->status->value, DeliveryStatus::counted(), true)
+            || ! $job->isCleared() || $job->getAttribute('hidden') || $job->staff_hidden) {
+            return false;
+        }
+
         $job->loadMissing('user', 'company');
         $company = $job->company;
 
-        if ($company === null || ! $company->discordActive()
-            || ! in_array($job->status->value, DeliveryStatus::counted(), true)
-            || ! $job->isCleared() || $job->getAttribute('hidden') || $job->staff_hidden
-            || $job->user->isSuspended()
-            || $job->completed_at->lt(now()->subHours(self::JOB_MAX_AGE_HOURS))) {
+        if ($company === null || ! $company->discordActive() || $job->user->isSuspended()) {
             return false;
         }
 

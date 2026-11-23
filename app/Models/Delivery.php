@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Achievements\TopTenWeeks;
 use App\Enums\DeliveryStatus;
 use App\Sync\JobChecks;
 use Closure;
@@ -89,6 +90,25 @@ class Delivery extends Model
 
     /** Shown to the driver next to a pending job. */
     public const REVIEW_TIME = 'Reviews usually take no more than 12 hours.';
+
+    /** What decides whether and how far a job counts on a week's board ({@see TopTenWeeks}). */
+    private const BOARD_FIELDS = [
+        'user_id', 'status', 'distance_km', 'completed_at', 'hidden', 'staff_hidden',
+        'flagged', 'hub_flag_reason', 'review',
+    ];
+
+    protected static function booted(): void
+    {
+        // "Top ten" caches each finished week's leaders (#5732): a job in such a week that is
+        // synced late, changed, hidden, reviewed or deleted forgets that week (both weeks when
+        // its completion time moved).
+        static::saved(function (Delivery $job) {
+            if ($job->wasRecentlyCreated || $job->wasChanged(self::BOARD_FIELDS)) {
+                TopTenWeeks::forget($job->completed_at, $job->getOriginal('completed_at'));
+            }
+        });
+        static::deleted(fn (Delivery $job) => TopTenWeeks::forget($job->completed_at));
+    }
 
     protected function casts(): array
     {
