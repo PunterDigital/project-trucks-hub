@@ -114,4 +114,19 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Sign-up and password reset limits (card 5532)
+    |--------------------------------------------------------------------------
+    |
+    | Per IP address. App\Http\Middleware\ThrottleAccountRequests applies
+    | them to Fortify's POST /register and POST /forgot-password.
+    |
+    */
+
+    'account_limits' => [
+        'register_per_hour' => (int) (env('AUTH_REGISTER_PER_HOUR') ?: 5),
+        'password_resets_per_minute' => (int) (env('AUTH_PASSWORD_RESETS_PER_MINUTE') ?: 6),
+    ],
+
 ];
