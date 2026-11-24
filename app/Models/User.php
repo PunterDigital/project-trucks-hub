@@ -37,6 +37,8 @@ use Laravel\Sanctum\HasApiTokens;
  * @property bool $is_staff
  * @property bool $show_on_map
  * @property int $level
+ * @property float $earned_km counted km incl. while suspended (Progress::refresh, #5734)
+ * @property int $earned_jobs
  * @property Carbon|null $suspended_at
  * @property list<string>|null $mail_opt_outs
  * @property list<string>|null $bell_opt_outs
@@ -76,6 +78,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
             'profile_private' => 'boolean',
             'is_staff' => 'boolean',
             'show_on_map' => 'boolean',
+            'earned_km' => 'float',
+            'earned_jobs' => 'integer',
             'suspended_at' => 'datetime',
             'mail_opt_outs' => 'array',
             'bell_opt_outs' => 'array',
