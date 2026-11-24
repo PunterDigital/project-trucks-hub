@@ -404,8 +404,10 @@ without a full build.
   the driver's own hide switch (job page and API `PATCH`) now does. **PHPUnit:** factory jobs
   don't refresh, so a test that reads the directory calls `Progress::refresh()` first.
 - Caches (#5734): Home `totals` (`home.totals`) and every `Leaderboard::drivers/companies`
-  board (`leaderboard.<board>.<period>.<metric>.<limit>`) are cached `Leaderboard::CACHE_SECONDS`
-  (60 s), the same for every viewer: up to a minute stale. A test that changes jobs between
+  board (`leaderboard.<board>.<period>.<metric>.<limit>`) are cached `Leaderboard::cacheSeconds()`
+  (`cache.boards_seconds`, `HUB_BOARD_CACHE_SECONDS`, 60 s), the same for every viewer: up to a
+  minute stale. E2E sets 0 (`playwright.config.ts`): `sync.spec` looks for its job on the board
+  at once, and CI is fast enough to land inside the minute (it failed there, not locally). A test that changes jobs between
   two requests to those pages travels past the minute or flushes the cache.
 - Profile: level + progress bar in the header, Jobs | Achievements tabs (`#achievements` opens
   the second, the bell links there). Joining a company now rings the bell twice (decision +

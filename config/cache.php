@@ -133,4 +133,12 @@ return [
 
     'serializable_classes' => false,
 
+    /*
+    | How long Home's totals and the leaderboards are cached (#5734): the same for every
+    | viewer, so up to this many seconds stale. E2E sets 0 (no caching): its specs sync a job
+    | and look for it on the board straight away. Not `env() ?: 60`, which would turn 0 into 60.
+    */
+
+    'boards_seconds' => is_numeric(env('HUB_BOARD_CACHE_SECONDS')) ? (int) env('HUB_BOARD_CACHE_SECONDS') : 60,
+
 ];

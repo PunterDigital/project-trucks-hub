@@ -12,6 +12,7 @@ use App\Support\Leaderboard;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -89,7 +90,14 @@ class CachedAggregatesTest extends TestCase
 
         $this->assertLessThan(count($first), count($second));
         $this->assertSame([], array_filter($second, fn (string $q) => str_contains($q, 'from "deliveries"')));
-        $this->assertSame(60, Leaderboard::CACHE_SECONDS);
+        $this->assertSame(60, Leaderboard::cacheSeconds());
+
+        // 0 (E2E) turns the cache off: every view works the board out again.
+        config(['cache.boards_seconds' => 0]);
+        Cache::flush();
+        $this->get(route('leaderboards', ['period' => 'all']))->assertOk();
+        $third = $this->queries(fn () => $this->get(route('leaderboards', ['period' => 'all']))->assertOk());
+        $this->assertNotSame([], array_filter($third, fn (string $q) => str_contains($q, 'from "deliveries"')));
     }
 
     public function test_the_directory_sorts_by_stored_totals_with_the_same_numbers(): void

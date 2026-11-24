@@ -28,6 +28,8 @@ const appEnv = {
     // Sentry (#4653) stays off whatever the local .env says.
     SENTRY_LARAVEL_DSN: '',
     INERTIA_SSR_ENABLED: 'false',
+    // No board cache (#5734): specs sync a job and look for it on the board at once.
+    HUB_BOARD_CACHE_SECONDS: '0',
     // Repo post drafts (#5153) come from a fixture folder, never resources/posts.
     BLOG_DRAFTS_PATH: join(process.cwd(), 'tests', 'fixtures', 'posts'),
 };

@@ -20,9 +20,13 @@ final class Leaderboard
 
     /**
      * Boards are the same for every viewer, so each one is worked out at most once a minute
-     * site-wide (#5734) instead of on every view and auto-refresh. Up to a minute stale.
+     * site-wide (#5734) instead of on every view and auto-refresh. Up to a minute stale
+     * (`cache.boards_seconds`; E2E sets 0).
      */
-    public const CACHE_SECONDS = 60;
+    public static function cacheSeconds(): int
+    {
+        return (int) config('cache.boards_seconds', 60);
+    }
 
     /** @return list<array<string, mixed>> */
     public static function drivers(Period $period, string $metric, int $limit = 50): array
@@ -30,7 +34,7 @@ final class Leaderboard
         /** @var list<array<string, mixed>> */
         return Cache::remember(
             "leaderboard.drivers.{$period->value}.{$metric}.{$limit}",
-            self::CACHE_SECONDS,
+            self::cacheSeconds(),
             fn () => self::computeDrivers($period, $metric, $limit),
         );
     }
@@ -41,7 +45,7 @@ final class Leaderboard
         /** @var list<array<string, mixed>> */
         return Cache::remember(
             "leaderboard.companies.{$period->value}.{$metric}.{$limit}",
-            self::CACHE_SECONDS,
+            self::cacheSeconds(),
             fn () => self::computeCompanies($period, $metric, $limit),
         );
     }
