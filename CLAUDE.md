@@ -241,7 +241,8 @@ without a full build.
   statuses not updated for 24 h (only fresh ones are ever shown), delete `*.log` files last
   written over 14 days ago (the `single` channel's `laravel.log` is never that old: only the
   `daily` channel's rotated files go). Page buttons write `housekeeping.*` audit rows;
-  `hub:prune` (00:25) runs all three without auditing.
+  `hub:prune` (00:25) runs all three without auditing, plus (#5734) deleting **read** bell
+  notices created over 90 days ago (`Housekeeping::pruneReadNotifications`; unread ones stay).
 - Tests: `StoragePageTest` (fake public disk, temp folders for log and folder-size checks).
 - System → Data usage (`DataUsage`, slug `data-usage`): `App\Http\Middleware\RecordApiUsage`
   wraps the whole `/api/v1` group and adds each request to the hour's `api_usage_stats` row
@@ -341,6 +342,8 @@ without a full build.
   `[`, `]`, backslash and `<` echoed into any email are escaped before CommonMark runs: an
   applicant's `[text](https://evil.example)` stays text, in the HTML and the plain-text part.
   The applicant's note is one paragraph (whitespace collapsed). `MailThemeTest` checks it.
+- Index `notifications_notifiable_created_index` (type, id, created_at, #5734) serves the
+  bell's latest-15 and unread count on every page.
 - Account deletion removes notifications (morph, no FK: `User::booted()`); the privacy
   export includes them and the email opt-outs.
 - E2E (`notifications.spec.ts`): abe-apply applies to nora-notify's Bell Freight. An open
@@ -395,6 +398,15 @@ without a full build.
 - `DiscordWebhook::jobDelivered` checks the job's own columns before loading anything, and
   the sync sets `user`/`company` on new jobs: a 100-job backlog went from 200 lazy loads to 0.
 - `hub:progress` (silent) ran from the migration as the backfill; E2ESeeder calls it last.
+- `users.earned_km` / `earned_jobs` (#5734) are stored next to `level` by `refresh()`; the
+  driver directory sorts by them (index `users_earned_km_name_index`) instead of summing every
+  driver's jobs before the LIMIT. Anything that changes what counts must call `refresh()`:
+  the driver's own hide switch (job page and API `PATCH`) now does. **PHPUnit:** factory jobs
+  don't refresh, so a test that reads the directory calls `Progress::refresh()` first.
+- Caches (#5734): Home `totals` (`home.totals`) and every `Leaderboard::drivers/companies`
+  board (`leaderboard.<board>.<period>.<metric>.<limit>`) are cached `Leaderboard::CACHE_SECONDS`
+  (60 s), the same for every viewer: up to a minute stale. A test that changes jobs between
+  two requests to those pages travels past the minute or flushes the cache.
 - Profile: level + progress bar in the header, Jobs | Achievements tabs (`#achievements` opens
   the second, the bell links there). Joining a company now rings the bell twice (decision +
   "Team player"): `notifications.spec.ts` expects 2 unread.

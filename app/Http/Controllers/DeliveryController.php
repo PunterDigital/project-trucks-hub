@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Achievements\Progress;
 use App\Models\Delivery;
 use App\Models\DeliveryComment;
 use App\Support\LinkPreview;
@@ -76,6 +77,8 @@ class DeliveryController extends Controller
 
         $data = $request->validate(['hidden' => ['required', 'boolean']]);
         $delivery->forceFill(['hidden' => $data['hidden']])->save();
+        // A hidden job stops counting: level, achievements and the directory totals follow (#5734).
+        Progress::refresh($request->user(), notify: false);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => $data['hidden']
             ? __('Job hidden. Only you can see it now.')

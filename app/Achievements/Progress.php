@@ -77,9 +77,9 @@ final class Progress
      */
     public static function refresh(User $user, bool $notify = true): array
     {
-        [$earned, $km] = self::compute($user);
+        [$earned, $km, $jobs] = self::compute($user);
 
-        $new = DB::transaction(function () use ($user, $earned, $km) {
+        $new = DB::transaction(function () use ($user, $earned, $km, $jobs) {
             $existing = $user->achievements()->get()->keyBy(fn (DriverAchievement $a) => $a->achievement->value);
 
             $user->achievements()
@@ -94,7 +94,12 @@ final class Progress
                 }
             }
 
-            $user->forceFill(['level' => self::level($km)])->saveQuietly();
+            // The driver directory sorts by these (#5734) instead of summing every driver's jobs.
+            $user->forceFill([
+                'level' => self::level($km),
+                'earned_km' => round($km, 1),
+                'earned_jobs' => $jobs,
+            ])->saveQuietly();
 
             return $new;
         });
@@ -116,7 +121,7 @@ final class Progress
      * One pass over the driver's counted jobs: achievements, total km, and each finished
      * week's km for "Top ten" (#5732: no second sum, no query per week).
      *
-     * @return array{array<string, Carbon|CarbonImmutable>, float} achievement key => when it was earned, and the km
+     * @return array{array<string, Carbon|CarbonImmutable>, float, int} achievement key => when it was earned, the km and the job count
      */
     private static function compute(User $user): array
     {
@@ -177,7 +182,7 @@ final class Progress
             $earn(Achievement::WeeklyTopTen, $week);
         }
 
-        return [$earned, $km];
+        return [$earned, $km, $count];
     }
 
     /**

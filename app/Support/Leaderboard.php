@@ -7,6 +7,7 @@ use App\Models\Delivery;
 use App\Models\User;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use stdClass;
 
 /**
@@ -17,8 +18,36 @@ final class Leaderboard
 {
     public const METRICS = ['distance', 'deliveries', 'income'];
 
+    /**
+     * Boards are the same for every viewer, so each one is worked out at most once a minute
+     * site-wide (#5734) instead of on every view and auto-refresh. Up to a minute stale.
+     */
+    public const CACHE_SECONDS = 60;
+
     /** @return list<array<string, mixed>> */
     public static function drivers(Period $period, string $metric, int $limit = 50): array
+    {
+        /** @var list<array<string, mixed>> */
+        return Cache::remember(
+            "leaderboard.drivers.{$period->value}.{$metric}.{$limit}",
+            self::CACHE_SECONDS,
+            fn () => self::computeDrivers($period, $metric, $limit),
+        );
+    }
+
+    /** @return list<array<string, mixed>> */
+    public static function companies(Period $period, string $metric, int $limit = 50): array
+    {
+        /** @var list<array<string, mixed>> */
+        return Cache::remember(
+            "leaderboard.companies.{$period->value}.{$metric}.{$limit}",
+            self::CACHE_SECONDS,
+            fn () => self::computeCompanies($period, $metric, $limit),
+        );
+    }
+
+    /** @return list<array<string, mixed>> */
+    private static function computeDrivers(Period $period, string $metric, int $limit): array
     {
         $rows = self::base($period, $metric)
             ->join('users', 'users.id', '=', 'deliveries.user_id')
@@ -39,7 +68,7 @@ final class Leaderboard
     }
 
     /** @return list<array<string, mixed>> */
-    public static function companies(Period $period, string $metric, int $limit = 50): array
+    private static function computeCompanies(Period $period, string $metric, int $limit): array
     {
         $rows = self::base($period, $metric)
             ->whereNotNull('deliveries.company_id')

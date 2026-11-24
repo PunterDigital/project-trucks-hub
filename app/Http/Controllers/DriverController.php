@@ -33,16 +33,16 @@ class DriverController extends Controller
                 ->where('name', 'like', '%'.$search.'%')
                 ->orWhere('username', 'like', '%'.$search.'%')))
             ->with('membership.company')
-            ->withCount(['deliveries as deliveries_count' => Delivery::countedConstraint()])
-            ->withSum(['deliveries as distance_km' => Delivery::countedConstraint()], 'distance_km')
-            ->orderByDesc('distance_km')
+            // Stored by Progress::refresh (#5734): no sum over every driver's jobs before the
+            // LIMIT. Listed drivers aren't suspended, so earned = counted here.
+            ->orderByDesc('earned_km')
             ->orderBy('name')
             ->paginate(24)
             ->withQueryString()
             ->through(fn (User $u) => [
                 ...$u->publicSummary(),
-                'deliveries' => (int) $u->getAttribute('deliveries_count'),
-                'distance_km' => round((float) $u->getAttribute('distance_km'), 1),
+                'deliveries' => $u->earned_jobs,
+                'distance_km' => round($u->earned_km, 1),
             ]);
 
         return Inertia::render('drivers/Index', [

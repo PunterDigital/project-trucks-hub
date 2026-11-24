@@ -229,6 +229,8 @@ class JobSyncController extends Controller
             ->firstOrFail();
 
         $delivery->forceFill(['hidden' => $data['hidden']])->save();
+        // A hidden job stops counting: level, achievements and the directory totals follow (#5734).
+        Progress::refresh($request->user(), notify: false);
 
         return response()->json([
             'id' => $clientId,

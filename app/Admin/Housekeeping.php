@@ -5,6 +5,7 @@ namespace App\Admin;
 use App\Models\DeviceAuthorization;
 use App\Models\LiveStatus;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Clearing out data nobody needs any more (#4667). Staff run each from the admin Storage page
@@ -28,6 +29,18 @@ final class Housekeeping
         DailyStats::fill(CarbonImmutable::now()->subDays(2));
 
         return DeviceAuthorization::query()->where('expires_at', '<', now()->subDay())->delete();
+    }
+
+    /** Read bell notices older than this are deleted (#5734); unread ones stay until read. */
+    public const NOTIFICATION_KEEP_DAYS = 90;
+
+    /** Read bell notices created more than {@see self::NOTIFICATION_KEEP_DAYS} days ago. */
+    public static function pruneReadNotifications(): int
+    {
+        return DB::table('notifications')
+            ->whereNotNull('read_at')
+            ->where('created_at', '<', now()->subDays(self::NOTIFICATION_KEEP_DAYS))
+            ->delete();
     }
 
     /** Live statuses the app stopped updating a day ago (game closed without saying so). */

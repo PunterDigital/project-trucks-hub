@@ -14,6 +14,7 @@ use App\Support\Period;
 use App\Support\Stats;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -39,11 +40,12 @@ class HomeController extends Controller
             'canRegister' => Features::enabled(Features::registration()),
             'steamEnabled' => SteamController::enabled(),
             // Closures, so a partial reload (the auto-refresh, #5731) skips what it didn't ask for.
-            'totals' => fn () => [
+            // The same for everyone: at most one all-time scan a minute site-wide (#5734).
+            'totals' => fn () => Cache::remember('home.totals', Leaderboard::CACHE_SECONDS, fn () => [
                 ...Stats::totals(Delivery::query()),
                 'drivers' => User::query()->count(),
                 'companies' => Company::query()->count(),
-            ],
+            ]),
             'onTheRoad' => fn () => Feed::onTheRoad($viewer, 8),
             'feed' => $feed,
             // Tabs only for a signed-in driver; My company only with a company.
